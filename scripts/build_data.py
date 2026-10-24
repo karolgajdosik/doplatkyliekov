@@ -6,10 +6,13 @@ Použitie:
   python scripts/build_data.py cesta/k/suboru.xlsx   # použije lokálny súbor
 """
 import datetime as dt
+import http.client
 import io
 import json
 import re
 import sys
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -22,10 +25,11 @@ MIN_ITEMS = 1000  # ochrana pred poškodeným súborom
 
 
 def candidates(today):
-    """Najprv budúci mesiac (zoznam vychádza vopred), potom aktuálny a predchádzajúce."""
+    """Zoznam platný v aktuálnom mesiaci, pri jeho nedostupnosti predchádzajúce.
+    Budúci mesiac neberieme: jeho doplatky ešte v lekárňach neplatia."""
     y, m = today.year, today.month
     months = []
-    for delta in (1, 0, -1, -2):
+    for delta in (0, -1, -2):
         mm = m + delta
         yy = y + (mm - 1) // 12
         mm = (mm - 1) % 12 + 1
@@ -33,19 +37,58 @@ def candidates(today):
     return months
 
 
+UA = {"User-Agent": "doplatkyliekov.sk data updater"}
+
+
+def fetch(url, attempts=12):
+    """Stiahne súbor. Server MZ SR často preruší spojenie uprostred prenosu,
+    preto pri prerušení pokračujeme od prijatého bajtu (HTTP Range) a skúšame znova."""
+    data = b""
+    total = None
+    for attempt in range(1, attempts + 1):
+        headers = dict(UA)
+        if data:
+            headers["Range"] = f"bytes={len(data)}-"
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60) as r:
+                if data and r.status != 206:  # server ignoroval Range, začíname odznova
+                    data = b""
+                if total is None or r.status == 200:
+                    cl = r.headers.get("Content-Length")
+                    total = (len(data) + int(cl)) if cl else None
+                try:
+                    data += r.read()
+                except http.client.IncompleteRead as e:
+                    data += e.partial
+                    print(f"  pokus {attempt}: prerušené pri {len(data)} B, pokračujem")
+                    time.sleep(2)
+                    continue
+            if total is None or len(data) >= total:
+                return data
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise
+            print(f"  pokus {attempt}: HTTP {e.code}")
+            time.sleep(3)
+        except Exception as e:  # noqa: BLE001
+            print(f"  pokus {attempt}: {e}")
+            time.sleep(3)
+    raise RuntimeError(f"nepodarilo sa stiahnuť celý súbor ({len(data)} B z {total})")
+
+
 def download():
     for y, m in candidates(dt.date.today()):
         url = URL.format(y=y, m=m)
+        print(f"Sťahujem: {url}")
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "doplatkyliekov.sk data updater"})
-            with urllib.request.urlopen(req, timeout=60) as r:
-                data = r.read()
-            if data[:2] == b"PK":  # xlsx je zip
-                print(f"Stiahnuté: {url}")
-                return data, f"1. {m}. {y}", f"{y}-{m:02d}-01"
-            print(f"Nie je xlsx: {url}")
+            data = fetch(url)
         except Exception as e:  # noqa: BLE001
             print(f"Nedostupné: {url} ({e})")
+            continue
+        if data[:2] == b"PK":  # xlsx je zip
+            print(f"Stiahnuté: {len(data)} B")
+            return data, f"1. {m}. {y}", f"{y}-{m:02d}-01"
+        print(f"Nie je xlsx: {url}")
     sys.exit("Nepodarilo sa stiahnuť žiadny zoznam.")
 
 
