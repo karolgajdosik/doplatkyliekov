@@ -1,0 +1,23 @@
+name: Stiahnuť prílohy (jednorazovo)
+on:
+  push:
+    branches: [raw-fetch]
+    paths: [scripts/fetch_raw.py, .github/workflows/fetch-raw.yml]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install openpyxl==3.1.5
+      - run: python scripts/fetch_raw.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f raw
+          git commit -m "Prílohy zoznamu liekov na preskúmanie"
+          git push
