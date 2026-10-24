@@ -1,13 +1,20 @@
-"""Vygeneruje statické podstránky pre Google zo site/data.json.
+"""Vygeneruje statické podstránky webu doplatkyliekov.sk z dát v priečinku data/.
 
-- /liek/<slug>/      stránka pre každé balenie lieku s lacnejšími alternatívami
-- /latka/<slug>/     prehľad všetkých síl a balení jednej účinnej látky
-- /lieky/            abecedný zoznam účinných látok
+- /liek/<slug>/        každé balenie lieku: doplatok, alternatívy, história, zmena v budúcom mesiaci,
+                       kto predpisuje, indikačné obmedzenia, výrobca, výpadky, ochranný limit
+- /latka/<slug>/       všetky sily a balenia jednej účinnej látky
+- /skupina/<atc>/      lieky podľa ATC skupiny (napr. „Betablokátory“)
+- /skupiny/            prehľad ATC skupín
+- /lieky/              abecedný zoznam účinných látok
+- /zmeny/              zmeny doplatkov od budúceho mesiaca
+- /vypadky/            lieky s hláseným prerušením dodávok
+- /ochranny-limit/     vysvetlenie a kalkulačka ochranného limitu
 - /404.html, /sitemap.xml, /assets/style.css
 
 Používa iba štandardnú knižnicu Pythonu, takže beží aj ako build príkaz v Cloudflare Pages:
   python3 scripts/build_pages.py
 """
+import datetime as dt
 import html
 import json
 import re
@@ -18,8 +25,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
+DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["liek", "latka", "lieky", "assets"]
+GENERATED = ["liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets"]
+SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
+           "vyhladavanie-liekov-zdravotnickych-pomocok-a-zmien-v-liekovej-databaze?page_id=235")
+SUKL_VYPADKY = "https://portal.sukl.sk/PreruseniePublic/?act=PrerusenieOznList"
+MESIACE = ["jan", "feb", "mar", "apr", "máj", "jún", "júl", "aug", "sep", "okt", "nov", "dec"]
+MESIACE_GEN = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra",
+               "októbra", "novembra", "decembra"]
 
 
 # ---------- pomocné funkcie ----------
@@ -66,12 +80,31 @@ def short_pack(pack):
     return re.sub(r"\s*\(.*$", "", pack or "").strip()
 
 
-def plural_lieky(n):
+def plural(n, one, few, many):
     if n == 1:
-        return "1 liek"
+        return f"1 {one}"
     if 2 <= n <= 4:
-        return f"{n} lieky"
-    return f"{n} liekov"
+        return f"{n} {few}"
+    return f"{n} {many}"
+
+
+def plural_lieky(n):
+    return plural(n, "liek", "lieky", "liekov")
+
+
+def sk_date(iso):
+    y, m, d = (int(x) for x in iso[:10].split("-"))
+    return f"{d}. {m}. {y}"
+
+
+def sk_date_long(iso):
+    y, m, d = (int(x) for x in iso[:10].split("-"))
+    return f"{d}. {MESIACE_GEN[m - 1]} {y}"
+
+
+def load(name, default=None):
+    p = DATA / name
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else default
 
 
 # ---------- šablóny ----------
@@ -93,7 +126,8 @@ a { color: var(--accent); }
 .crumbs span[aria-hidden] { opacity: .6; }
 .brand-link { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
 .page-h1 { font-size: clamp(28px, 5.5vw, 40px); line-height: 1.1; font-weight: 700; }
-.page-sub { color: var(--muted); }
+.page-sub { color: var(--muted); max-width: 62ch; }
+.intro { display: grid; gap: 8px; }
 .row-name a { color: var(--ink); text-decoration: none; }
 .row-name a:hover { color: var(--accent); text-decoration: underline; }
 .row { cursor: default; }
@@ -104,13 +138,51 @@ a { color: var(--accent); }
 .prices b.dop { color: var(--save); }
 .cta { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; color: var(--accent); }
 .cta:hover { text-decoration: underline; }
+.purpose { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+.purpose a { text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; color: var(--ink); background: var(--surface); }
+.purpose a:hover { border-color: var(--accent); color: var(--accent); }
+.alert { display: grid; gap: 4px; padding: 14px 16px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); border-left: 4px solid var(--muted); }
+.alert strong { font-family: var(--font-display); font-size: 17px; font-weight: 600; }
+.alert p { font-size: 15px; color: var(--muted); }
+.alert.warn { border-left-color: var(--save); background: var(--save-soft); }
+.alert.warn strong { color: var(--save); }
+.alert.good { border-left-color: var(--accent); background: var(--accent-soft); }
+.alert.good strong { color: var(--accent); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 12px; min-width: 0; }
+.card h2 { font-size: 20px; font-weight: 600; }
+.card .hint { font-size: 13px; color: var(--muted); }
+.facts-dl { display: grid; grid-template-columns: minmax(0, 13em) minmax(0, 1fr); gap: 10px 16px; margin: 0; }
+.facts-dl dt { color: var(--muted); font-size: 14px; }
+.facts-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.facts-dl dd small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+details.io { border-top: 1px solid var(--line); padding-top: 10px; }
+details.io summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+details.io p { white-space: pre-line; font-size: 14px; margin-top: 8px; color: var(--ink); }
+details.io .code { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.chart .area { fill: var(--accent-soft); }
+.chart .dot { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+.chart .dot.end { fill: var(--accent); }
+.chart .next { fill: none; stroke: var(--save); stroke-width: 2.5; stroke-dasharray: 5 5; }
+.chart .dot.nx { fill: var(--save); stroke: var(--save); }
+.chart .val { fill: var(--ink); font-weight: 500; }
+.stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; font-size: 14px; }
+.stats3 div { display: grid; gap: 2px; }
+.stats3 span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.stats3 b { font-family: var(--font-mono); font-weight: 500; }
 .glist { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .glist li { background: var(--surface); padding: 14px 16px; display: grid; gap: 6px; }
 .glist h3 { font-size: 17px; font-weight: 600; }
 .glist .gline { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; font-size: 14px; }
 .glist .gline a { min-width: 0; overflow-wrap: anywhere; }
 .glist .gline .mono { white-space: nowrap; }
+.glist .gline small { grid-column: 1 / -1; color: var(--muted); }
 .glist .save { color: var(--save); font-weight: 600; font-size: 13px; }
+.glist .up { color: var(--save); }
+.glist .down { color: var(--accent); }
 .az { display: flex; flex-wrap: wrap; gap: 6px; }
 .az a { font-family: var(--font-mono); padding: 4px 9px; border: 1px solid var(--line); border-radius: 6px; text-decoration: none; color: var(--ink); }
 .az a:hover { border-color: var(--accent); color: var(--accent); }
@@ -119,19 +191,41 @@ a { color: var(--accent); }
 .cols { columns: 2 220px; column-gap: 24px; margin: 0; padding: 0; list-style: none; }
 .cols li { break-inside: avoid; padding: 3px 0; }
 .cols small { color: var(--muted); }
-@media (max-width: 600px) { .prices { grid-template-columns: 1fr; } .prices div { padding-left: 16px; padding-right: 16px; } }
+.ltable { width: 100%; border-collapse: collapse; font-size: 15px; }
+.ltable th, .ltable td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ltable th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.ltable td.num { font-family: var(--font-mono); white-space: nowrap; }
+.scroll { overflow-x: auto; }
+.calc { display: grid; gap: 14px; }
+.calc label { display: grid; gap: 6px; font-weight: 600; font-size: 15px; }
+.calc select, .calc input { font: inherit; font-weight: 400; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; width: 100%; max-width: 420px; }
+.calc select:focus-visible, .calc input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.calc .result { padding: 14px 16px; border-radius: var(--r); background: var(--accent-soft); font-size: 16px; }
+.calc .result b { font-family: var(--font-mono); color: var(--accent); }
+.prose { display: grid; gap: 12px; max-width: 65ch; }
+.prose h2 { font-size: 22px; font-weight: 600; margin-top: 8px; }
+.prose ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+@media (max-width: 600px) {
+  .prices { grid-template-columns: 1fr; } .prices div { padding-left: 16px; padding-right: 16px; }
+  .facts-dl { grid-template-columns: 1fr; gap: 2px 0; } .facts-dl dd { margin-bottom: 10px; }
+  .card { padding: 16px; }
+  .stats3 { grid-template-columns: 1fr 1fr; }
+}
 """
 
 
 def extract_css():
-    page = (SITE / "index.html").read_text(encoding="utf-8")
-    m = re.search(r"<style>(.*?)</style>", page, re.S)
+    page_html = (SITE / "index.html").read_text(encoding="utf-8")
+    m = re.search(r"<style>(.*?)</style>", page_html, re.S)
     if not m:
         raise SystemExit("V site/index.html chýba <style>.")
     return m.group(1) + EXTRA_CSS
 
 
-def page(title, description, path, body, jsonld=None):
+PLATNOST = ""
+
+
+def page(title, description, path, body, jsonld=None, script=""):
     url = BASE + path
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
     return f"""<!doctype html>
@@ -161,11 +255,12 @@ def page(title, description, path, body, jsonld=None):
   </header>
 {body}
   <footer>
-    <p><a href="/">Vyhľadať liek</a> · <a href="/lieky/">Zoznam účinných látok</a></p>
-    <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {esc(PLATNOST)}. Ceny sú v eurách s DPH.</p>
+    <p><a href="/">Vyhľadať liek</a> · <a href="/skupiny/">Lieky podľa skupín</a> · <a href="/lieky/">Účinné látky</a> · <a href="/zmeny/">Zmeny doplatkov</a> · <a href="/vypadky/">Výpadky</a> · <a href="/ochranny-limit/">Ochranný limit</a></p>
+    <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {esc(PLATNOST)}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
   </footer>
 </div>
+{script}
 </body>
 </html>
 """
@@ -173,10 +268,10 @@ def page(title, description, path, body, jsonld=None):
 
 def crumbs(items):
     parts = []
-    for i, (label, href) in enumerate(items):
+    for i, (lbl, href) in enumerate(items):
         if i:
             parts.append('<span aria-hidden="true">›</span>')
-        parts.append(f'<a href="{esc(href)}">{esc(label)}</a>' if href else f"<span>{esc(label)}</span>")
+        parts.append(f'<a href="{esc(href)}">{esc(lbl)}</a>' if href else f"<span>{esc(lbl)}</span>")
     return f'  <nav class="crumbs" aria-label="Navigácia">{"".join(parts)}</nav>'
 
 
@@ -185,8 +280,8 @@ def breadcrumb_ld(items):
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
-            {"@type": "ListItem", "position": i + 1, "name": label, **({"item": BASE + href} if href else {})}
-            for i, (label, href) in enumerate(items)
+            {"@type": "ListItem", "position": i + 1, "name": lbl, **({"item": BASE + href} if href else {})}
+            for i, (lbl, href) in enumerate(items)
         ],
     }
 
@@ -204,39 +299,120 @@ NOTES = """
   </section>"""
 
 
+def write(path, content):
+    out = SITE / path.strip("/")
+    if path.endswith("/"):
+        out.mkdir(parents=True, exist_ok=True)
+        out = out / "index.html"
+    else:
+        out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(content, encoding="utf-8")
+
+
+# ---------- graf histórie ----------
+
+def history_chart(points, next_point=None):
+    """points: [(iso, dop)], next_point: (iso, dop) alebo None. Vráti inline SVG."""
+    if len(points) < 2:
+        return ""
+    allp = points + ([next_point] if next_point else [])
+    W, H, L, R, T, B = 640, 200, 44, 16, 14, 28
+    n = len(allp)
+    vmax = max(v for _, v in allp)
+    top = max(1.0, vmax * 1.15)
+    step = 5 if top <= 25 else 10 if top <= 60 else 50 if top <= 300 else 100 if top <= 600 else 500
+    top = (int(top / step) + 1) * step if top % step else top
+
+    def x(i):
+        return L + (W - L - R) * (i / (n - 1))
+
+    def y(v):
+        return T + (H - T - B) * (1 - v / top)
+
+    parts = [f'<svg class="chart" viewBox="0 0 {W} {H}" role="img" aria-label="Vývoj doplatku">']
+    ticks = 4
+    for k in range(ticks + 1):
+        v = top * k / ticks
+        yy = y(v)
+        parts.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{yy:.1f}" y2="{yy:.1f}"/>')
+        parts.append(f'<text x="{L - 6}" y="{yy + 4:.1f}" text-anchor="end">{v:.0f} €</text>')
+    xs = [x(i) for i in range(len(points))]
+    ys = [y(v) for _, v in points]
+    line = " ".join(f"{a:.1f},{b:.1f}" for a, b in zip(xs, ys))
+    area = f"{xs[0]:.1f},{y(0):.1f} " + line + f" {xs[-1]:.1f},{y(0):.1f}"
+    parts.append(f'<polygon class="area" points="{area}"/>')
+    parts.append(f'<polyline class="line" points="{line}"/>')
+    # popisy osi x: prvý, posledný a každý január
+    for i, (iso, _) in enumerate(allp):
+        yr, mo = int(iso[:4]), int(iso[5:7])
+        if i == 0 or i == n - 1 or mo == 1:
+            anchor = "start" if i == 0 else "end" if i == n - 1 else "middle"
+            parts.append(f'<text x="{x(i):.1f}" y="{H - 8}" text-anchor="{anchor}">{MESIACE[mo - 1]} {yr}</text>')
+    for i, (a, b) in enumerate(zip(xs, ys)):
+        if i == len(xs) - 1:
+            parts.append(f'<circle class="dot end" cx="{a:.1f}" cy="{b:.1f}" r="4.5"/>')
+    if next_point:
+        nx, ny = x(n - 1), y(next_point[1])
+        parts.append(f'<polyline class="next" points="{xs[-1]:.1f},{ys[-1]:.1f} {nx:.1f},{ny:.1f}"/>')
+        parts.append(f'<circle class="dot nx" cx="{nx:.1f}" cy="{ny:.1f}" r="4.5"/>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
 # ---------- generovanie ----------
 
 def build():
     global PLATNOST
-    data = json.loads((SITE / "data.json").read_text(encoding="utf-8"))
-    PLATNOST = data.get("platnost", "")
-    lastmod = data.get("platnostIso") or None
-    groups = data["groups"]
+    full = load("full.json")
+    if full is None:  # záložný režim: len základné dáta
+        lean = json.loads((SITE / "data.json").read_text(encoding="utf-8"))
+        full = {"platnost": lean["platnost"], "platnostIso": lean.get("platnostIso"), "groups": [
+            {"a": g["a"], "s": g["s"], "f": g["f"], "i": [
+                {"kod": i[0], "name": i[1], "pack": i[2], "konc": i[3], "uzp": i[4], "dop": i[5], "typ": i[6]}
+                for i in g["i"]]} for g in lean["groups"]]}
+    ref = load("ref.json", {}) or {}
+    nxt = load("next.json")
+    vyp_all = load("vypadky.json", {}) or {}
+    vyp = vyp_all.get("lieky", {})
+    PLATNOST = full.get("platnost", "")
+    cur_iso = full.get("platnostIso") or ""
+    lastmod = cur_iso or None
+    groups = full["groups"]
+    atc_names = ref.get("atc", {})
+    drz_names = ref.get("drz", {})
+    staty = ref.get("staty", {})
+    odb = ref.get("odbornosti", {})
+    io_texts = ref.get("io", {})
+    io_kod = ref.get("io_kod", {})
+
+    # história cien
+    hist_files = sorted((DATA / "history").glob("*.json")) if (DATA / "history").exists() else []
+    history = []  # [(iso, {kod: [konc, uzp, dop]})]
+    for f in hist_files:
+        history.append((f.stem + "-01", json.loads(f.read_text(encoding="utf-8"))))
+    history = [h for h in history if not cur_iso or h[0] <= cur_iso]
 
     for d in GENERATED:
         shutil.rmtree(SITE / d, ignore_errors=True)
     (SITE / "assets").mkdir(parents=True)
     (SITE / "assets" / "style.css").write_text(extract_css(), encoding="utf-8")
 
-    # produkty a látky
+    # produkty, látky, skupiny
     by_subst = defaultdict(list)
-    products = []  # (group, item, slug)
+    products = []
     used = set()
     for g in groups:
-        g["items"] = []
-        for it in g["i"]:
-            kod, name, pack, konc, uzp, dop, typ = it[:7]
-            slug = product_slug(name, kod)
-            n = 2
-            base = slug
+        for p in g["i"]:
+            slug = product_slug(p["name"], p["kod"])
+            base, n = slug, 2
             while slug in used:
                 slug = f"{base}-{n}"
                 n += 1
             used.add(slug)
-            p = {"kod": kod, "name": name, "pack": pack, "konc": konc, "uzp": uzp, "dop": dop, "typ": typ, "slug": slug}
-            g["items"].append(p)
+            p["slug"] = slug
             products.append((g, p))
         by_subst[g["s"]].append(g)
+    by_kod = {p["kod"]: (g, p) for g, p in products}
 
     subst_slug = {}
     for s in by_subst:
@@ -245,17 +421,52 @@ def build():
             sl += "-x"
         subst_slug[s] = sl
 
-    urls = [("/", "1.0"), ("/lieky/", "0.6")]
+    def atc_chain(code):
+        """[(kód, názov)] pre ATC úroveň 1 a 2, ktoré máme v číselníku."""
+        out = []
+        for k in (code[:1], code[:3]):
+            if k in atc_names:
+                out.append((k, atc_names[k]))
+        return out
+
+    urls = [("/", "1.0"), ("/lieky/", "0.6"), ("/skupiny/", "0.6"), ("/zmeny/", "0.7"),
+            ("/vypadky/", "0.7"), ("/ochranny-limit/", "0.7")]
+
+    def sorted_items(g):
+        return sorted([x for x in g["i"] if x["dop"] is not None], key=lambda x: (x["dop"], norm(x["name"])))
+
+    def next_change(p):
+        if not nxt:
+            return None
+        np_ = nxt["prices"].get(p["kod"])
+        if np_ is None:
+            return {"gone": True}
+        return {"gone": False, "konc": np_[0], "uzp": np_[1], "dop": np_[2],
+                "diff": None if (np_[2] is None or p["dop"] is None) else round(np_[2] - p["dop"], 2)}
+
+    def vyp_text(state):
+        if not state:
+            return None
+        s, od = state["stav"], sk_date(state["od"])
+        return {"R": ("Prerušené dodávky", f"Držiteľ registrácie ohlásil prerušenie dodávok od {od}. Liek môže byť v lekárňach nedostupný."),
+                "Z": ("Ukončené dodávky", f"Držiteľ registrácie ohlásil ukončenie dodávok od {od}."),
+                "PR": ("Ohlásené prerušenie dodávok", f"Držiteľ registrácie ohlásil prerušenie dodávok od {od}."),
+                "PZ": ("Ohlásené ukončenie dodávok", f"Držiteľ registrácie ohlásil ukončenie dodávok od {od}.")}.get(s)
 
     # --- stránky liekov ---
     for g, p in products:
-        items = sorted([x for x in g["items"] if x["dop"] is not None], key=lambda x: (x["dop"], norm(x["name"])))
+        items = sorted_items(g)
         cheapest = items[0] if items else None
+        available = [x for x in items if vyp.get(x["kod"], {}).get("stav") not in ("R", "Z")]
         max_dop = max([x["dop"] for x in items] + [0.01])
         saving = (p["dop"] - cheapest["dop"]) if (cheapest and p["dop"] is not None) else 0
         s_url = f"/latka/{subst_slug[g['s']]}/"
         path = f"/liek/{p['slug']}/"
         pk = short_pack(p["pack"])
+        chain = atc_chain(g["a"])
+        change = next_change(p)
+        vstate = vyp.get(p["kod"])
+        vt = vyp_text(vstate)
 
         if saving > 0.005:
             desc = (f"Doplatok za {p['name']} ({pk}) je {eur(p['dop'])}. Lacnejšia alternatíva s rovnakou látkou: "
@@ -274,6 +485,8 @@ def build():
                     f"poisťovňa hradí {eur(p['uzp'])}. Účinná látka: {g['s']}.")
             verdict = (f'<div class="verdict none"><p><strong>{esc(p["name"])}</strong> nemá v zozname inú verziu '
                        f's rovnakou látkou, silou a balením. Pozrite si <a href="{s_url}">iné sily a balenia látky {esc(g["s"])}</a>.</p></div>')
+        if chain:
+            desc += f" Skupina: {chain[-1][1]}."
 
         rows = []
         for x in items:
@@ -286,6 +499,8 @@ def build():
                 tags.append('<span class="tag best">Najnižší</span>')
             elif x["dop"] == 0:
                 tags.append('<span class="tag zero">Bez doplatku</span>')
+            if vyp.get(x["kod"], {}).get("stav") in ("R", "Z"):
+                tags.append('<span class="tag">Výpadok</span>')
             name = esc(x["name"]) if x is p else f'<a href="/liek/{esc(x["slug"])}/">{esc(x["name"])}</a>'
             width = round(x["dop"] / max_dop * 100, 1)
             rows.append(
@@ -294,13 +509,152 @@ def build():
                 f'<div class="row-sub">cena {eur(x["konc"])}</div>'
                 f'<div class="track"><i style="width:{width}%"></i></div></li>')
 
-        crumb_items = [("Domov", "/"), (g["s"], s_url), (p["name"], None)]
+        # upozornenia
+        alerts = []
+        if vt:
+            extra = ""
+            alts = [x for x in available if x is not p]
+            if alts:
+                a0 = alts[0]
+                extra = (f' Dostupná alternatíva s rovnakou látkou: <a href="/liek/{esc(a0["slug"])}/">{esc(a0["name"])}</a> '
+                         f'(doplatok {eur(a0["dop"])}).')
+            alerts.append(f'<div class="alert warn"><strong>{vt[0]}</strong><p>{esc(vt[1])}{extra} '
+                          f'Zdroj: <a href="{SUKL_VYPADKY}" rel="nofollow">hlásenia ŠÚKL</a>.</p></div>')
+        if change and nxt:
+            nd = sk_date_long(nxt["platnostIso"])
+            if change["gone"]:
+                alerts.append(f'<div class="alert warn"><strong>Od {nd} liek v zozname hradených liekov nie je</strong>'
+                              f'<p>Poisťovňa ho od tohto dátumu nemusí hradiť. Poraďte sa s lekárom o náhrade.</p></div>')
+            elif change["diff"] is not None and abs(change["diff"]) >= 0.01:
+                up = change["diff"] > 0
+                alerts.append(f'<div class="alert {"warn" if up else "good"}"><strong>Od {nd} doplatok '
+                              f'{"stúpne" if up else "klesne"} na {eur(change["dop"])}</strong>'
+                              f'<p>Dnes {eur(p["dop"])}, {"o " + eur(abs(change["diff"])) + (" viac" if up else " menej")} na balení. '
+                              f'Údaj je z nového zoznamu ministerstva, ktorý už bol zverejnený.</p></div>')
+        alerts_html = "\n    ".join(alerts)
+
+        # história
+        points = []
+        for iso, prices in history:
+            v = prices.get(p["kod"])
+            if v and v[2] is not None:
+                points.append((iso, v[2]))
+        next_point = None
+        if change and not change["gone"] and change["dop"] is not None and nxt:
+            next_point = (nxt["platnostIso"], change["dop"])
+        chart = history_chart(points, next_point)
+        hist_html = ""
+        if chart:
+            vals = [v for _, v in points]
+            first_iso = points[0][0]
+            hist_html = f"""
+  <section class="card">
+    <h2>Vývoj doplatku</h2>
+    {chart}
+    <div class="stats3">
+      <div><span>Najnižší</span><b>{eur(min(vals))}</b></div>
+      <div><span>Najvyšší</span><b>{eur(max(vals))}</b></div>
+      <div><span>Od {MESIACE[int(first_iso[5:7]) - 1]} {first_iso[:4]}</span><b>{eur(vals[0])} → {eur(vals[-1])}</b></div>
+    </div>
+    <p class="hint">Maximálny doplatok podľa mesačných zoznamov ministerstva{', prerušovaná čiara ukazuje doplatok od ' + sk_date(nxt['platnostIso']) if next_point else ''}.</p>
+  </section>"""
+
+        # predpis a úhrada
+        facts = []
+        po = p.get("po") or []
+        if po:
+            names = [odb.get(c, c) for c in po]
+            facts.append(("Kto môže predpísať", "Len lekár so špecializáciou: " + ", ".join(names) +
+                          "<small>Preskripčné obmedzenie podľa zoznamu ministerstva. Všeobecný lekár ho môže predpísať "
+                          "spravidla len na odporúčanie špecialistu.</small>"))
+        elif "kod" in p and "po" in p:
+            facts.append(("Kto môže predpísať", "Ktorýkoľvek lekár, aj všeobecný<small>Liek nemá preskripčné obmedzenie.</small>"))
+        io_flag = p.get("io", "")
+        if io_flag:
+            zp = "ZP" in io_flag
+            facts.append(("Indikačné obmedzenie", "Áno, poisťovňa ho hradí len pri určených ochoreniach" +
+                          ("<small>Úhrada navyše vyžaduje predchádzajúci súhlas zdravotnej poisťovne.</small>" if zp else
+                           "<small>Podmienky úhrady nájdete nižšie.</small>")))
+        if p.get("gp"):
+            facts.append(("Predpis", "Lekár predpisuje názvom účinnej látky<small>V lekárni si tak môžete vybrať "
+                          "ktorýkoľvek liek s touto látkou, napríklad ten s najnižším doplatkom.</small>"))
+        if p.get("olpl"):
+            facts.append(("Osobitný recept", "Predpisuje sa na recept so šikmým modrým pruhom"
+                          "<small>Liek obsahuje omamnú alebo psychotropnú látku.</small>"))
+        su = p.get("su", "")
+        if su in ("A", "AS"):
+            facts.append(("Spôsob úhrady", "Liek podáva lekár, poisťovňa ho uhrádza priamo zdravotníckemu zariadeniu"
+                          + ("" if su == "A" else "<small>Čiastočne uhrádzaný.</small>")))
+        elif su == "V":
+            facts.append(("Spôsob úhrady", "Vakcína na povinné alebo odporúčané očkovanie"))
+        elif su == "I":
+            facts.append(("Spôsob úhrady", "Plne uhrádzaný poisťovňou"))
+        if p.get("pdop") is not None:
+            facts.append(("Ochranný limit", f"Do limitu sa započíta {eur(p['pdop'])}"
+                          f'<small>Prepočítaný doplatok za najlacnejší náhradný liek podľa zoznamu ministerstva. <a href="/ochranny-limit/">Ako funguje ochranný limit</a></small>'))
+        if p.get("podm"):
+            facts.append(("Kategorizácia", f"Podmienená od {esc(p['podm'])}"))
+        elif p.get("docas"):
+            facts.append(("Kategorizácia", f"Dočasná od {esc(p['docas'])}"))
+
+        io_html = ""
+        codes = io_kod.get(p["kod"], [])
+        if io_flag and codes:
+            blocks = "".join(
+                f'<details class="io"><summary>Podmienka úhrady {i + 1}</summary><p>{esc(io_texts.get(c, ""))}</p>'
+                f'<span class="code">Kód {esc(c)}</span></details>'
+                for i, c in enumerate(codes[:12]) if io_texts.get(c))
+            if blocks:
+                io_html = blocks
+
+        presc_html = ""
+        if facts or io_html:
+            dl = "".join(f"<dt>{esc(k)}</dt><dd>{v}</dd>" for k, v in facts)
+            presc_html = f"""
+  <section class="card">
+    <h2>Predpis a úhrada</h2>
+    <dl class="facts-dl">{dl}</dl>
+    {io_html}
+  </section>"""
+
+        about = []
+        about.append(("Účinná látka", f'<a href="{s_url}">{esc(g["s"])}</a>, {esc(g["f"])}'))
+        if chain:
+            about.append(("Skupina liečiv", " › ".join(f'<a href="/skupina/{esc(k.lower())}/">{esc(v)}</a>' for k, v in chain)))
+        about.append(("Typ", type_label(p["typ"]) or "Liek"))
+        if p.get("drz"):
+            nm = drz_names.get(p["drz"], p["drz"])
+            st = staty.get(p.get("stat", ""), p.get("stat", ""))
+            about.append(("Držiteľ registrácie", esc(nm) + (f"<small>{esc(st)}</small>" if st else "")))
+        if p.get("sdl"):
+            about.append(("Dávok v balení", f'{p["sdl"]:g}'))
+        about.append(("Kód ŠÚKL", f'<span class="mono">{esc(p["kod"])}</span>'))
+        about.append(("ATC kód", f'<span class="mono">{esc(g["a"])}</span>'))
+        about.append(("Príbalový leták", f'<a href="{SUKL_DB}" rel="nofollow">Databáza liekov ŠÚKL</a>'
+                      f'<small>Vyhľadajte kód {esc(p["kod"])} alebo názov lieku.</small>'))
+        about_html = f"""
+  <section class="card">
+    <h2>O lieku</h2>
+    <dl class="facts-dl">{"".join(f"<dt>{esc(k)}</dt><dd>{v}</dd>" for k, v in about)}</dl>
+  </section>"""
+
+        purpose = ""
+        if chain:
+            purpose = ('<div class="purpose"><span class="eyebrow">Na čo je</span>' +
+                       "".join(f'<a href="/skupina/{esc(k.lower())}/">{esc(v)}</a>' for k, v in chain) + "</div>")
+
+        crumb_items = [("Domov", "/")]
+        if chain:
+            crumb_items.append((chain[-1][1], f"/skupina/{chain[-1][0].lower()}/"))
+        crumb_items += [(g["s"], s_url), (p["name"], None)]
         body = f"""{crumbs(crumb_items)}
-  <section style="display:grid;gap:8px">
+  <section class="intro">
     <p class="eyebrow">Doplatok za liek</p>
     <h1 class="page-h1">{esc(p['name'])}</h1>
     <p class="page-sub">{esc(p['pack'])}</p>
+    {purpose}
   </section>
+    {alerts_html}
   <section class="slip">
     <div class="slip-head">
       <p class="eyebrow">Účinná látka</p>
@@ -316,12 +670,13 @@ def build():
     <ul class="rows">{''.join(rows)}</ul>
     <p class="slip-foot">Porovnanie liekov s rovnakou účinnou látkou, silou a veľkosťou balenia ({plural_lieky(len(items))}). Doplatok je maximálna suma v lekárni.</p>
   </section>
+{hist_html}
+{presc_html}
+{about_html}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
         title = f"{p['name']} ({pk}) – doplatok a lacnejšie alternatívy"
-        out = SITE / path.strip("/")
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "index.html").write_text(page(title, desc, path, body, breadcrumb_ld(crumb_items)), encoding="utf-8")
+        write(path, page(title, desc, path, body, breadcrumb_ld(crumb_items)))
         urls.append((path, "0.8"))
 
     # --- stránky látok ---
@@ -331,37 +686,106 @@ def build():
         best_saving = 0
         lis = []
         for g in gs_sorted:
-            items = sorted([x for x in g["items"] if x["dop"] is not None], key=lambda x: (x["dop"], norm(x["name"])))
+            items = sorted_items(g)
             if not items:
                 continue
-            lo, hi = items[0], items[-1]
-            gap = hi["dop"] - lo["dop"]
+            gap = items[-1]["dop"] - items[0]["dop"]
             best_saving = max(best_saving, gap)
             lines = "".join(
                 f'<div class="gline"><a href="/liek/{esc(x["slug"])}/">{esc(x["name"])}</a><span class="mono">{eur(x["dop"])}</span></div>'
                 for x in items)
             save = (f'<p class="save">Rozdiel v doplatku až {eur(gap)} na balení</p>' if gap > 0.005 else "")
             lis.append(f'<li><h3>{esc(g["f"])}</h3>{save}{lines}</li>')
-        n_items = sum(len(g["items"]) for g in gs)
+        n_items = sum(len(g["i"]) for g in gs)
+        chain = atc_chain(gs[0]["a"])
         desc = (f"Doplatky za lieky s účinnou látkou {s}: {plural_lieky(n_items)} v {len(gs)} "
                 f"{'sile a balení' if len(gs) == 1 else 'silách a baleniach'}."
-                + (f" Pri výbere lacnejšej verzie ušetríte až {eur(best_saving)} na balení." if best_saving > 0.005 else ""))
-        crumb_items = [("Domov", "/"), ("Účinné látky", "/lieky/"), (s, None)]
+                + (f" Pri výbere lacnejšej verzie ušetríte až {eur(best_saving)} na balení." if best_saving > 0.005 else "")
+                + (f" Skupina: {chain[-1][1]}." if chain else ""))
+        crumb_items = [("Domov", "/")]
+        if chain:
+            crumb_items.append((chain[-1][1], f"/skupina/{chain[-1][0].lower()}/"))
+        else:
+            crumb_items.append(("Účinné látky", "/lieky/"))
+        crumb_items.append((s, None))
+        purpose = ""
+        if chain:
+            purpose = ('<div class="purpose"><span class="eyebrow">Skupina</span>' +
+                       "".join(f'<a href="/skupina/{esc(k.lower())}/">{esc(v)}</a>' for k, v in chain) + "</div>")
         body = f"""{crumbs(crumb_items)}
-  <section style="display:grid;gap:8px">
+  <section class="intro">
     <p class="eyebrow">Účinná látka · ATC {esc(gs[0]['a'])}</p>
     <h1 class="page-h1">{esc(s)}: doplatky za lieky</h1>
     <p class="page-sub">Lieky sú rozdelené podľa sily a veľkosti balenia. V rámci jednej skupiny ich poisťovňa hradí rovnako, líšia sa doplatkom.</p>
+    {purpose}
   </section>
   <ul class="glist">{''.join(lis)}</ul>
 {NOTES}"""
-        title = f"{s} – doplatky za lieky a lacnejšie alternatívy"
-        out = SITE / path.strip("/")
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "index.html").write_text(page(title, desc, path, body, breadcrumb_ld(crumb_items)), encoding="utf-8")
+        write(path, page(f"{s} – doplatky za lieky a lacnejšie alternatívy", desc, path, body, breadcrumb_ld(crumb_items)))
         urls.append((path, "0.7"))
 
-    # --- abecedný zoznam ---
+    # --- ATC skupiny ---
+    subst_by_atc = defaultdict(set)
+    for s, gs in by_subst.items():
+        for g in gs:
+            subst_by_atc[g["a"][:1]].add(s)
+            subst_by_atc[g["a"][:3]].add(s)
+    lvl1 = sorted(k for k in atc_names if len(k) == 1 and subst_by_atc.get(k))
+    for code in sorted(k for k in atc_names if len(k) in (1, 3) and subst_by_atc.get(k)):
+        name = atc_names[code]
+        path = f"/skupina/{code.lower()}/"
+        substs = sorted(subst_by_atc[code], key=norm)
+        crumb_items = [("Domov", "/"), ("Skupiny liekov", "/skupiny/")]
+        if len(code) == 3 and code[:1] in atc_names:
+            crumb_items.append((atc_names[code[:1]], f"/skupina/{code[:1].lower()}/"))
+        crumb_items.append((name, None))
+        sub_html = ""
+        if len(code) == 1:
+            subs = sorted(k for k in atc_names if len(k) == 3 and k.startswith(code) and subst_by_atc.get(k))
+            if subs:
+                sub_html = ('<section class="card"><h2>Podskupiny</h2><ul class="cols">' + "".join(
+                    f'<li><a href="/skupina/{k.lower()}/">{esc(atc_names[k])}</a> <small>{len(subst_by_atc[k])}</small></li>'
+                    for k in subs) + "</ul></section>")
+        lis = []
+        for s in substs:
+            gs = [g for g in by_subst[s] if g["a"].startswith(code)]
+            allit = [x for g in gs for x in g["i"] if x["dop"] is not None]
+            if not allit:
+                continue
+            lo = min(allit, key=lambda x: x["dop"])
+            lis.append(f'<li><div class="gline"><a href="/latka/{esc(subst_slug[s])}/">{esc(s)}</a>'
+                       f'<span class="mono">od {eur(lo["dop"])}</span>'
+                       f'<small>{plural_lieky(len(allit))} · {plural(len(gs), "sila a balenie", "sily a balenia", "síl a balení")}</small></div></li>')
+        n_s = len(substs)
+        desc = (f"{name}: doplatky za lieky hradené poisťovňou. {plural(n_s, 'účinná látka', 'účinné látky', 'účinných látok')} "
+                f"s porovnaním doplatkov a lacnejšími alternatívami.")
+        body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Skupina liečiv · ATC {esc(code)}</p>
+    <h1 class="page-h1">{esc(name)}</h1>
+    <p class="page-sub">{plural(n_s, 'účinná látka', 'účinné látky', 'účinných látok')} hradených poisťovňou. Pri každej je uvedený najnižší doplatok.</p>
+  </section>
+  {sub_html}
+  <ul class="glist">{''.join(lis)}</ul>"""
+        write(path, page(f"{name} – lieky a doplatky", desc, path, body, breadcrumb_ld(crumb_items)))
+        urls.append((path, "0.6"))
+
+    blocks = []
+    for code in lvl1:
+        subs = sorted(k for k in atc_names if len(k) == 3 and k.startswith(code) and subst_by_atc.get(k))
+        lis = "".join(f'<li><a href="/skupina/{k.lower()}/">{esc(atc_names[k])}</a> <small>{len(subst_by_atc[k])}</small></li>' for k in subs)
+        blocks.append(f'<section class="letter"><h2><a href="/skupina/{code.lower()}/">{esc(atc_names[code])}</a></h2><ul class="cols">{lis}</ul></section>')
+    crumb_items = [("Domov", "/"), ("Skupiny liekov", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Anatomicko-terapeuticko-chemická klasifikácia</p>
+    <h1 class="page-h1">Lieky podľa skupín</h1>
+    <p class="page-sub">Lieky hradené poisťovňou rozdelené podľa toho, na čo sa používajú. Číslo udáva počet účinných látok.</p>
+  </section>
+  {''.join(blocks)}"""
+    write("/skupiny/", page("Lieky podľa skupín – doplatky", "Prehľad skupín liekov hradených zdravotnými poisťovňami podľa ATC klasifikácie s doplatkami.", "/skupiny/", body, breadcrumb_ld(crumb_items)))
+
+    # --- abecedný zoznam látok ---
     letters = defaultdict(list)
     for s in sorted(by_subst, key=norm):
         first = norm(s)[:1].upper()
@@ -370,27 +794,186 @@ def build():
     blocks = []
     for k, ss in letters.items():
         lis = "".join(
-            f'<li><a href="/latka/{esc(subst_slug[s])}/">{esc(s)}</a> <small>{sum(len(g["items"]) for g in by_subst[s])}</small></li>'
+            f'<li><a href="/latka/{esc(subst_slug[s])}/">{esc(s)}</a> <small>{sum(len(g["i"]) for g in by_subst[s])}</small></li>'
             for s in ss)
         blocks.append(f'<section class="letter" id="p-{esc(k)}"><h2>{esc(k)}</h2><ul class="cols">{lis}</ul></section>')
     crumb_items = [("Domov", "/"), ("Účinné látky", None)]
     body = f"""{crumbs(crumb_items)}
-  <section style="display:grid;gap:8px">
+  <section class="intro">
     <p class="eyebrow">{len(by_subst)} účinných látok</p>
     <h1 class="page-h1">Zoznam účinných látok</h1>
-    <p class="page-sub">Všetky lieky hradené zdravotnými poisťovňami podľa účinnej látky. Číslo udáva počet balení v zozname.</p>
+    <p class="page-sub">Všetky lieky hradené zdravotnými poisťovňami podľa účinnej látky. Číslo udáva počet balení v zozname. Lieky môžete prehliadať aj <a href="/skupiny/">podľa skupín</a>.</p>
   </section>
   <nav class="az" aria-label="Písmená">{az}</nav>
   {''.join(blocks)}"""
-    (SITE / "lieky").mkdir(exist_ok=True)
-    (SITE / "lieky" / "index.html").write_text(
-        page("Zoznam účinných látok – doplatky za lieky",
-             f"Abecedný zoznam {len(by_subst)} účinných látok liekov hradených poisťovňou s doplatkami a lacnejšími alternatívami.",
-             "/lieky/", body, breadcrumb_ld(crumb_items)),
-        encoding="utf-8")
+    write("/lieky/", page("Zoznam účinných látok – doplatky za lieky",
+                          f"Abecedný zoznam {len(by_subst)} účinných látok liekov hradených poisťovňou s doplatkami a lacnejšími alternatívami.",
+                          "/lieky/", body, breadcrumb_ld(crumb_items)))
+
+    # --- zmeny od budúceho mesiaca ---
+    crumb_items = [("Domov", "/"), ("Zmeny doplatkov", None)]
+    if nxt:
+        nd = sk_date_long(nxt["platnostIso"])
+        ups, downs, gone = [], [], []
+        for g, p in products:
+            c = next_change(p)
+            if not c:
+                continue
+            if c["gone"]:
+                gone.append((g, p))
+            elif c["diff"] is not None and abs(c["diff"]) >= 0.01:
+                (ups if c["diff"] > 0 else downs).append((c["diff"], g, p, c))
+        ups.sort(key=lambda t: -t[0])
+        downs.sort(key=lambda t: t[0])
+        new_kods = [k for k in nxt["prices"] if k not in by_kod]
+
+        def change_list(lst, cls):
+            return "".join(
+                f'<li><div class="gline"><a href="/liek/{esc(p["slug"])}/">{esc(p["name"])}</a>'
+                f'<span class="mono {cls}">{"+" if d > 0 else "−"}{eur(abs(d))}</span>'
+                f'<small>{esc(short_pack(p["pack"]))} · {eur(p["dop"])} → {eur(c["dop"])}</small></div></li>'
+                for d, g, p, c in lst[:150])
+        gone_html = "".join(
+            f'<li><div class="gline"><a href="/liek/{esc(p["slug"])}/">{esc(p["name"])}</a><span class="mono">{eur(p["dop"])}</span>'
+            f'<small>{esc(short_pack(p["pack"]))} · {esc(g["s"])}</small></div></li>' for g, p in gone[:200])
+        body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Nový zoznam platí od {nd}</p>
+    <h1 class="page-h1">Zmeny doplatkov od {nd}</h1>
+    <p class="page-sub">Ministerstvo zverejňuje zoznam hradených liekov vopred. Porovnali sme ho s aktuálnym zoznamom. Vyšší doplatok: {plural_lieky(len(ups))}, nižší doplatok: {plural_lieky(len(downs))}, vypadne zo zoznamu: {plural_lieky(len(gone))}.</p>
+  </section>
+  <section class="card"><h2>Doplatok stúpne ({len(ups)})</h2><ul class="glist">{change_list(ups, "up") or "<li>Žiadne zvýšenia.</li>"}</ul>{'<p class="hint">Zobrazených 150 najväčších zmien.</p>' if len(ups) > 150 else ''}</section>
+  <section class="card"><h2>Doplatok klesne ({len(downs)})</h2><ul class="glist">{change_list(downs, "down") or "<li>Žiadne zníženia.</li>"}</ul>{'<p class="hint">Zobrazených 150 najväčších zmien.</p>' if len(downs) > 150 else ''}</section>
+  <section class="card"><h2>Vypadnú zo zoznamu ({len(gone)})</h2><p class="hint">Tieto lieky poisťovňa od {nd} nemusí hradiť. Nové lieky v zozname: {len(new_kods)}.</p><ul class="glist">{gone_html or "<li>Žiadne.</li>"}</ul></section>"""
+        desc = (f"Zmeny doplatkov za lieky od {nd}: vyšší doplatok {plural_lieky(len(ups))}, nižší {plural_lieky(len(downs))}, "
+                f"zo zoznamu vypadne {plural_lieky(len(gone))}. Podľa nového zoznamu ministerstva.")
+        write("/zmeny/", page(f"Zmeny doplatkov za lieky od {nd}", desc, "/zmeny/", body, breadcrumb_ld(crumb_items)))
+    else:
+        body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <h1 class="page-h1">Zmeny doplatkov</h1>
+    <p class="page-sub">Ministerstvo zatiaľ nezverejnilo zoznam na budúci mesiac. Zvyčajne ho zverejní v druhej polovici mesiaca. Hneď ako bude k dispozícii, nájdete tu všetky zmeny doplatkov.</p>
+  </section>"""
+        write("/zmeny/", page("Zmeny doplatkov za lieky", "Zmeny doplatkov za lieky od budúceho mesiaca.", "/zmeny/", body, breadcrumb_ld(crumb_items)))
+
+    # --- výpadky ---
+    crumb_items = [("Domov", "/"), ("Výpadky liekov", None)]
+    rows_r, rows_p = [], []
+    for g, p in products:
+        st = vyp.get(p["kod"])
+        if not st:
+            continue
+        alts = [x for x in sorted_items(g) if x is not p and vyp.get(x["kod"], {}).get("stav") not in ("R", "Z")]
+        alt = (f'Alternatíva: <a href="/liek/{esc(alts[0]["slug"])}/">{esc(alts[0]["name"])}</a> ({eur(alts[0]["dop"])})'
+               if alts else "Bez dostupnej alternatívy s rovnakou silou a balením")
+        li = (f'<li><div class="gline"><a href="/liek/{esc(p["slug"])}/">{esc(p["name"])}</a>'
+              f'<span class="mono">od {sk_date(st["od"])}</span>'
+              f'<small>{esc(short_pack(p["pack"]))} · {esc(g["s"])}</small><small>{alt}</small></div></li>')
+        (rows_r if st["stav"] == "R" else rows_p if st["stav"] in ("PR", "PZ") else []).append((st["od"], li))
+    rows_r.sort(reverse=True)
+    rows_p.sort()
+    vdate = vyp_all.get("datum")
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Podľa hlásení ŠÚKL{(' k ' + sk_date(vdate)) if vdate else ''}</p>
+    <h1 class="page-h1">Výpadky liekov hradených poisťovňou</h1>
+    <p class="page-sub">Lieky, pri ktorých držiteľ registrácie ohlásil Štátnemu ústavu pre kontrolu liečiv prerušenie dodávok. Pri každom uvádzame dostupnú alternatívu s rovnakou látkou, silou a balením.</p>
+  </section>
+  <section class="card"><h2>Prerušené dodávky ({len(rows_r)})</h2><ul class="glist">{''.join(li for _, li in rows_r) or '<li>Žiadne hlásené prerušenia.</li>'}</ul></section>
+  <section class="card"><h2>Ohlásené do budúcna ({len(rows_p)})</h2><ul class="glist">{''.join(li for _, li in rows_p) or '<li>Žiadne.</li>'}</ul></section>
+  <p class="hint">Zdroj: <a href="{SUKL_VYPADKY}" rel="nofollow">Hlásenia o prerušení, ukončení a obnovení dodávok, ŠÚKL</a>. Dostupnosť v konkrétnej lekárni sa môže líšiť.</p>"""
+    write("/vypadky/", page("Výpadky liekov – prerušené dodávky a alternatívy",
+                            f"Aktuálny zoznam {plural_lieky(len(rows_r))} hradených poisťovňou s prerušenými dodávkami podľa ŠÚKL a ich dostupné alternatívy.",
+                            "/vypadky/", body, breadcrumb_ld(crumb_items)))
+
+    # --- ochranný limit ---
+    crumb_items = [("Domov", "/"), ("Ochranný limit", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Limit spoluúčasti</p>
+    <h1 class="page-h1">Ochranný limit: koľko vám poisťovňa vráti za doplatky</h1>
+    <p class="page-sub">Dôchodcom, ľuďom s preukazom ŤZP, invalidným dôchodcom a malým deťom vracia zdravotná poisťovňa doplatky za lieky nad štvrťročný limit. Nemusíte o nič žiadať.</p>
+  </section>
+  <section class="card">
+    <h2>Kalkulačka</h2>
+    <form class="calc" id="calc">
+      <label for="skupina">Kto ste
+        <select id="skupina">
+          <option value="dieta">Dieťa do 6 rokov</option>
+          <option value="ztp">Držiteľ preukazu ŤZP alebo invalidný dôchodca</option>
+          <option value="dochodca" selected>Starobný alebo predčasný starobný dôchodca</option>
+          <option value="iny">Nikto z uvedených</option>
+        </select>
+      </label>
+      <label for="prijem" id="prijem-wrap">Váš dôchodok a príjem
+        <select id="prijem">
+          <option value="nizky">Dôchodok do 914,40 € mesačne a celkový príjem do 2 743,20 € za štvrťrok</option>
+          <option value="vyssi" selected>Vyšší</option>
+        </select>
+      </label>
+      <label for="suma">Započítateľné doplatky za štvrťrok (€)
+        <input id="suma" type="number" inputmode="decimal" min="0" step="0.01" value="45">
+      </label>
+      <p class="result" id="vysledok" aria-live="polite"></p>
+    </form>
+    <p class="hint">Orientačný výpočet podľa pravidiel na rok 2026. Presnú sumu vám potvrdí vaša zdravotná poisťovňa.</p>
+  </section>
+  <section class="card">
+    <h2>Limity na štvrťrok (2026)</h2>
+    <div class="scroll"><table class="ltable">
+      <thead><tr><th>Kto</th><th>Limit</th><th>Podmienka</th></tr></thead>
+      <tbody>
+        <tr><td>Dieťa do 6 rokov</td><td class="num">0 €</td><td>Bez ohľadu na príjem. Doplatok za najlacnejší náhradný liek sa neplatí už v lekárni.</td></tr>
+        <tr><td>Držiteľ preukazu ŤZP, invalidný dôchodca</td><td class="num">0 €</td><td>Dôchodok do 914,40 € mesačne a celkový príjem do 2 743,20 € za štvrťrok</td></tr>
+        <tr><td>Starobný alebo predčasný starobný dôchodca</td><td class="num">0 €</td><td>Dôchodok do 914,40 € mesačne a celkový príjem do 2 743,20 € za štvrťrok</td></tr>
+        <tr><td>Držiteľ preukazu ŤZP, invalidný dôchodca</td><td class="num">12 €</td><td>Pri vyššom príjme</td></tr>
+        <tr><td>Starobný alebo predčasný starobný dôchodca</td><td class="num">30 €</td><td>Pri vyššom príjme</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section class="prose">
+    <h2>Čo sa započítava</h2>
+    <p>Do limitu sa nepočíta celý doplatok, ktorý zaplatíte, ale len <strong>doplatok za najlacnejší náhradný liek</strong> s rovnakou účinnou látkou. Ak si vyberiete drahšiu značku, rozdiel platíte sami a poisťovňa vám ho nevráti.</p>
+    <p>Na stránke každého lieku na tomto webe nájdete v časti <em>Predpis a úhrada</em> presnú sumu, ktorá sa za jedno balenie započíta do limitu.</p>
+    <p>Započítavajú sa lieky, zdravotnícke pomôcky a dietetické potraviny na lekársky predpis, ktoré poisťovňa čiastočne hradí. Voľnopredajné lieky sa nepočítajú.</p>
+    <h2>Ako dostanete peniaze späť</h2>
+    <ul>
+      <li>Poisťovňa doplatky sčíta sama z údajov z lekární, nemusíte posielať bločky ani žiadosť.</li>
+      <li>Sumu nad limit vráti do 90 dní po skončení štvrťroka, zvyčajne na bankový účet.</li>
+      <li>Ak je preplatok nižší ako 3 €, prenesie sa do ďalšieho štvrťroka.</li>
+      <li>Ľudia s nulovým limitom a deti do 6 rokov doplatok za najlacnejší náhradný liek v lekárni vôbec neplatia.</li>
+    </ul>
+    <p>Niektoré poisťovne majú nad rámec zákona vlastné programy, napríklad preplácanie doplatkov deťom. Podrobnosti zistíte u svojej poisťovne.</p>
+  </section>"""
+    script = """<script>
+(function () {
+  var f = document.getElementById('calc'); if (!f) return;
+  var sk = document.getElementById('skupina'), pr = document.getElementById('prijem'), wrap = document.getElementById('prijem-wrap');
+  var su = document.getElementById('suma'), out = document.getElementById('vysledok');
+  function eur(n) { return n.toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+  function calc() {
+    var g = sk.value, low = pr.value === 'nizky', s = parseFloat((su.value || '0').replace(',', '.')) || 0;
+    wrap.hidden = (g === 'dieta' || g === 'iny');
+    if (g === 'iny') { out.innerHTML = 'Zákonný ochranný limit sa na vás nevzťahuje. Niektoré poisťovne však majú vlastné programy na preplácanie doplatkov.'; return; }
+    var limit = g === 'dieta' ? 0 : low ? 0 : (g === 'ztp' ? 12 : 30);
+    var back = Math.max(0, s - limit);
+    var txt = 'Váš limit je <b>' + eur(limit) + '</b> za štvrťrok. ';
+    if (limit === 0) txt += 'Doplatok za najlacnejší náhradný liek by ste nemali platiť už v lekárni.';
+    else if (back >= 3) txt += 'Poisťovňa vám vráti približne <b>' + eur(back) + '</b>.';
+    else if (back > 0) txt += 'Preplatok ' + eur(back) + ' je nižší ako 3 €, preto sa prenesie do ďalšieho štvrťroka.';
+    else txt += 'Limit ste neprekročili, preplatok zatiaľ nevzniká.';
+    out.innerHTML = txt;
+  }
+  f.addEventListener('input', calc); f.addEventListener('change', calc); f.addEventListener('submit', function (e) { e.preventDefault(); });
+  calc();
+})();
+</script>"""
+    write("/ochranny-limit/", page("Ochranný limit doplatkov za lieky 2026 – kalkulačka",
+                                   "Koľko vám poisťovňa vráti za doplatky za lieky: limity pre dôchodcov, ŤZP a deti na rok 2026, čo sa započítava a kalkulačka preplatku.",
+                                   "/ochranny-limit/", body, breadcrumb_ld(crumb_items), script))
 
     # --- 404 ---
-    body404 = """  <section style="display:grid;gap:12px">
+    body404 = """  <section class="intro">
     <h1 class="page-h1">Stránka sa nenašla</h1>
     <p class="page-sub">Liek mohol z úradného zoznamu vypadnúť alebo sa zmenil jeho názov. Skúste ho vyhľadať znova.</p>
     <p><a class="cta" href="/">Vyhľadať liek →</a></p>
@@ -404,10 +987,11 @@ def build():
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + sm + "</urlset>\n", encoding="utf-8")
 
-    print(f"Vygenerované: {len(products)} stránok liekov, {len(by_subst)} stránok látok, sitemap s {len(urls)} adresami.")
+    n_atc = len([u for u, _ in urls if u.startswith("/skupina/")])
+    print(f"Vygenerované: {len(products)} stránok liekov, {len(by_subst)} látok, {n_atc} skupín, "
+          f"sitemap s {len(urls)} adresami. História: {len(history)} mesiacov, "
+          f"budúci zoznam: {'áno' if nxt else 'nie'}, výpadky: {len(vyp)}.")
 
-
-PLATNOST = ""
 
 if __name__ == "__main__":
     build()

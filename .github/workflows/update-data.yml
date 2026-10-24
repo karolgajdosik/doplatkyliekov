@@ -2,9 +2,8 @@ name: Aktualizácia zoznamu liekov
 
 on:
   schedule:
-    # každý deň o 6:17 UTC počas posledného týždňa a prvých dní mesiaca,
-    # keď ministerstvo zverejňuje nový zoznam
-    - cron: "17 6 1-5,24-31 * *"
+    # každý deň o 6:17 UTC: nový zoznam ministerstva (vychádza koncom mesiaca) a výpadky ŠÚKL
+    - cron: "17 6 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -30,12 +29,12 @@ jobs:
 
       - name: Uložiť zmeny
         run: |
-          if git diff --quiet -- site/data.json; then
+          git add -A data site/data.json site/sitemap.xml
+          if git diff --cached --quiet; then
             echo "Žiadne zmeny v dátach."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/data.json site/sitemap.xml
-          git commit -m "Aktualizácia zoznamu liekov"
+          git commit -m "Aktualizácia dát o liekoch"
           git push
