@@ -1,0 +1,7 @@
+OK     2690288 prerusenia.csv
+OK       16475 prerusenia_list.html
+FAIL hladanie.html HTTP Error 404: Not Found
+FAIL hladanie_kod.html HTTP Error 404: Not Found
+FAIL hladanie_nazov.html HTTP Error 404: Not Found
+OK         524 datagov_search.json
+OK         524 datagovsk_search.json

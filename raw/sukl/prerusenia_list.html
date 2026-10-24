@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Hlásenie o  prerušení</title>
+    <!-- META -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="keywords" content="eVarSymbol, " />
+    <meta name="description" content="eVarSymbol, " />
+    <meta name="RATING" content="General" />
+    <meta name="ROBOTS" content="index,follow" />
+    <meta name="REVISIT-AFTER" content="2 weeks" />
+    <meta http-equiv="Content-Language" content="sk" />
+
+    <!--link type="text/css" rel="stylesheet" href='Common/main.css' />
+        <link type="text/css" rel="stylesheet" href='Common/sentence.css' /-->
+    <link type="text/css" rel="stylesheet" href="Common/main.css?20190516" />
+    <link type="text/css" rel="stylesheet" href="Common/sentence.css" />
+    <link type="text/css" rel="stylesheet" href='Common/jquery-ui-1.7.2.custom.css' />
+
+    <script type="text/javascript" src="Common/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="Common/jquery-ui-1.7.2.min.js"></script>
+    <!--script type="text/javascript" src="Common/jquery.hotkeys-0.7.8.js"></script-->
+    <script type="text/javascript" src="Common/jquery.timers.js"></script>
+    <script type="text/javascript" src="Common/jquery.scrollTo.js"></script>
+    <script type="text/javascript" src="Common/jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="Common/jquery.blockui.js"></script>    
+    <script type="text/javascript" src="Common/datepicker-sk.js"></script>
+    <script type="text/javascript" src="Common/datepicker-en-GB.js"></script>
+    
+    <script type="text/javascript" src="Common/system-lib.js"></script> 
+    <script type="text/javascript" src="Common/xmldoc-3.1.js?20181220"></script>            
+    <script type="text/javascript" src="Common/xmldoc-scripting.js?20181212"></script>
+    <script type="text/javascript" src="Common/drugs.js?20190111"></script> 
+    <script type="text/javascript" src="Common/country.js"></script>
+    <script type="text/javascript" src="Common/companies.js"></script> 
+    <script type="text/javascript">
+      //settings for popup
+      $.ui.dialog.defaults.bgiframe = true;
+      $.ui.dialog.defaults.modal = true;
+      $.ui.dialog.defaults.resizable = false;
+      $.ui.dialog.defaults.draggable = true;
+      
+      $.datepicker.setDefaults( $.datepicker.regional[ "sk" ] );
+    </script>
+  </head>
+  <body>
+    <!--TOP LOGO-->
+    <div id ="top_logo">
+      <div class="first"><a href='http://www.sukl.sk' title="ŠÚKL"><img src='Common/sukl_logo.gif' alt="ŠÚKL" /></a></div>
+    </div>
+    <!--TOP LOGO-->
+
+    <!--MAIN PARTS OF TEMPLATE-->
+    <div class="main_frame">
+      <div class="background1">
+        <!--LEFT MENU-->
+        <div class="left_menu">
+          <div id="left_menu_bkg">
+            <div class="top_right_corner">
+              <div class="bottom_left_corner">
+                <div id="left_menu">
+                  <ul class="sekcia">
+        <li  >
+        <a href='?act=PrerusenieMainPublic&mId=1' title="Hlavná stránka" >
+    Hlavná stránka        </a>
+    </li>
+    <li  >
+        <a href='?act=PrerusenieOznList&mId=2' title="Oznámenia" >
+    Oznámenia        </a>
+    </li>
+</ul>                </div>
+                <hr />
+                <div id="left_menu2">
+                                                    </div>
+                <a style="margin:0px 0px 0px 22px" href='?act=PrerusenieOznList&order=-1&lang=en'>English version</a>                                    
+                <br /><br />
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--LEFT MENU-->
+
+        <!--MIDDLE PART-->
+        <div class="main_home_eskadra">
+          <div class="title"><span class="Vyvoz"><span><span>Oznámenie o prvom uvedení, prerušení, obnovení alebo zrušení dodávok humánneho lieku</span></span></span></div>
+          <div id="mainContentPrerusenie">
+          <!-- #20231018 -->
+<div id="PrerusenieListContainer">
+  <style type="text/css">
+  td.actions > * {
+    visibility: hidden;
+  }
+  tr.odd:hover td.actions *, tr.even:hover td.actions * {
+    visibility: visible;
+  }
+  tr.sel td {
+    background-color: #d7d3c1;
+  }
+  tr.sel td.actions * {
+    visibility: visible;
+  }
+  </style>
+  <script type="text/javascript">  
+    
+    function ajaxReload() {
+      callServerAction("PrerusenieOznList")
+    }
+
+    /*function setFocus(id) {
+      callServerAction('PrerusenieOznListFocus', [id]);
+    }*/
+  
+        
+    function setFilter() {
+      var data = { Submit: true };
+      $("#FilterContainer input:text").each(function() {
+        data[$(this).attr("name")] = $(this).val();
+      });
+      $("#FilterContainer input:checkbox").each(function() {
+        
+        var s = $("input[name='" + $(this).attr("name") + "']").size();
+        
+        if(s > 1) {
+          if(!($(this).attr("name") in data)) {
+            data[$(this).attr("name")] = {};
+          }
+          
+          data[$(this).attr("name")][$(this).val()] = $(this).is(":checked") ? 1 : 0;
+        }
+        else {
+          if($(this).is(":checked")) {
+            data[$(this).attr("name")] = $(this).val();
+          }
+        }
+      });
+      console.log(data);
+      ajaxReload = function() {
+        callPostAction('PrerusenieOznList&filter=1', data);
+      }
+      ajaxReload();
+    }
+
+    function checkRow(ref, checked, chb) {
+      callServerAction('PrerusenieOznListCheck', [ref, checked ? 1 : 0], function(res) {
+        /*if(res > 0) {
+          $(chb).parent().next().text(checked ? "1" : "0");
+        }*/
+      }); 
+      return false;
+    }
+    
+    function reg() {
+      
+      $("#ListContainer tr").click(function() {
+        $("#ListContainer tr").removeClass("sel");
+        $(this).addClass("sel");
+      });
+      
+      $("#ListContainer th a").click(function(e) {
+        e.preventDefault();
+        ajaxLink(this, function() {
+           reg();
+        });
+      });
+    }
+    
+    $(function() {
+      reg();    
+      function ffcs(date) {$("#submitFilter").focus();}
+      
+      $(".date, .timestamp").datepicker({dateFormat: "dd.mm.yy", onSelect: function() {$(this).focus();} });
+      $("#date_from, #date_to").datepicker({dateFormat:'dd.mm.yy', onSelect: function() {$("#submitFilter").focus();}});
+
+      $('#submitFilter').focus();
+      $("form input[type=submit], form input[type=image], form button[type=submit]").click(function() {
+          $("input[type=submit], input[type=image], form button[type=submit]", $(this).parents("form")).removeAttr("clicked");
+          $(this).attr("clicked", "true");
+      });
+      $('form').submit(function(e) {
+        e.preventDefault();
+        var submitName = $("input[type=submit][clicked=true], input[type=image][clicked=true], form button[type=submit][clicked=true]").attr("name");
+        if(!submitName) {
+          return console.log("Error when submitting filter form. Cannot identify submit button!")
+        }
+        var data =  {};
+        data[submitName] = true;
+        $(this).find("input:text").each(function() {
+          data[$(this).attr("name")] = $(this).val();
+        });
+        ajaxReload = function() {
+          callPostAction('PrerusenieOznList&filter=1', data, null, "view");
+        }
+        ajaxReload();
+      });
+    });
+  </script>
+
+  <div id="ListContainer" style="float:left;width:77%">
+    <form name="filter_form" method="post" action="?act=PrerusenieOznList&order=-1&filter=1"><table class="hover" cellspacing="0" width="100%"><tr><td align="right" style="vertical-align:middle;background-color:#ebe9e0"><button name="Submit" type="submit" value="Nájdi"><img src="Common/ok.gif" title="Nájde zvolené údaje"></img></button><button name="Clear" type="submit" value="Zruš"><img src="Common/cancel.gif" title="Zruší obmedzenie"></img></button></td><td style="vertical-align:middle;background-color:#ebe9e0"><input  id="msg_datum" name="filter_msg_datum" class="filter timestamp" value="" /></td><td style="vertical-align:middle;background-color:#ebe9e0"><input  id="fir_nazov_list" name="filter_fir_nazov_list" class="filter " value="" /></td><td style="vertical-align:middle;background-color:#ebe9e0"><input  id="lie_kod" name="filter_lie_kod" class="filter " value="" /></td><td style="vertical-align:middle;background-color:#ebe9e0"><input  id="lie_nazov_list" name="filter_lie_nazov_list" class="filter " value="" /></td><td style="vertical-align:middle;background-color:#ebe9e0"><input  id="ozn_datum_od" name="filter_ozn_datum_od" class="filter date" value="" /></td><td style="vertical-align:middle;background-color:#ebe9e0"><input  id="ozn_typ" name="filter_ozn_typ" class="filter " value="" /></td></tr><tr><th width="3%" style="text-align:right">&nbsp;</th><th><a href="?order=-1&act=PrerusenieOznList&amp;order=1"><b>Podanie ▲</b></a></th><th><a href="?order=-1&act=PrerusenieOznList&amp;order=2">Držiteľ</a></th><th><a href="?order=-1&act=PrerusenieOznList&amp;order=3">Kód</a></th><th><a href="?order=-1&act=PrerusenieOznList&amp;order=4">Liek</a></th><th><a href="?order=-1&act=PrerusenieOznList&amp;order=5">Účinnosť</a></th><th><a href="?order=-1&act=PrerusenieOznList&amp;order=6">Predmet</a></th></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare S.L.U (ACC-ES)</td><td class="text">3190D</td><td class="text">Pelgraz 6 mg injekčný roztok v naplnenom injektore (sol inj 1x0,6 ml/6 mg (injektor napl.skl.))</td><td class="text">21.10.2026</td><td class="text">R</td></tr><tr class="odd"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare S.L.U (ACC-ES)</td><td class="text">5309C</td><td class="text">Lacosamide Accord 200 mg filmom obalené tablety (tbl flm 56x200 mg (blis.PVC/PVDC/Al))</td><td class="text">21.10.2026</td><td class="text">R</td></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare S.L.U (ACC-ES)</td><td class="text">5305C</td><td class="text">Lacosamide Accord 150 mg filmom obalené tablety (tbl flm 56x150 mg (blis.PVC/PVDC/Al))</td><td class="text">21.10.2026</td><td class="text">R</td></tr><tr class="odd"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare Polska Sp. z o.o. (AOK)</td><td class="text">22767</td><td class="text">Donepezil Accord 5 mg filmom obalené tablety (tbl flm 28x5 mg (blis.PVC/Al))</td><td class="text">21.10.2026</td><td class="text">R</td></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare S.L.U (ACC-ES)</td><td class="text">3719D</td><td class="text">Deferasirox Accord 360 mg filmom obalené tablety (tbl flm 28x1x360 mg (blis.PVC/PE/PVDC/Al - jednotk.bal.))</td><td class="text">31.10.2026</td><td class="text">Z</td></tr><tr class="odd"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare Polska Sp. z o.o. (AOK)</td><td class="text">22426</td><td class="text">Carboplatin Accord 10 mg/ml koncentrát na infúzny roztok (con inf 1x15 ml/150 mg (liek.skl.hnedá))</td><td class="text">21.10.2026</td><td class="text">R</td></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Opella Healthcare Slovakia s.r.o. (OPL)</td><td class="text">24459</td><td class="text">Novalgin 500 mg/ml (sol inj 10x2 ml/1000 mg (amp.skl.hnedá))</td><td class="text">24.8.2026</td><td class="text">O</td></tr><tr class="odd"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare S.L.U (ACC-ES)</td><td class="text">3851D</td><td class="text">Azacitidine Accord 25 mg/ml prášok na injekčnú suspenziu (plv inu 1x100 mg (liek.inj.skl.))</td><td class="text">21.10.2026</td><td class="text">R</td></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">21.10.2026</td><td class="text">Accord Healthcare S.L.U (ACC-ES)</td><td class="text">9123B</td><td class="text">Accofil 30 MU/0,5 ml injekčný/infúzny roztok v naplnenej injekčnej striekačke (sol ijf 5x0,5 ml (striek.inj.napl.skl. s krytom ihly))</td><td class="text">21.10.2026</td><td class="text">R</td></tr><tr class="odd"><td align="right">&nbsp;</td><td class="text">20.10.2026</td><td class="text">Zentiva a.s. (ZNT-SK-2)</td><td class="text">34546</td><td class="text">Tralgit 100 inj. (sol inj 5x2 ml/100 mg (amp.skl.))</td><td class="text">31.3.2027</td><td class="text">Z</td></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">20.10.2026</td><td class="text">Zentiva k.s. (ZNT-3)</td><td class="text">8480C</td><td class="text">Lenalidomid Zentiva 10 mg tvrdé kapsuly (cps dur 21x10 mg (blis.PVC/Aclar/Al))</td><td class="text">20.10.2026</td><td class="text">R</td></tr><tr class="odd"><td align="right">&nbsp;</td><td class="text">20.10.2026</td><td class="text">Zentiva, k.s. (ZNT-1)</td><td class="text">0904D</td><td class="text">Cornusan 10 mg/40 mg (tbl 30x10 mg/40 mg (blis.OPA/Al/PVC/Al))</td><td class="text">20.10.2026</td><td class="text">R</td></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">20.10.2026</td><td class="text">Zentiva, k.s. (ZNT-1)</td><td class="text">01198</td><td class="text">Dereflin 20 mg tvrdé gastrorezistentné kapsuly (cps end 98x20 mg (blis. PA/Al/PVC/Al))</td><td class="text">20.10.2026</td><td class="text">R</td></tr><tr class="odd"><td align="right">&nbsp;</td><td class="text">20.10.2026</td><td class="text">Zentiva, k.s. (ZNT-1)</td><td class="text">4238E</td><td class="text">Diozen Forte (tbl flm 90x1000 mg (blis.PVC/Al))</td><td class="text">20.10.2026</td><td class="text">R</td></tr><tr class="even"><td align="right">&nbsp;</td><td class="text">20.10.2026</td><td class="text">Zentiva, k.s. (ZNT-1)</td><td class="text">2172E</td><td class="text">Atominex 18 mg (cps dur 56x18 mg (blis.PVC/PVDC/Al))</td><td class="text">20.10.2026</td><td class="text">R</td></tr></table><div style="text-align:center"><a href="?act=PrerusenieOznList&order=-1&goto=2" accesskey="N">Ďalšie &raquo;</a></div></form>          <div><p><span>Predmet vo význame:<br/><b>U</b>-Prvé uvedenie liekov na slovenský trh, <b>R</b>-Prerušenie dodávania liekov na slovenský trh, <br/><b>O</b>-Obnovenie dodávania liekov na slovenský trh, <b>Z</b>-Zrušenie dodávania liekov na slovenský trh</span></p></div>
+      </div>
+  <div id="FilterContainer" style="float:right;width:15%;padding-left:0px">
+    <br>
+    <b>Účinnosť</b>
+    <div class="title"><span></span></div>
+  
+    <table>
+      <tr>
+        <td>Od</td>
+        <td><input type="text" id="date_from" name="filter_ozn_datum_od[from]" value="" size="8" maxlength="10" title="d.m.yyyy"/></td>
+      </tr>
+      <tr>
+        <td>Do</td>
+        <td><input type="text" id="date_to" name="filter_ozn_datum_od[to]" value="" size="8" maxlength="10" title="d.m.yyyy"/></td>
+      </tr>
+                        <tr>
+        <td colspan="2">
+          <br><input type="submit" id="submitFilter" name="Submit" value="Nájdi" onclick="setFilter();return false;">
+        </td>
+      </tr>
+    </table>  
+    <br>
+    <div class="title"><span></span></div><br>
+    <div style="margin-left: 2px">
+      <a href="./?act=PrerusenieOznList&export=csv">Export údajov do CSV </a>
+    </div>
+  </div>
+</div>          </div>
+        </div>
+        <!--MIDDLE PART-->
+
+        <div class="clear">&nbsp;</div>
+        <!--RIGHT MENU-->
+      </div>
+    </div>
+    <!--MAIN PARTS OF TEMPLATE-->
+
+    <!--FOOTER -->
+    <div class="pagefooter">
+      <div class="left">
+      </div>
+      <div class="right" style="color:#999999;font-size:10px;font-weight:normal">Spracované sytémom        <a style="padding: 0px;" href="http://www.mcr.sk" target="_blank">MCR.Prerusenie  </a>
+        <span title="8.0.2">(8.0)</span>
+      </div>
+      <div class="clear"/>
+    </div>
+    <!--FOOTER -->
+
+    <!-- POPUP container -->
+    <div id="popupContainer" style="display:none" />
+    <!-- POPUP container -->
+  </body>
+</html>
+      
