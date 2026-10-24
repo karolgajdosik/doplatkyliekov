@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Nájdite lacnejší liek s rovnakou účinnou látkou. Porovnanie doplatkov za lieky na predpis podľa úradného zoznamu Ministerstva zdravotníctva SR.">
+<meta property="og:title" content="Doplatky liekov – nájdite lacnejší liek">
+<meta property="og:description" content="Rovnaká účinná látka, nižší doplatok. Porovnajte doplatky za lieky na predpis.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='10' y='2' width='8' height='24' rx='2' fill='%230f6b4f'/%3E%3Crect x='2' y='10' width='24' height='8' rx='2' fill='%230f6b4f'/%3E%3C/svg%3E">
+<title>Doplatky liekov – nájdite lacnejší liek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one calm column like a pharmacy counter slip — search on top, the comparison "slip" as the working surface, notes below. */
+:root {
+  --bg: #f3f6f4;
+  --surface: #ffffff;
+  --ink: #17251f;
+  --muted: #5b6b64;
+  --line: #d7e0db;
+  --accent: #0f6b4f;       /* pharmacy green */
+  --accent-soft: #e2f0ea;
+  --save: #b4530f;         /* saving amber */
+  --save-soft: #fbeee2;
+  --bar: #c9d7d0;
+  --font-display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1613; --surface: #16201c; --ink: #e5eee9; --muted: #98aaa2; --line: #2a3832;
+    --accent: #52c49b; --accent-soft: #1b3229; --save: #f0a463; --save-soft: #3a2616; --bar: #35463f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1613; --surface: #16201c; --ink: #e5eee9; --muted: #98aaa2; --line: #2a3832;
+  --accent: #52c49b; --accent-soft: #1b3229; --save: #f0a463; --save-soft: #3a2616; --bar: #35463f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; }
+
+/* header */
+header { display: grid; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.cross { width: 28px; height: 28px; flex: none; }
+.brand-name { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.08; font-weight: 700; max-width: 18ch; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { color: var(--muted); max-width: 60ch; }
+
+/* search */
+.search { position: relative; }
+.search label { display: block; margin-bottom: 6px; }
+.search input {
+  width: 100%; font: inherit; font-size: 18px; color: var(--ink);
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r);
+  padding: 14px 16px 14px 46px; outline: none;
+}
+.search input:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search svg { position: absolute; left: 15px; top: 43px; width: 20px; height: 20px; color: var(--muted); pointer-events: none; }
+.results {
+  position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 6px);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+  box-shadow: 0 12px 30px rgba(10, 30, 22, 0.14); max-height: 360px; overflow-y: auto; padding: 6px;
+}
+.results button {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; width: 100%; text-align: left;
+  font: inherit; color: inherit; background: none; border: 0; border-radius: 7px; padding: 9px 10px; cursor: pointer;
+}
+.results button:hover, .results button.on { background: var(--accent-soft); }
+.results .rn { font-weight: 600; min-width: 0; }
+.results .rp { font-size: 13px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.results .rd { grid-row: span 2; align-self: center; font-size: 14px; }
+.results .empty { padding: 12px 10px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip {
+  font: inherit; font-size: 14px; color: var(--ink); background: transparent; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip:focus-visible, .results button:focus-visible, .row:focus-visible, .stepper button:focus-visible, .top li button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* slip */
+.slip { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.slip-head { padding: 20px 20px 16px; display: grid; gap: 6px; border-bottom: 1px dashed var(--line); }
+.slip-head h2 { font-size: 24px; font-weight: 600; }
+.slip-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.verdict { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px 20px; background: var(--save-soft); }
+.verdict.none { background: var(--accent-soft); }
+.verdict p { min-width: 0; }
+.verdict strong { color: var(--save); }
+.verdict.none strong { color: var(--accent); }
+.big { font-family: var(--font-display); font-weight: 700; font-size: 34px; line-height: 1; color: var(--save); white-space: nowrap; }
+.big small { display: block; font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--muted); text-align: right; margin-top: 4px; }
+.yearly { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 20px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stepper button { font: inherit; width: 32px; height: 30px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.stepper button:hover { background: var(--accent-soft); }
+.stepper output { min-width: 28px; text-align: center; font-family: var(--font-mono); color: var(--ink); }
+.yearly b { color: var(--save); font-family: var(--font-mono); }
+
+.rows { list-style: none; margin: 0; padding: 6px 0; }
+.row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px;
+  padding: 12px 20px; cursor: pointer; border-left: 3px solid transparent;
+}
+.row:hover { background: var(--bg); }
+.row.sel { border-left-color: var(--accent); background: var(--accent-soft); }
+.row-name { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.row-pack { font-size: 13px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.row-dop { text-align: right; font-family: var(--font-mono); font-weight: 500; font-size: 17px; white-space: nowrap; }
+.row-sub { text-align: right; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.track { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+.track i { display: block; height: 100%; background: var(--bar); border-radius: 3px; }
+.row.best .track i { background: var(--accent); }
+.row.sel .track i { background: var(--save); }
+.row.best.sel .track i { background: var(--accent); }
+.tags { display: inline-flex; gap: 6px; margin-left: 6px; vertical-align: 2px; }
+.tag { font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); }
+.tag.best { border-color: transparent; background: var(--accent); color: var(--surface); }
+.tag.zero { border-color: var(--accent); color: var(--accent); }
+.slip-foot { padding: 12px 20px 16px; font-size: 13px; color: var(--muted); border-top: 1px dashed var(--line); }
+
+/* top list */
+.section { display: grid; gap: 12px; }
+.section h2 { font-size: 22px; font-weight: 600; }
+.top { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.top li button {
+  width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; text-align: left; font: inherit; color: inherit;
+  background: var(--surface); border: 0; padding: 12px 16px; cursor: pointer;
+}
+.top li button:hover { background: var(--accent-soft); }
+.top .tn { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.top .tf { font-size: 13px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.top .ts { grid-row: span 2; align-self: center; text-align: right; font-family: var(--font-mono); color: var(--save); font-weight: 500; white-space: nowrap; }
+.top .ts small { display: block; font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 400; }
+
+/* facts */
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.fact { display: grid; gap: 2px; padding: 14px 16px; border-top: 2px solid var(--accent); background: var(--surface); border-radius: 0 0 var(--r) var(--r); }
+.fact b { font-family: var(--font-display); font-size: 26px; font-weight: 700; }
+.fact span { font-size: 13px; color: var(--muted); }
+.notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; }
+.note h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.note p { font-size: 15px; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 6px; }
+footer a { color: var(--accent); }
+@media (max-width: 600px) {
+  .facts { grid-template-columns: 1fr; }
+  .notes { grid-template-columns: 1fr; }
+  .big { font-size: 28px; }
+  .slip-head, .verdict, .yearly, .row, .slip-foot { padding-left: 16px; padding-right: 16px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .row, .top li button, .chip { transition: background-color .15s, border-color .15s; }
+  .track i { transition: width .35s ease; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="cross" viewBox="0 0 28 28" aria-hidden="true"><rect x="10" y="2" width="8" height="24" rx="2" fill="var(--accent)"/><rect x="2" y="10" width="24" height="8" rx="2" fill="var(--accent)"/></svg>
+      <span class="brand-name">doplatkyliekov.sk</span>
+    </div>
+    <h1>Rovnaká účinná látka, <em>nižší doplatok.</em></h1>
+    <p class="lede">Zadajte názov lieku, ktorý užívate. Ukážeme vám lieky s rovnakou látkou, silou a balením, ktoré poisťovňa hradí rovnako, a koľko by ste za ne doplácali v lekárni.</p>
+  </header>
+
+  <div class="search">
+    <label for="q" class="eyebrow">Hľadať liek alebo účinnú látku</label>
+    <input id="q" type="search" autocomplete="off" placeholder="napr. Concor, Controloc, metformín" aria-controls="results" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <div id="results" class="results" role="listbox" hidden></div>
+    <div class="chips" id="chips" aria-label="Príklady"></div>
+  </div>
+
+  <section class="slip" id="slip" aria-live="polite"></section>
+
+  <section class="section">
+    <div>
+      <p class="eyebrow">Z aktuálneho zoznamu</p>
+      <h2>Kde sa preplatí najviac</h2>
+    </div>
+    <ul class="top" id="top"></ul>
+  </section>
+
+  <section class="facts" id="facts"></section>
+
+  <section class="notes">
+    <div class="note">
+      <h3>Ako vymeniť liek</h3>
+      <p>Opýtajte sa lekárnika na lacnejšiu alternatívu. Môže vám ju vydať, ak lekár na recepte nevyznačil, že liek sa nesmie zamieňať. Pri pochybnostiach sa poraďte s lekárom.</p>
+    </div>
+    <div class="note">
+      <h3>Čo znamená doplatok</h3>
+      <p>Je to maximálna suma, ktorú zaplatíte v lekárni. Zvyšok konečnej ceny hradí zdravotná poisťovňa. Lekáreň vám môže dať zľavu, takže zaplatíte aj menej.</p>
+    </div>
+    <div class="note">
+      <h3>Čo sú generiká</h3>
+      <p>Generikum obsahuje rovnakú účinnú látku v rovnakej sile ako originál a musí mať preukázaný rovnaký účinok. Líši sa výrobcom, názvom, obalom a často cenou.</p>
+    </div>
+    <div class="note">
+      <h3>Čo tu nenájdete</h3>
+      <p>Iba lieky hradené poisťovňou. Voľnopredajné lieky a vitamíny v úradnom zozname nie sú, ich cenu si určuje každá lekáreň sama.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od <span id="platnost">…</span>. Ceny sú v eurách s DPH.</p>
+    <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
+  </footer>
+</div>
+
+<script>
+function init(payload) {
+const DATA = payload.groups;
+document.getElementById('platnost').textContent = payload.platnost || '';
+
+const eur = n => (n == null ? '–' : n.toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €');
+const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const typeLabel = t => !t ? '' : t[0] === 'O' ? 'Originál' : /B/.test(t) ? 'Biologický' : /G/.test(t) ? 'Generikum' : '';
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+// flatten
+const ITEMS = [];
+DATA.forEach((g, gi) => g.i.forEach((it, ii) => ITEMS.push({ gi, ii, kod: it[0], name: it[1], pack: it[2], konc: it[3], uzp: it[4], dop: it[5], typ: it[6], key: norm(it[1] + ' ' + g.s) })));
+const byKod = new Map(ITEMS.map(x => [x.kod, x]));
+function groupItems(gi) { return ITEMS.filter(x => x.gi === gi); }
+
+let current = null, packs = 4;
+const slip = document.getElementById('slip');
+
+function render(item) {
+  current = item;
+  const g = DATA[item.gi];
+  const list = groupItems(item.gi).filter(x => x.dop != null).sort((a, b) => a.dop - b.dop || a.name.localeCompare(b.name, 'sk'));
+  const cheapest = list[0];
+  const maxDop = Math.max(...list.map(x => x.dop), 0.01);
+  const saving = item.dop != null && cheapest ? Math.max(0, item.dop - cheapest.dop) : 0;
+  slip.replaceChildren();
+
+  const head = el('div', 'slip-head');
+  head.append(el('p', 'eyebrow', 'Porovnanie doplatkov'));
+  head.append(el('h2', null, g.s + ', ' + g.f));
+  const meta = el('div', 'slip-meta');
+  meta.append(el('span', 'mono', 'ATC ' + g.a));
+  meta.append(el('span', null, list.length + (list.length === 1 ? ' liek v skupine' : list.length < 5 ? ' lieky v skupine' : ' liekov v skupine')));
+  head.append(meta);
+  slip.append(head);
+
+  const v = el('div', 'verdict' + (saving > 0.005 ? '' : ' none'));
+  const p = el('p');
+  if (saving > 0.005) {
+    p.append('Za ', Object.assign(el('strong'), { textContent: item.name }), ' doplácate ' + eur(item.dop) + '. Najlacnejšia alternatíva je ', Object.assign(el('strong'), { textContent: cheapest.name }), ' za ' + eur(cheapest.dop) + '.');
+    const big = el('div', 'big', '−' + eur(saving));
+    big.append(el('small', null, 'na jednom balení'));
+    v.append(p, big);
+  } else {
+    p.append(Object.assign(el('strong'), { textContent: item.name }), list.length > 1 ? ' už patrí medzi najlacnejšie lieky v tejto skupine. Doplatok ' + eur(item.dop) + '.' : ' nemá v zozname inú verziu s rovnakou látkou, silou a balením.');
+    v.append(p);
+  }
+  slip.append(v);
+
+  if (saving > 0.005) {
+    const y = el('div', 'yearly');
+    const label = el('span', null, 'Balení za rok');
+    const st = el('div', 'stepper');
+    const minus = el('button', null, '−'); minus.type = 'button'; minus.setAttribute('aria-label', 'Menej balení');
+    const out = el('output', null, String(packs)); out.id = 'packs';
+    const plus = el('button', null, '+'); plus.type = 'button'; plus.setAttribute('aria-label', 'Viac balení');
+    st.append(minus, out, plus);
+    const res = el('span');
+    const upd = () => { out.textContent = packs; res.replaceChildren('Ročne ušetríte ', Object.assign(el('b'), { textContent: eur(saving * packs) })); };
+    minus.onclick = () => { packs = Math.max(1, packs - 1); upd(); };
+    plus.onclick = () => { packs = Math.min(52, packs + 1); upd(); };
+    upd();
+    y.append(label, st, res);
+    slip.append(y);
+  }
+
+  const ul = el('ul', 'rows');
+  list.forEach(x => {
+    const li = el('li', 'row' + (x === item ? ' sel' : '') + (x.dop === cheapest.dop ? ' best' : ''));
+    li.tabIndex = 0;
+    const nm = el('div', 'row-name', x.name);
+    const tags = el('span', 'tags');
+    const tl = typeLabel(x.typ); if (tl) tags.append(el('span', 'tag', tl));
+    if (x.dop === cheapest.dop && list.length > 1) tags.append(el('span', 'tag best', 'Najnižší'));
+    else if (x.dop === 0) tags.append(el('span', 'tag zero', 'Bez doplatku'));
+    if (tags.childNodes.length) nm.append(tags);
+    const dop = el('div', 'row-dop', eur(x.dop));
+    const pack = el('div', 'row-pack', x.pack);
+    const sub = el('div', 'row-sub', 'cena ' + eur(x.konc));
+    const tr = el('div', 'track'); const bar = el('i'); bar.style.width = (x.dop / maxDop * 100) + '%'; tr.append(bar);
+    li.append(nm, dop, pack, sub, tr);
+    li.title = 'ŠÚKL ' + x.kod + ' · poisťovňa hradí ' + eur(x.uzp);
+    li.onclick = () => render(x);
+    li.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); render(x); } };
+    ul.append(li);
+  });
+  slip.append(ul);
+  slip.append(el('p', 'slip-foot', 'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek ho porovnáte s ostatnými.'));
+}
+
+// search
+const q = document.getElementById('q'), results = document.getElementById('results');
+let hits = [], active = -1;
+function search(term) {
+  const t = norm(term.trim());
+  if (t.length < 2) { results.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
+  const words = t.split(/\s+/);
+  hits = ITEMS.filter(x => words.every(w => x.key.includes(w)))
+    .sort((a, b) => (norm(a.name).startsWith(words[0]) ? 0 : 1) - (norm(b.name).startsWith(words[0]) ? 0 : 1) || a.name.localeCompare(b.name, 'sk'))
+    .slice(0, 30);
+  active = -1;
+  results.replaceChildren();
+  if (!hits.length) results.append(el('div', 'empty', 'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'));
+  hits.forEach((x, i) => {
+    const b = el('button'); b.type = 'button'; b.setAttribute('role', 'option');
+    b.append(el('span', 'rn', x.name), el('span', 'rd mono', eur(x.dop)), el('span', 'rp', x.pack));
+    b.onmousedown = e => { e.preventDefault(); pick(x); };
+    results.append(b);
+  });
+  results.hidden = false; q.setAttribute('aria-expanded', 'true');
+}
+function pick(x) { results.hidden = true; q.setAttribute('aria-expanded', 'false'); q.value = x.name; render(x); slip.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
+q.addEventListener('input', () => search(q.value));
+q.addEventListener('focus', () => { if (q.value.trim().length >= 2 && current && q.value !== current.name) search(q.value); });
+q.addEventListener('blur', () => setTimeout(() => { results.hidden = true; q.setAttribute('aria-expanded', 'false'); }, 120));
+q.addEventListener('keydown', e => {
+  const btns = [...results.querySelectorAll('button')];
+  if (results.hidden || !btns.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    active = (active + (e.key === 'ArrowDown' ? 1 : -1) + btns.length) % btns.length;
+    btns.forEach((b, i) => b.classList.toggle('on', i === active));
+    btns[active].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') { e.preventDefault(); pick(hits[Math.max(0, active)]); }
+  else if (e.key === 'Escape') { results.hidden = true; }
+});
+
+// example chips
+const chips = document.getElementById('chips');
+['Concor 10 mg', 'CONTROLOC 40 mg', 'Glucophage 1000 mg', 'Agen 5'].forEach(n => {
+  const x = ITEMS.filter(i => i.name === n).sort((a, b) => b.dop - a.dop)[0];
+  if (!x) return;
+  const c = el('button', 'chip', n); c.type = 'button'; c.onclick = () => pick(x); chips.append(c);
+});
+
+// top savings among everyday drugs (doplatok up to 60 €)
+const tops = [];
+DATA.forEach((g, gi) => {
+  const l = groupItems(gi).filter(x => x.dop != null);
+  if (l.length < 2) return;
+  const mx = l.reduce((a, b) => b.dop > a.dop ? b : a), mn = l.reduce((a, b) => b.dop < a.dop ? b : a);
+  const gap = mx.dop - mn.dop;
+  if (gap >= 2 && mx.dop <= 60) tops.push({ g, mx, mn, gap });
+});
+tops.sort((a, b) => b.gap - a.gap);
+const topEl = document.getElementById('top');
+tops.slice(0, 8).forEach(t => {
+  const li = el('li'); const b = el('button'); b.type = 'button';
+  const ts = el('span', 'ts', '−' + eur(t.gap)); ts.append(el('small', null, 'na balení'));
+  b.append(el('span', 'tn', t.mx.name + ' → ' + t.mn.name), ts, el('span', 'tf', t.g.s + ', ' + t.g.f));
+  b.onclick = () => pick(t.mx);
+  li.append(b); topEl.append(li);
+});
+
+// facts
+const groupsWithGap = DATA.filter((g, gi) => { const l = groupItems(gi).filter(x => x.dop != null); return l.length > 1 && Math.max(...l.map(x => x.dop)) - Math.min(...l.map(x => x.dop)) >= 1; }).length;
+const zero = ITEMS.filter(x => x.dop === 0).length;
+const facts = document.getElementById('facts');
+[[ITEMS.length.toLocaleString('sk-SK'), 'balení liekov hradených poisťovňou'], [zero.toLocaleString('sk-SK'), 'balení je úplne bez doplatku'], [groupsWithGap.toLocaleString('sk-SK'), 'skupín, kde lacnejšia verzia ušetrí aspoň 1 €']]
+  .forEach(([n, t]) => { const f = el('div', 'fact'); f.append(el('b', null, n), el('span', null, t)); facts.append(f); });
+
+// opening state: a realistic example
+const start = ITEMS.find(x => x.name === 'Concor 10 mg' && /90|100/.test(x.pack)) || ITEMS.find(x => x.name === 'Concor 10 mg') || tops[0]?.mx || ITEMS[0];
+render(start);
+
+}
+fetch('data.json', { cache: 'no-cache' })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(init)
+  .catch(() => { document.getElementById('slip').innerHTML = '<p class="slip-foot">Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.</p>'; });
+</script>
+</body>
+</html>
