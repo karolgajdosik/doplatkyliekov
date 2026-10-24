@@ -4,9 +4,10 @@ Vyhľadávač lacnejších liekov s rovnakou účinnou látkou, silou a balením
 
 ## Štruktúra
 
-- `site/index.html` – celý web (jedna stránka, bez build kroku)
+- `site/index.html` – hlavná stránka s vyhľadávačom
 - `site/data.json` – spracované dáta o liekoch
 - `scripts/build_data.py` – stiahne aktuálny zoznam z health.gov.sk a vytvorí `data.json`
+- `scripts/build_pages.py` – z `data.json` vygeneruje podstránky `/liek/…`, `/latka/…`, `/lieky/`, `404.html` a `sitemap.xml` (iba štandardná knižnica Pythonu)
 - `.github/workflows/update-data.yml` – automatická aktualizácia dát každý mesiac
 
 ## Nasadenie na Cloudflare Pages
@@ -14,7 +15,7 @@ Vyhľadávač lacnejších liekov s rovnakou účinnou látkou, silou a balením
 1. Cloudflare → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → vyber tento repozitár.
 2. Nastavenia buildu:
    - Framework preset: **None**
-   - Build command: *(prázdne)*
+   - Build command: `python3 scripts/build_pages.py`
    - Build output directory: `site`
 3. **Save and Deploy**.
 4. V projekte → **Custom domains** → pridaj `doplatkyliekov.sk` (a prípadne `www.doplatkyliekov.sk`).

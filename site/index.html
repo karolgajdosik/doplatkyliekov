@@ -105,6 +105,9 @@ h1 em { font-style: normal; color: var(--accent); }
 .slip-head { padding: 20px 20px 16px; display: grid; gap: 6px; border-bottom: 1px dashed var(--line); }
 .slip-head h2 { font-size: 24px; font-weight: 600; }
 .slip-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.detail-link { font-size: 14px; font-weight: 600; color: var(--accent); text-decoration: none; }
+.detail-link:hover { text-decoration: underline; }
+footer a { color: var(--accent); }
 .verdict { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px 20px; background: var(--save-soft); }
 .verdict.none { background: var(--accent-soft); }
 .verdict p { min-width: 0; }
@@ -230,6 +233,7 @@ footer a { color: var(--accent); }
   </section>
 
   <footer>
+    <p><a href="/lieky/">Zoznam všetkých účinných látok</a></p>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od <span id="platnost">…</span>. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
   </footer>
@@ -242,6 +246,9 @@ document.getElementById('platnost').textContent = payload.platnost || '';
 
 const eur = n => (n == null ? '–' : n.toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €');
 const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+// rovnaká logika ako product_slug v scripts/build_pages.py
+const slugify = (s, limit = 60) => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, limit).replace(/-+$/, '');
+const productSlug = (name, kod) => slugify(name) + '-' + slugify(kod);
 const typeLabel = t => !t ? '' : t[0] === 'O' ? 'Originál' : /B/.test(t) ? 'Biologický' : /G/.test(t) ? 'Generikum' : '';
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
@@ -270,6 +277,9 @@ function render(item) {
   meta.append(el('span', 'mono', 'ATC ' + g.a));
   meta.append(el('span', null, list.length + (list.length === 1 ? ' liek v skupine' : list.length < 5 ? ' lieky v skupine' : ' liekov v skupine')));
   head.append(meta);
+  const link = el('a', 'detail-link', 'Stránka lieku ' + item.name + ' →');
+  link.href = '/liek/' + productSlug(item.name, item.kod) + '/';
+  head.append(link);
   slip.append(head);
 
   const v = el('div', 'verdict' + (saving > 0.005 ? '' : ' none'));
