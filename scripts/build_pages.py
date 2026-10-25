@@ -413,6 +413,7 @@ def site_footer(platnost_html, alts=None):
 
 # ---------- cudzojazyčné verzie (maďarská, ukrajinská) – texty v scripts/langs.py ----------
 from langs import LANGS
+from illus3d import figure as fig3d
 
 
 def alt_paths(kind, slug=None):
@@ -647,10 +648,11 @@ def drug_page_l(L, c):
     ai = "".join(f'<a href="{L["ai"]}?kod={esc(p["kod"])}&amp;q={_q(q)}">{esc(q)}</a>' for q in L["qs"])
     notes = "".join(f'<div class="note"><h3>{esc(h)}</h3><p>{esc(t)}</p></div>' for h, t in L["notes"])
     body = f"""{crumbs_l(L, [(L["home_lbl"], L["root"]), (g["s"], None)])}
-  <section class="intro">
+  <section class="intro has-3d">
     <p class="eyebrow">{L["eyebrow"]}</p>
     <h1 class="page-h1">{esc(p['name'])}</h1>
     <p class="page-sub">{esc(p['pack'])}</p>
+    {fig3d(p['pack'], g['a'], eager=True, note=L["illus_note"], alt=L["illus_note"] + " – " + p["name"])}
     {mine_button(p).replace("Pridať do Mojich liekov", L["mine_add"])}
   </section>
     {"".join(alerts)}
@@ -1409,10 +1411,11 @@ def build():
             crumb_items.append((chain[-1][1], f"/skupina/{chain[-1][0].lower()}/"))
         crumb_items += [(g["s"], s_url), (p["name"], None)]
         body = f"""{crumbs(crumb_items)}
-  <section class="intro">
+  <section class="intro has-3d">
     <p class="eyebrow">Doplatok za liek</p>
     <h1 class="page-h1">{esc(p['name'])}</h1>
     <p class="page-sub">{esc(p['pack'])}</p>
+    {fig3d(p['pack'], g['a'], alt_name=p['name'], eager=True)}
     {purpose}
     {mine_button(p)}
   </section>

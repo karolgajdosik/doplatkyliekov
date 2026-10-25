@@ -118,6 +118,7 @@ function render(item) {
   const head = el('div', 'slip-head');
   head.append(el('p', 'eyebrow', 'Porovnanie doplatkov'));
   head.append(el('h2', null, g.s + ', ' + g.f));
+  if (window.img3d) { head.classList.add('has-img'); const fig = el('div', 'slip-3d'); fig.append(window.img3d(item.pack, g.a)); head.append(fig); }
   const meta = el('div', 'slip-meta');
   meta.append(el('span', 'mono', 'ATC ' + g.a));
   meta.append(el('span', null, list.length + (list.length === 1 ? ' liek v skupine' : list.length < 5 ? ' lieky v skupine' : ' liekov v skupine')));
@@ -203,6 +204,7 @@ function search(term) {
   hits.forEach((x, i) => {
     const b = el('button'); b.type = 'button'; b.setAttribute('role', 'option');
     b.append(el('span', 'rn', x.name), el('span', 'rd mono', eur(x.dop)), el('span', 'rp', x.pack));
+    if (window.img3d) { b.classList.add('has-img'); b.prepend(window.img3d(x.pack, DATA[x.gi].a, 'r3d')); }
     b.onmousedown = e => { e.preventDefault(); pick(x); };
     results.append(b);
   });

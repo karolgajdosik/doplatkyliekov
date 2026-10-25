@@ -667,3 +667,36 @@ body { overflow-x: clip; }
   body.print-check .check-out .print-only { display: grid; }
   #mine-extras, .mine-doses { display: none !important; }
 }
+
+/* ---------- 3D ilustrácie liekov ---------- */
+.drug3d { position: relative; margin: 0; aspect-ratio: 4 / 3; border-radius: var(--r-lg, 22px); overflow: hidden; border: 1px solid var(--line);
+  background: radial-gradient(70% 70% at 50% 42%, color-mix(in srgb, var(--dc) 38%, transparent), transparent 72%),
+              radial-gradient(60% 60% at 92% 0%, color-mix(in srgb, var(--dc) 22%, transparent), transparent), var(--surface-solid, #0d1619); }
+.drug3d img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.drug3d .d3-lab { position: absolute; left: 14px; top: 14px; font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--ink);
+  background: color-mix(in srgb, var(--bg) 70%, transparent); border: 1px solid color-mix(in srgb, var(--dc) 60%, transparent); border-radius: 999px; padding: 4px 11px; backdrop-filter: blur(6px); }
+.drug3d .d3-note { position: absolute; right: 12px; bottom: 10px; font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+.intro.has-3d .drug3d { width: 100%; max-width: 420px; }
+@media (min-width: 760px) {
+  .intro.has-3d { grid-template-columns: minmax(0, 1fr) minmax(240px, 360px); column-gap: 32px; align-items: start; }
+  .intro.has-3d > * { grid-column: 1; }
+  .intro.has-3d > .drug3d { grid-column: 2; grid-row: 1 / span 8; align-self: start; }
+}
+.results button.has-img { grid-template-columns: 56px minmax(0, 1fr) auto; }
+.results button.has-img .r3d { grid-row: span 2; width: 56px; height: 42px; object-fit: contain; align-self: center; }
+.slip-head.has-img { grid-template-columns: minmax(0, 1fr) 150px; }
+.slip-head.has-img > * { grid-column: 1; }
+.slip-head.has-img > .slip-3d { grid-column: 2; grid-row: 1 / span 4; align-self: center; }
+.slip-3d img { width: 150px; height: auto; display: block; }
+@media (max-width: 560px) { .slip-head.has-img { grid-template-columns: minmax(0, 1fr) 96px; } .slip-3d img { width: 96px; } }
+.mine-list li.has-thumb { grid-template-columns: 72px minmax(0, 1fr) auto; }
+.mine-thumb { width: 72px; height: 54px; object-fit: contain; align-self: start; border-radius: 12px; background: var(--raise); }
+@media print { .drug3d, .mine-thumb, .slip-3d { display: none !important; } }
+.search .foto-btn svg { position: static; inset: auto; transform: none; width: 22px; height: 22px; color: inherit; pointer-events: none; }
+@media (max-width: 759px) { .intro.has-3d .drug3d { max-width: 300px; } }
+@media (max-width: 560px) {
+  .mine-list li.has-thumb { grid-template-columns: 64px minmax(0, 1fr) auto; }
+  .mine-list li.has-thumb > .gline { grid-column: 1 / -1; grid-row: 2; }
+  .mine-list li.has-thumb > .mine-thumb { grid-row: 1; grid-column: 1; width: 64px; height: 48px; }
+  .mine-list li.has-thumb > .mine-remove { grid-row: 1; grid-column: 3; }
+}

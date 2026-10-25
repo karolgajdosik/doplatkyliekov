@@ -47,6 +47,33 @@
     }
   };
   window.MojeProfily = Profiles;
+
+  /* 3D ilustrácia lieku podľa liekovej formy a skupiny ATC (rovnaká logika ako scripts/illus.py → form_of) */
+  function formOf(pack) {
+    var p = (pack || '').toLowerCase(), w = p.split(/\s+/), a = w[0] || '', b = w[1] || '';
+    if (a === 'tbl' || a === 'tablety' || (a === 'lyo' && (b === 'por' || b === 'slg'))) return 'tablet';
+    if (a === 'cps') return 'capsule';
+    if (a === 'emp') return 'patch';
+    if (a === 'sup') return 'supp';
+    if (['crm', 'ung', 'gel', 'pst'].indexOf(a) >= 0 && b !== 'ist') return 'tube';
+    if (a === 'int' || ['opo', 'opu', 'ope', 'osd', 'ots', 'oph'].indexOf(b) >= 0) return 'eye';
+    if (['nas', 'nao', 'nau'].indexOf(b) >= 0) return 'nasal';
+    if (['ihl', 'inh', 'ido', 'icd'].indexOf(b) >= 0 || (a === 'aer' && b === 'ora')) return 'inhaler';
+    if (p.indexOf('pero') >= 0 || p.indexOf(' pen') >= 0) return 'pen';
+    if (['gtt', 'gto', 'gte'].indexOf(a) >= 0) return 'drops';
+    if (['gra', 'gro', 'gru'].indexOf(a) >= 0 || ((a === 'plv' || a === 'plo') && (p.indexOf('vre') >= 0 || ((b === 'sps' || b === 'por') && p.indexOf('fľ') < 0)))) return 'sachet';
+    if (a === 'imp' || b.charAt(0) === 'i' || ['con', 'dis', 'plc', 'pci', 'lyo', 'kit'].indexOf(a) >= 0 || ['sif', 'suf', 'sul'].indexOf(b) >= 0) return 'vial';
+    if (['sir', 'sol', 'sus', 'liq', 'plu', 'plv', 'emu', 'add', 'shp', 'lum', 'plq', 'aer'].indexOf(a) >= 0) return 'bottle';
+    return 'other';
+  }
+  window.img3d = function (pack, atc, cls) {
+    var img = document.createElement('img');
+    img.src = '/img3d/' + formOf(pack) + '-' + ((atc || 'V').charAt(0)) + '.webp';
+    img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.width = 640; img.height = 480;
+    if (cls) img.className = cls;
+    img.onerror = function () { img.onerror = null; img.src = '/img3d/other-V.webp'; };
+    return img;
+  };
   var Moje = {
     list: read,
     has: function (kod) { return read().some(function (x) { return x.kod === kod; }); },
@@ -438,6 +465,7 @@
           line.append(el('small', null, 'Liek už nie je v zozname hradených liekov.'));
         } else {
           var it = hit.it, g = hit.g, ks = it[8], d = dose(m.d);
+          li.classList.add('has-thumb'); li.prepend(window.img3d(it[2], g.a, 'mine-thumb'));
           prow.pack = it[2]; prow.dop = eur(it[5]);
           line.append(el('span', 'mono', eur(it[5])));
           line.append(el('small', null, it[2]));

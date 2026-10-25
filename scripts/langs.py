@@ -46,7 +46,7 @@ HU = {
     "bottom_aria": "Gyorslinkek", "foot_aria": "További oldalak",
     "foot_src": "Forrás: a Szlovák Egészségügyi Minisztérium kategorizált gyógyszerlistája (érvényes: {platnost}) és az ŠÚKL szállítási bejelentései. Az árak euróban, áfával értendők.",
     "foot_disc": "Az oldal tájékoztató jellegű, nem gyógyszerreklám, és nem helyettesíti az orvos vagy a gyógyszerész tanácsát. A gyógyszerek sorrendjét kizárólag a térítési díj határozza meg.",
-    "crumbs_aria": "Navigáció", "home_lbl": "Kezdőlap",
+    "crumbs_aria": "Navigáció", "home_lbl": "Kezdőlap", "illus_note": "Illusztráció",
     # --- stránka lieku ---
     "types": {"Originál": "Originális", "Generikum": "Generikum", "Biologický": "Biológiai"}, "type_default": "Gyógyszer",
     "tag_best": "Legalacsonyabb", "tag_zero": "Térítésmentes", "tag_vyp": "Kiesés", "price_row": "ár {}",
@@ -252,7 +252,7 @@ UK = {
     "bottom_aria": "Швидкі посилання", "foot_aria": "Інші сторінки",
     "foot_src": "Джерело: Перелік категоризованих ліків Міністерства охорони здоров'я Словаччини (чинний з {platnost}) та повідомлення ŠÚKL про постачання ліків. Ціни в євро з ПДВ.",
     "foot_disc": "Сайт має інформаційний характер, не є рекламою ліків і не замінює пораду лікаря чи фармацевта. Порядок ліків визначає виключно розмір доплати.",
-    "crumbs_aria": "Навігація", "home_lbl": "Головна",
+    "crumbs_aria": "Навігація", "home_lbl": "Головна", "illus_note": "Ілюстрація",
     # --- stránka lieku ---
     "types": {"Originál": "Оригінал", "Generikum": "Генерик", "Biologický": "Біологічний"}, "type_default": "Ліки",
     "tag_best": "Найнижча", "tag_zero": "Без доплати", "tag_vyp": "Перебої", "price_row": "ціна {}",

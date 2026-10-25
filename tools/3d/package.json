@@ -1,0 +1,5 @@
+{
+  "name": "doplatky-3d",
+  "private": true,
+  "dependencies": { "three": "0.170.0", "playwright": "1.56.0" }
+}
