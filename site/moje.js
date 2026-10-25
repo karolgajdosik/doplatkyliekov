@@ -90,6 +90,9 @@
     return n == null ? '–' : n.toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
   }
   function num(n, d) { return n.toLocaleString('sk-SK', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  // rovnaký slug ako v scripts/build_pages.py (product_slug)
+  function slugify(t, n) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, n || 60).replace(/-+$/, ''); }
+  function slugOf(name, kod) { return slugify(name) + '-' + slugify(kod); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function skDate(iso) { var p = iso.split('-'); return (+p[2]) + '. ' + (+p[1]) + '. ' + p[0]; }
   function dose(v) { var d = parseFloat(String(v == null ? '' : v).replace(',', '.')); return d > 0 && d <= 20 ? d : 1; }
@@ -474,7 +477,8 @@
           if (diff > 0.005) {
             totalPack += diff;
             var s = el('small', 'mine-save');
-            s.append('Lacnejšia alternatíva: ' + cheapest[1] + ' za ' + eur(cheapest[5]) + ' (ušetríte ' + eur(diff) + ' na balení)');
+            var alt = el('a', null, cheapest[1]); alt.href = '/liek/' + slugOf(cheapest[1], cheapest[0]) + '/';
+            s.append('Lacnejšia alternatíva: ', alt, ' za ' + eur(cheapest[5]) + ' (ušetríte ' + eur(diff) + ' na balení)');
             line.append(s);
             prow.alt = cheapest[1] + ' (' + eur(cheapest[5]) + ')';
           }

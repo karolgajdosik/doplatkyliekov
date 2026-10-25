@@ -201,8 +201,8 @@ HU = {
         "'tag best', 'Najnižší'": "'tag best', 'Legalacsonyabb'",
         "'tag zero', 'Bez doplatku'": "'tag zero', 'Térítésmentes'",
         "' · poisťovňa hradí '": "' · a biztosító fizeti: '",
-        "'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek ho porovnáte s ostatnými.'":
-            "'A térítési díj a gyógyszertárban fizetendő legmagasabb összeg. A biztosító a csoport minden gyógyszerére azonos vagy hasonló összeget fizet. Kattintson egy gyógyszerre az összehasonlításhoz.'",
+        "'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek otvoríte jeho stránku s podrobnosťami.'":
+            "'A térítési díj a gyógyszertárban fizetendő legmagasabb összeg. A biztosító a csoport minden gyógyszerére azonos vagy hasonló összeget fizet. Kattintson egy gyógyszerre a részletes adatokért.'",
         "'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'": "'Nem találtunk ilyen nevű gyógyszert. Próbálja a hatóanyag nevével.'",
         "el('small', null, 'na balení')": "el('small', null, 'csomagonként')",
         "Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.": "A gyógyszeradatokat nem sikerült betölteni. Frissítse az oldalt.",
@@ -407,8 +407,8 @@ UK = {
         "'tag best', 'Najnižší'": "'tag best', 'Найнижча'",
         "'tag zero', 'Bez doplatku'": "'tag zero', 'Без доплати'",
         "' · poisťovňa hradí '": "' · страхова сплачує '",
-        "'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek ho porovnáte s ostatnými.'":
-            "'Доплата – максимальна сума в аптеці. Страхова компанія сплачує за всі ліки в групі однакову або подібну суму. Натисніть на ліки, щоб порівняти їх з іншими.'",
+        "'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek otvoríte jeho stránku s podrobnosťami.'":
+            "'Доплата – максимальна сума в аптеці. Страхова компанія сплачує за всі ліки в групі однакову або подібну суму. Натисніть на ліки, щоб відкрити їхню сторінку з подробицями.'",
         "'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'": "'Ліків з такою назвою не знайдено. Спробуйте назву діючої речовини латиницею.'",
         "el('small', null, 'na balení')": "el('small', null, 'на упаковці')",
         "Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.": "Не вдалося завантажити дані про ліки. Оновіть сторінку.",

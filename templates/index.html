@@ -93,6 +93,8 @@ const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '
 // rovnaká logika ako product_slug v scripts/build_pages.py
 const slugify = (s, limit = 60) => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, limit).replace(/-+$/, '');
 const productSlug = (name, kod) => slugify(name) + '-' + slugify(kod);
+const DRUG_BASE = '/liek/';
+const drugUrl = x => DRUG_BASE + productSlug(x.name, x.kod) + '/';
 const typeLabel = t => !t ? '' : t[0] === 'O' ? 'Originál' : /B/.test(t) ? 'Biologický' : /G/.test(t) ? 'Generikum' : '';
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
@@ -167,8 +169,8 @@ function render(item) {
   const ul = el('ul', 'rows');
   list.forEach(x => {
     const li = el('li', 'row' + (x === item ? ' sel' : '') + (x.dop === cheapest.dop ? ' best' : ''));
-    li.tabIndex = 0;
-    const nm = el('div', 'row-name', x.name);
+    const nm = el('div', 'row-name');
+    const na = el('a', 'row-link', x.name); na.href = drugUrl(x); nm.append(na);
     const tags = el('span', 'tags');
     const tl = typeLabel(x.typ); if (tl) tags.append(el('span', 'tag', tl));
     if (x.dop === cheapest.dop && list.length > 1) tags.append(el('span', 'tag best', 'Najnižší'));
@@ -180,12 +182,11 @@ function render(item) {
     const tr = el('div', 'track'); const bar = el('i'); bar.style.width = (x.dop / maxDop * 100) + '%'; tr.append(bar);
     li.append(nm, dop, pack, sub, tr);
     li.title = 'ŠÚKL ' + x.kod + ' · poisťovňa hradí ' + eur(x.uzp);
-    li.onclick = () => render(x);
-    li.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); render(x); } };
+
     ul.append(li);
   });
   slip.append(ul);
-  slip.append(el('p', 'slip-foot', 'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek ho porovnáte s ostatnými.'));
+  slip.append(el('p', 'slip-foot', 'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek otvoríte jeho stránku s podrobnosťami.'));
 }
 
 // search
@@ -247,11 +248,10 @@ DATA.forEach((g, gi) => {
 tops.sort((a, b) => b.gap - a.gap);
 const topEl = document.getElementById('top');
 tops.slice(0, 5).forEach(t => {
-  const li = el('li'); const b = el('button'); b.type = 'button';
+  const li = el('li'); const b = el('a'); b.href = drugUrl(t.mx);
   const ts = el('span', 'ts', '−' + eur(t.gap)); ts.append(el('small', null, 'na balení'));
   const tn = el('span', 'tn'); tn.append(t.mx.name, el('span', 'arrow', '→'), t.mn.name);
   b.append(tn, ts, el('span', 'tf', t.g.s + ', ' + t.g.f));
-  b.onclick = () => pick(t.mx);
   li.append(b); topEl.append(li);
 });
 

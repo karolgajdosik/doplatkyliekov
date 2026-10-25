@@ -2753,6 +2753,7 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             '"inLanguage":"sk"': f'"inLanguage":"{L["code"]}"',
             "n.toLocaleString('sk-SK',": f"n.toLocaleString('{L['num']}',",
             "link.href = '/liek/' + ": f"link.href = '{L['drug']}' + ",
+            "const DRUG_BASE = '/liek/';": f"const DRUG_BASE = '{L['drug']}';",
         }
         for a2, b2 in list(generic.items()) + list(L["home"].items()):
             if a2 not in tl:

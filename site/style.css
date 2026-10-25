@@ -700,3 +700,15 @@ body { overflow-x: clip; }
   .mine-list li.has-thumb > .mine-thumb { grid-row: 1; grid-column: 1; width: 64px; height: 48px; }
   .mine-list li.has-thumb > .mine-remove { grid-row: 1; grid-column: 3; }
 }
+/* celý riadok porovnania otvorí stránku lieku */
+.row-link { color: inherit; text-decoration: none; }
+.row-link::after { content: ""; position: absolute; inset: 0; }
+.row-link:focus-visible { outline: none; }
+.row:has(.row-link:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.row:hover .row-link { color: var(--accent); }
+.top li a {
+  width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; text-align: left; color: inherit; text-decoration: none;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: border-color .2s, transform .2s;
+}
+.top li a:hover { border-color: var(--accent); transform: translateY(-1px); }
