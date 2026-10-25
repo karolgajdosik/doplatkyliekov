@@ -63,10 +63,10 @@ def main():
         return f"register asistenta {len(j['items'])} liekov, mapa stránok OK"
 
     def pages():
-        for path in ("/moje-lieky/", "/zmeny/", "/vypadky/", "/ochranny-limit/", "/asistent/", "/choroby/"):
+        for path in ("/moje-lieky/", "/zmeny/", "/vypadky/", "/ochranny-limit/", "/asistent/", "/choroby/", "/og/default.jpg"):
             s, _, _ = get(SITE + path)
             assert s == 200, f"{path} vrátil {s}"
-        return "6 stránok"
+        return "7 adries vrátane náhľadového obrázka"
 
     def assistant():
         s, body, sec = get(SITE + "/api/asistent", {"q": "Koľko doplatím za Concor 10 mg?"}, timeout=90)

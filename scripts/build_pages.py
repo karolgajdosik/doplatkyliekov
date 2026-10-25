@@ -15,6 +15,8 @@ Používa iba štandardnú knižnicu Pythonu, takže beží aj ako build príkaz
   python3 scripts/build_pages.py
 """
 import datetime as dt
+import importlib
+import sys
 import html
 import json
 import math
@@ -24,11 +26,13 @@ import unicodedata
 from collections import defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+GENERATED = ["og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
@@ -637,7 +641,8 @@ def extract_css():
 PLATNOST = ""
 
 
-def page(title, description, path, body, jsonld=None, script=""):
+def page(title, description, path, body, jsonld=None, script="", og=None):
+    og_url = BASE + (og or "/og/default.jpg")
     url = BASE + path
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
     return f"""<!doctype html>
@@ -652,6 +657,12 @@ def page(title, description, path, body, jsonld=None, script=""):
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(description)}">
 <meta property="og:type" content="website">
+<meta property="og:image" content="{esc(og_url)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="sk_SK">
+<meta property="og:site_name" content="doplatkyliekov.sk">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="{ICON}">
 {PREFS_HEAD}
 {FONTS}
@@ -1126,7 +1137,14 @@ def build():
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
         title = f"{p['name']} ({pk}) – doplatok a lacnejšie alternatívy"
-        write(path, page(title, desc, path, body, breadcrumb_ld(crumb_items)))
+        drug_ld = {"@context": "https://schema.org", "@type": "Drug", "name": p["name"], "url": BASE + path,
+                   "nonProprietaryName": g["s"], "activeIngredient": g["s"], "dosageForm": p["pack"],
+                   "isAvailableGenerically": len(items) > 1,
+                   "code": {"@type": "MedicalCode", "codeValue": g["a"], "codingSystem": "ATC"},
+                   "description": desc}
+        if chain:
+            drug_ld["drugClass"] = {"@type": "DrugClass", "name": chain[-1][1]}
+        write(path, page(title, desc, path, body, [breadcrumb_ld(crumb_items), drug_ld], og=f"/og/latka/{subst_slug[g['s']]}.jpg"))
         urls.append((path, "0.8"))
 
     # --- stránky látok ---
@@ -1171,7 +1189,7 @@ def build():
   </section>
   <ul class="glist">{''.join(lis)}</ul>
 {NOTES}"""
-        write(path, page(f"{s} – doplatky za lieky a lacnejšie alternatívy", desc, path, body, breadcrumb_ld(crumb_items)))
+        write(path, page(f"{s} – doplatky za lieky a lacnejšie alternatívy", desc, path, body, breadcrumb_ld(crumb_items), og=f"/og/latka/{subst_slug[s]}.jpg"))
         urls.append((path, "0.7"))
 
     # --- ATC skupiny ---
@@ -1519,7 +1537,7 @@ def build():
   <p class="hint">Zaradenie liekov vychádza z ATC klasifikácie a je orientačné. Niektoré lieky sa používajú aj pri iných ochoreniach.</p>
   <p><a class="cta" href="/bez-doplatku/">Lieky bez doplatku →</a></p>
 {NOTES}"""
-        write(path, page(f"{title} – doplatky a lacnejšie alternatívy", desc, path, body, breadcrumb_ld(crumb_items)))
+        write(path, page(f"{title} – doplatky a lacnejšie alternatívy", desc, path, body, breadcrumb_ld(crumb_items), og=f"/og/choroby/{slug}.jpg"))
         urls.append((path, "0.8"))
         cond_cards.append(f'<li><a href="{path}"><strong>{esc(title)}</strong>'
                           f'<span>{len(substs_all)} látok · {plural_lieky(len(items_all))} · {zero_n} bez doplatku</span></a></li>')
@@ -2182,6 +2200,41 @@ def build():
         + (f"Jednoduchý priemer doplatku za balenie bol {eur(months[0][1])} v {MESIACE[int(months[0][0][5:7]) - 1]} {months[0][0][:4]} "
            f"a {eur(months[-1][1])} v {MESIACE[int(months[-1][0][5:7]) - 1]} {months[-1][0][:4]}." if len(months) >= 2 else ""))})
     (ai_dir / "docs.json").write_text(json.dumps(docs, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    # --- náhľadové obrázky na zdieľanie (vyžaduje Pillow; ak chýba, skúsi ho doinštalovať) ---
+    try:
+        try:
+            import og as ogmod  # noqa: PLC0415
+        except ImportError:
+            import subprocess  # noqa: PLC0415
+            subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--user", "pillow"], timeout=180, check=False)
+            import site as _site  # noqa: PLC0415
+            importlib.invalidate_caches()
+            sys.path.append(_site.getusersitepackages())
+            import og as ogmod  # noqa: PLC0415
+        ogd = SITE / "og"
+        ogmod.render(ogd / "default.jpg", "Porovnanie doplatkov", "Rovnaká účinná látka, nižší doplatok.",
+                     f"{plural_lieky(len(products))} hradených poisťovňou · lacnejšie alternatívy, zmeny, výpadky")
+        for s_, gs in by_subst.items():
+            its = [x for g in gs for x in g["i"] if x["dop"] is not None]
+            if not its:
+                continue
+            ch = atc_chain(gs[0]["a"])
+            gap = max([sorted_items(g)[-1]["dop"] - sorted_items(g)[0]["dop"] for g in gs if len(sorted_items(g)) > 1] + [0])
+            lo = min(x["dop"] for x in its)
+            ogmod.render(ogd / "latka" / f"{subst_slug[s_]}.jpg", "Účinná látka", s_,
+                         f"{plural_lieky(len(its))}" + (f" · {ch[-1][1]}" if ch else ""),
+                         "bez doplatku" if lo == 0 else f"od {eur(lo)}",
+                         "najnižší doplatok" + (f", rozdiel až {eur(gap)}" if gap >= 0.5 else ""),
+                         big_color=(69, 240, 192) if lo == 0 else (255, 178, 107))
+        for slug, short, title, prefixes, intro in CONDITIONS:
+            its = [x for g in groups if any(g["a"].startswith(px) for px in prefixes) for x in g["i"] if x["dop"] is not None]
+            if its:
+                ogmod.render(ogd / "choroby" / f"{slug}.jpg", "Lieky podľa ochorenia", title, f"{plural_lieky(len(its))} hradených poisťovňou",
+                             str(sum(1 for x in its if x["dop"] == 0)), "liekov bez doplatku", big_color=(69, 240, 192))
+        print("Náhľadové obrázky vytvorené.")
+    except Exception as e:  # noqa: BLE001
+        print("Náhľadové obrázky sa nevytvorili:", e)
 
     # --- sitemap ---
     lm = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
