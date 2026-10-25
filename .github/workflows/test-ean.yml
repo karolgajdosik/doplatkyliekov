@@ -1,0 +1,20 @@
+name: Dočasný prieskum EAN
+on: workflow_dispatch
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Zoznam súborov ŠÚKL
+        run: |
+          curl -sL https://www.sukl.sk/verejne/ -o v.html; echo "::notice title=LEN::$(wc -c < v.html)"
+          grep -oiE 'href="[^"]+"' v.html | sort -u | head -60 | tr '\n' ' ' > links.txt
+          echo "::notice title=LINKS::$(head -c 3500 links.txt)"
+      - name: Hlavicky
+        run: |
+          curl -sL https://www.sukl.sk/verejne/ -o v.html
+          for u in $(grep -oiE 'href="[^"]+\.(zip|csv|xlsx?|xml|txt)"' v.html | sed 's/href="//;s/"$//' | head -8); do
+            case "$u" in http*) U="$u";; /*) U="https://www.sukl.sk$u";; *) U="https://www.sukl.sk/verejne/$u";; esac
+            curl -sL "$U" -o f.bin; T=$(file -b f.bin | head -c 60)
+            if echo "$T" | grep -qi zip; then unzip -o -q f.bin -d z 2>/dev/null; H=$(for x in z/*; do echo "$x: $(head -c 400 "$x" | iconv -f cp1250 -t utf-8 2>/dev/null | head -2 | tr '\n' '|')"; done | head -c 1500); rm -rf z; else H=$(head -c 600 f.bin | iconv -f cp1250 -t utf-8 2>/dev/null | head -3 | tr '\n' '|'); fi
+            echo "::notice title=$u::$T :: $H"
+          done
