@@ -8,11 +8,7 @@ jobs:
       - name: Test
         run: |
           B=https://doplatkyliekov.sk
-          for u in /uk/ /uk/liky/concor-10-mg-94163/ /uk/asystent/ /uk/zakhysnyi-limit/ /na-vytlacenie/ /clanky/zmeny-doplatkov-november-2026/ /clanky/ /foto.js /hu/; do
-            echo "::notice title=URL::$u $(curl -s -o /dev/null -w '%{http_code}' $B$u)"
-          done
           ask() { curl -s -X POST $B/api/asistent -H 'content-type: application/json' --data "$1" | python3 -c "import sys,json;j=json.load(sys.stdin);print((j.get('model','')+' | '+(j.get('answer') or j.get('error',''))).replace('\n',' ')[:900])"; }
-          echo "::notice title=UK1::$(ask '{"lang":"uk","q":"Яка доплата за Конкор 10 мг?"}')"
           echo "::notice title=UK2::$(ask '{"lang":"uk","q":"Скільки поверне страхова компанія, якщо я пенсіонер з пенсією 700 євро на місяць?"}')"
           echo "::notice title=UK3::$(ask '{"lang":"uk","q":"Які ліки від тиску без доплати?"}')"
           IMG=$(base64 -w0 .github/test/box.jpg)
