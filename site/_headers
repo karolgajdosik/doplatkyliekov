@@ -5,7 +5,7 @@
   Cache-Control: public, max-age=600, must-revalidate
 
 /style.css
-  Cache-Control: public, max-age=3600, must-revalidate
+  Cache-Control: no-cache
 
 /sw.js
   Cache-Control: no-cache

@@ -240,7 +240,7 @@ FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
          '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">'
          '<meta name="apple-mobile-web-app-title" content="Doplatky">')
 
-CAPSULE = ('<svg class="capsule" viewBox="0 0 40 22" aria-hidden="true"><rect x="1" y="1" width="38" height="20" rx="10" '
+CAPSULE = ('<svg class="capsule" width="40" height="22" viewBox="0 0 40 22" aria-hidden="true"><rect x="1" y="1" width="38" height="20" rx="10" '
            'fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M11 1h9v20h-9a10 10 0 0 1 0-20z" fill="var(--accent)"/></svg>')
 
 ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' "
@@ -251,7 +251,7 @@ ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0
 # ---------- spoločné rozloženie: hlavička, menu, zobrazenie, spodná lišta, pätička ----------
 
 def _svg(d):
-    return (f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+    return (f'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
             f'stroke-linejoin="round" aria-hidden="true">{d}</svg>')
 
 
@@ -578,7 +578,7 @@ details.io .code { display: block; margin-top: 8px; font-family: var(--font-mono
 """
 
 
-BOOKMARK = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">'
+BOOKMARK = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">'
             '<path d="M6 3h12v18l-6-4.5L6 21z"/></svg>')
 
 
@@ -686,7 +686,26 @@ NOTES = """
   </section>"""
 
 
+ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani aplikácia nepoužili starú verziu
+
+
+def compute_versions():
+    import hashlib
+    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js"):
+        f = SITE / name
+        if f.exists():
+            ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
+
+
+def versioned(html_text):
+    for url, v in ASSET_VER.items():
+        attr = "href" if url.endswith(".css") else "src"
+        html_text = html_text.replace(f'{attr}="{url}"', f'{attr}="{url}?v={v}"')
+    return html_text
+
+
 def write(path, content):
+    content = versioned(content)
     out = SITE / path.strip("/")
     if path.endswith("/"):
         out.mkdir(parents=True, exist_ok=True)
@@ -796,6 +815,7 @@ def build():
         shutil.rmtree(SITE / d, ignore_errors=True)
     (SITE / "assets").mkdir(parents=True)
     (SITE / "assets" / "pages.css").write_text(extract_css(), encoding="utf-8")
+    compute_versions()
 
     # produkty, látky, skupiny
     by_subst = defaultdict(list)
@@ -1942,7 +1962,7 @@ def build():
     for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header("/"), "TILES": tiles_html, "CONDS": conds_html,
                  "FOOTER": site_footer(esc(PLATNOST)), "BOTTOM": bottom_nav("/"), "PANELS": site_panels("/")}.items():
         tpl = tpl.replace(f"<!--{k}-->", v)
-    (SITE / "index.html").write_text(tpl, encoding="utf-8")
+    (SITE / "index.html").write_text(versioned(tpl), encoding="utf-8")
 
     # --- výsledky prihlásenia na upozornenia ---
     for sl, title, text in [
@@ -1965,7 +1985,7 @@ def build():
     <p class="page-sub">Liek mohol z úradného zoznamu vypadnúť alebo sa zmenil jeho názov. Skúste ho vyhľadať znova.</p>
     <p><a class="cta" href="/">Vyhľadať liek →</a></p>
   </section>"""
-    (SITE / "404.html").write_text(page("Stránka sa nenašla", "Stránka sa nenašla.", "/404", body404), encoding="utf-8")
+    (SITE / "404.html").write_text(versioned(page("Stránka sa nenašla", "Stránka sa nenašla.", "/404", body404)), encoding="utf-8")
 
     # --- sitemap ---
     lm = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""

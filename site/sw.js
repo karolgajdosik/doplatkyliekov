@@ -1,9 +1,9 @@
 /* Service worker doplatkyliekov.sk: stránky a dáta najprv zo siete (aby boli aktuálne),
    bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma z pamäte s obnovou na pozadí. */
 'use strict';
-var V = 'v2';
+var V = 'v3';
 var SHELL = 'shell-' + V, PAGES = 'pages-' + V;
-var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/', '/style.css', '/assets/pages.css', '/moje.js', '/limit.js', '/ui.js', '/sprava.js',
+var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/',
   '/data.json', '/alerts.json', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', function (e) {
@@ -55,7 +55,9 @@ self.addEventListener('fetch', function (e) {
       e.respondWith(networkFirst(req, req.mode === 'navigate' ? PAGES : SHELL));
       return;
     }
-    if (/\.(css|js|png|svg|webmanifest|woff2?)$/.test(url.pathname)) { e.respondWith(staleWhileRevalidate(req)); return; }
+    // štýly a skripty najprv zo siete (inak by k novej stránke prišiel starý vzhľad), bez internetu z pamäte
+    if (/\.(css|js)$/.test(url.pathname)) { e.respondWith(networkFirst(req, SHELL)); return; }
+    if (/\.(png|svg|webmanifest|woff2?)$/.test(url.pathname)) { e.respondWith(staleWhileRevalidate(req)); return; }
     return;
   }
   if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') e.respondWith(staleWhileRevalidate(req));
