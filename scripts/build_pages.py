@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+GENERATED = ["vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
@@ -291,6 +291,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
     ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
@@ -1436,7 +1437,7 @@ def build():
       <li>Ak je preplatok nižší ako 3 €, prenesie sa do ďalšieho štvrťroka.</li>
       <li>Ľudia s nulovým limitom a deti do 6 rokov doplatok za najlacnejší náhradný liek v lekárni vôbec neplatia.</li>
     </ul>
-    <p>Niektoré poisťovne majú nad rámec zákona vlastné programy, napríklad preplácanie doplatkov deťom. Podrobnosti zistíte u svojej poisťovne.</p>
+    <p>Poisťovne majú nad rámec zákona vlastné programy, napríklad preplácanie doplatkov deťom. Porovnanie nájdete v prehľade <a href="/vyhody-poistovni/">Ktorá poisťovňa vráti doplatky za lieky</a>.</p>
   </section>"""
     script = """<script>
 (function () {
@@ -1939,6 +1940,61 @@ def build():
         urls.append((path, "0.6"))
     urls += [("/moje-lieky/", "0.5"), ("/o-nas/", "0.3"), ("/kontakt/", "0.3"), ("/ochrana-sukromia/", "0.2")]
 
+    # --- výhody poisťovní (overené ručne, treba pravidelne aktualizovať) ---
+    VYHODY_OVERENE = "25. 10. 2026"
+    crumb_items = [("Domov", "/"), ("Výhody poisťovní", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Nad rámec zákona · overené {VYHODY_OVERENE}</p>
+    <h1 class="page-h1">Ktorá poisťovňa vám vráti doplatky za lieky</h1>
+    <p class="page-sub">Všetky tri zdravotné poisťovne preplácajú časť doplatkov za lieky na predpis ako dobrovoľný benefit. Podmienky sa líšia: kto má nárok, koľko a čo treba splniť. Tu je prehľad podľa ich oficiálnych stránok.</p>
+  </section>
+  <section class="card">
+    <h2>Porovnanie</h2>
+    <div class="scroll"><table class="ltable">
+      <thead><tr><th>Poisťovňa</th><th>Deti</th><th>Dospelí</th><th>Hlavné podmienky</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Union</strong></td><td>do 18 rokov <strong>bez limitu</strong>, ak je v Unione aj aspoň jeden zákonný zástupca</td><td>spolu až <strong>300 €</strong> za celú dobu poistenia</td><td>dospelí: preventívna prehliadka u zubára a všeobecného lekára (ženy 18–69 aj gynekológ, muži 50–69 aj urológ); žiadosť do 30. 6. nasledujúceho roka (deti)</td></tr>
+        <tr><td><strong>Dôvera</strong></td><td colspan="2">až <strong>400 € na každého člena rodiny</strong> (rodičia a deti do 18 rokov), jednorazový kredit na dobu poistenia; od 1. 4. 2026 navýšený o 100 €</td><td>preventívka u všeobecného lekára a zubára; žiadosť do konca marca nasledujúceho roka; nie pre dlžníkov</td></tr>
+        <tr><td><strong>VšZP</strong></td><td>Peňaženka zdravia MINI: do 18 rokov až <strong>100 € ročne</strong>; MAXI: deti s rodičmi spolu až <strong>450 € ročne</strong> (od 1. 5. 2026)</td><td>až <strong>20 € ročne</strong></td><td>pravidelné preventívne prehliadky; doklad o úhrade nahrať do aplikácie alebo ePobočky do 60 dní</td></tr>
+      </tbody>
+    </table></div>
+    <p class="hint">Benefity sa vzťahujú na doplatky za lieky (a pri Unione a Dôvere aj dietetické potraviny) na predpis, čiastočne hradené poisťovňou a vydané v slovenskej lekárni. Voľnopredajné lieky ani zdravotnícke pomôcky sa nepreplácajú.</p>
+  </section>
+  <section class="article">
+    <h2>Union</h2>
+    <ul>
+      <li><strong>Deti do 18 rokov:</strong> doplatky za lieky a dietetické potraviny v neobmedzenej výške. Dieťa a aspoň jeden zákonný zástupca musia byť poistení v Unione.</li>
+      <li><strong>Dospelí:</strong> doplatky až do celkovej sumy 300 € za celú dobu poistenia. Podmienkou sú preventívne prehliadky: zubár v predchádzajúcom roku, všeobecný lekár v posledných dvoch rokoch alebo v aktuálnom roku, ženy 18–69 rokov gynekológ, muži 50–69 rokov urológ.</li>
+      <li><strong>Ako:</strong> raz aktivujete benefit „Doplatky za lieky“ v mobilnej aplikácii alebo Online pobočke (IBAN a e-mail) a potom žiadate o vrátenie. Bločky netreba, údaje prídu z lekární do 8 týždňov.</li>
+    </ul>
+    <p>Zdroj: <a href="https://www.union.sk/doplatky-za-lieky-pre-vsetkych/" rel="nofollow">Union – Doplatky za lieky pre všetkých</a>, <a href="https://www.union.sk/vratenie-doplatkov-za-lieky-pre-deti/" rel="nofollow">Union – doplatky pre deti</a></p>
+    <h2>Dôvera</h2>
+    <ul>
+      <li><strong>Kto:</strong> rodičia a ich deti do 18 rokov poistení v Dôvere (stačí, ak je poistené dieťa).</li>
+      <li><strong>Koľko:</strong> až 400 € na každého člena rodiny, jednorazový kredit na celú dobu poistenia. Štvorčlenná rodina tak môže získať až 1 600 €.</li>
+      <li><strong>Podmienky:</strong> preventívna prehliadka u všeobecného lekára a u zubára u osoby, ktorej sa doplatky preplácajú. Nevzťahuje sa na hormonálnu antikoncepciu, pomôcky a voľnopredajné lieky. Dlžníci na poistnom nárok nemajú.</li>
+      <li><strong>Ako:</strong> v aplikácii Dôvera alebo elektronickej pobočke v časti Benefity → 400 € za lieky → Preplatiť. Žiadosť do konca marca nasledujúceho roka.</li>
+      <li>Pri dôchodcoch, deťoch do 6 rokov a deťoch so ŤZP sa doplatok najprv posudzuje v rámci <a href="/ochranny-limit/">ochranného limitu</a>.</li>
+    </ul>
+    <p>Zdroj: <a href="https://www.dovera.sk/poistenec/benefity/vsetky/400-eur-za-lieky" rel="nofollow">Dôvera – 400 € za lieky</a></p>
+    <h2>Všeobecná zdravotná poisťovňa (VšZP)</h2>
+    <ul>
+      <li><strong>Peňaženka zdravia MINI:</strong> poistenec do 18 rokov až 100 € ročne na doplatky za lieky, od 18 rokov až 20 €.</li>
+      <li><strong>Peňaženka zdravia MAXI:</strong> deti a ich rodičia spolu až 450 € ročne na doplatky za lieky a dietetické potraviny (od 1. 5. 2026, predtým 200 €).</li>
+      <li><strong>Podmienky:</strong> pravidelné preventívne prehliadky (potvrdzujú sa čestným vyhlásením a VšZP ich overuje). Liek musí byť predpísaný na vaše meno a vydaný v slovenskej lekárni.</li>
+      <li><strong>Ako:</strong> v mobilnej aplikácii VšZP alebo ePobočke nahráte fotografiu dokladu o úhrade (s QR kódom) do 60 dní od nákupu. Nevyčerpaná suma sa do ďalšieho roka neprenáša.</li>
+    </ul>
+    <p>Zdroj: <a href="https://www.vszp.sk/o-nas/informacie-media/tlacove-spravy/az-450-eur-doplatky-za-lieky-dieteticke-potraviny-vszp-historicky-navysuje-financne-prispevky-penazenke-zdravia.html" rel="nofollow">VšZP – tlačová správa o Peňaženke zdravia</a>, <a href="https://www.vszp.sk/o-nas/podmienky-pouzivania-elektronickych-sluzieb/vseobecne-podmienky-k-produktu-penazenka-zdravia.html" rel="nofollow">VšZP – všeobecné podmienky Peňaženky zdravia</a></p>
+    <h2>Čo platí pre všetkých</h2>
+    <p>Okrem dobrovoľných benefitov vracajú všetky poisťovne podľa zákona doplatky nad <a href="/ochranny-limit/">ochranný limit</a> dôchodcom, ľuďom s preukazom ŤZP a deťom do 6 rokov. A najviac ušetríte, keď si vyberiete liek s nižším doplatkom: <a href="/">vyhľadajte svoj liek</a>.</p>
+    <blockquote>Podmienky benefitov si poisťovne menia aj počas roka. Pred žiadosťou si ich overte priamo u svojej poisťovne. Prehľad sme naposledy overili {VYHODY_OVERENE}.</blockquote>
+  </section>"""
+    write("/vyhody-poistovni/", page("Ktorá poisťovňa vráti doplatky za lieky – Union, Dôvera, VšZP",
+                                     "Porovnanie benefitov zdravotných poisťovní na doplatky za lieky: Union deťom bez limitu, Dôvera 400 € na člena rodiny, VšZP Peňaženka zdravia. Podmienky a ako požiadať.",
+                                     "/vyhody-poistovni/", body, breadcrumb_ld(crumb_items)))
+    urls.append(("/vyhody-poistovni/", "0.8"))
+
     # --- AI asistent ---
     crumb_items = [("Domov", "/"), ("AI asistent", None)]
     nd_q = f"Čo sa mení od {zm_counts[3]}?" if zm_counts else "Čo sa mení od budúceho mesiaca?"
@@ -2192,6 +2248,14 @@ def build():
             + ("Najväčšie zníženia: " + "; ".join(f"{p['name']} z {eur(p['dop'])} na {eur(c['dop'])} (/liek/{p['slug']}/)" for d, g, p, c in zm_downs[:6]) + ". " if zm_downs else "")
             + ("Vypadnú zo zoznamu: " + "; ".join(f"{p['name']} (/liek/{p['slug']}/)" for g, p in zm_gone[:6]) + ". " if zm_gone else "")
             + "Zoznam všetkých zmien je na stránke Zmeny doplatkov (/zmeny/).")})
+    docs.append({"t": "Výhody poisťovní: vrátenie doplatkov", "u": "/vyhody-poistovni/",
+                 "k": "poisťovňa benefit výhody union dôvera všzp vrátenie preplatenie deti rodina peňaženka zdravia",
+                 "x": ("Benefity nad rámec zákona (overené 25. 10. 2026): Union vracia deťom do 18 rokov doplatky za lieky a dietetické potraviny bez limitu, "
+                       "ak je v Unione aj aspoň jeden zákonný zástupca; dospelým spolu až 300 € za celú dobu poistenia pri splnení preventívnych prehliadok; "
+                       "žiada sa v aplikácii alebo Online pobočke. Dôvera: až 400 € na každého člena rodiny (rodičia a deti do 18 rokov), jednorazový kredit, "
+                       "podmienka preventívka u všeobecného lekára a zubára, žiadosť v aplikácii do konca marca nasledujúceho roka. VšZP Peňaženka zdravia: "
+                       "deti do 18 rokov až 100 € ročne (MINI), deti s rodičmi spolu až 450 € ročne (MAXI), dospelí až 20 € ročne; doklad o úhrade nahrať do "
+                       "aplikácie do 60 dní; podmienkou sú preventívne prehliadky. Voľnopredajné lieky a pomôcky sa nepreplácajú. Podmienky si overte u poisťovne.")})
     docs.append({"t": "Výpadky liekov", "u": "/vypadky/", "k": "výpadok výpadky nedostupný chýba prerušené dodávky", "x": (
         f"Podľa hlásení ŠÚKL má prerušené alebo ukončené dodávky {plural_lieky(n_vyp)} hradených poisťovňou. "
         "Pri každom je uvedená dostupná alternatíva s rovnakou látkou. Dostupnosť v konkrétnej lekárni sa líši.")})
