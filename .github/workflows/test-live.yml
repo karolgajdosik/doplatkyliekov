@@ -1,0 +1,11 @@
+name: Dočasný test naostro
+on: workflow_dispatch
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: |
+          B=https://doplatkyliekov.sk
+          echo "::notice title=URL::$(for u in /moje2.js /hist/7.json /moje-lieky/ /api/kontrola; do echo -n "$u $(curl -s -o /dev/null -w '%{http_code}' $B$u) "; done)"
+          echo "::notice title=KONTROLA::$(curl -s -X POST $B/api/kontrola -H 'content-type: application/json' --data '{"items":[{"kod":"94163","d":1},{"kod":"94586","d":1},{"kod":"8157A","d":0.5}]}' | head -c 3500)"
