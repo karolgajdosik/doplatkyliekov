@@ -26,7 +26,7 @@ jobs:
         run: |
           set -o pipefail
           python scripts/build_data.py 2>&1 | tee build.log || {
-            tail -n 20 build.log | sed 's/%/%25/g; s/^/::error title=build_data::/'
+            echo "::error title=build_data::$(tail -n 25 build.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
             exit 1
           }
 
@@ -57,7 +57,7 @@ jobs:
         run: |
           set -o pipefail
           python scripts/notify.py 2>&1 | tee notify.log || {
-            tail -n 20 notify.log | sed 's/%/%25/g; s/^/::error title=notify::/'
+            echo "::error title=notify::$(tail -n 25 notify.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
             exit 1
           }
           echo "::notice title=notify::$(tail -n 1 notify.log)"
