@@ -180,7 +180,8 @@ export async function onRequestPost({ request, env }) {
 
   try {
     if (env.ANTHROPIC_API_KEY) return json(await viaClaude(env, request, sys, msgs));
-    return json(await viaWorkersAI(env, request, sys, msgs, q, kod));
+    const only = CF_MODELS.includes(body.m) ? body.m : null;
+    return json(await viaWorkersAI(env, request, sys, msgs, q, kod, only));
   } catch (e) {
     return json({ error: 'Asistent teraz neodpovedá. Skúste to prosím o chvíľu.' }, 502);
   }
@@ -198,7 +199,7 @@ async function viaClaude(env, request, system, messages) {
     const res = await r.json();
     const content = res.content || [];
     if (res.stop_reason !== 'tool_use') {
-      return { answer: content.filter((c) => c.type === 'text').map((c) => c.text).join('\n').trim(), tools: used };
+      return { answer: content.filter((c) => c.type === 'text').map((c) => c.text).join('\n').trim(), tools: used, model: env.AI_MODEL || MODEL };
     }
     messages.push({ role: 'assistant', content });
     const results = [];
@@ -212,17 +213,32 @@ async function viaClaude(env, request, system, messages) {
   return { answer: 'Na túto otázku som nenašiel jednoznačnú odpoveď. Skúste ju prosím spresniť.', tools: used };
 }
 
-async function viaWorkersAI(env, request, system, messages, q, kod) {
-  // záloha: najprv nájdeme podklady, potom ich dáme modelu ako kontext
+// modely Workers AI v poradí; pri chybe sa skúsi ďalší (premenná AI_CF_MODEL má prednosť)
+const CF_MODELS = ['@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-4-scout-17b-16e-instruct',
+  '@cf/google/gemma-3-12b-it', '@cf/meta/llama-3.3-70b-instruct-fp8-fast'];
+
+async function viaWorkersAI(env, request, system, messages, q, kod, only) {
+  // najprv nájdeme podklady (aj podľa predošlej otázky, ak je nová len doplňujúca), potom ich dáme modelu ako kontext
+  const prevUser = messages.slice(0, -1).filter((m) => m.role === 'user').map((m) => m.content).pop() || '';
   const ctx = [];
   if (kod) ctx.push(await runTool(env, request, 'skupina_lieku', { kod }));
-  ctx.push(await runTool(env, request, 'hladaj_lieky', { dotaz: q }));
-  ctx.push(await runTool(env, request, 'lieky_na_ochorenie', { ochorenie: q }));
+  let found = await runTool(env, request, 'hladaj_lieky', { dotaz: q });
+  if (/nič nenašli|Zadajte názov/.test(found) && prevUser) found = await runTool(env, request, 'hladaj_lieky', { dotaz: prevUser + ' ' + q });
+  ctx.push(found);
+  const cond = await runTool(env, request, 'lieky_na_ochorenie', { ochorenie: q });
+  if (!/nemáme spracované/.test(cond)) ctx.push(cond);
   ctx.push(await runTool(env, request, 'hladaj_v_obsahu', { dotaz: q }));
-  const res = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-    messages: [{ role: 'system', content: system + '\n\nPodklady z webu (používaj len tie, ktoré sa týkajú otázky):\n' + ctx.join('\n\n').slice(0, 12000) },
-      ...messages.map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : '' }))],
-    max_tokens: 800,
-  });
-  return { answer: String(res.response || '').trim(), tools: ['podklady'] };
+  const sys = system + '\n\nPODKLADY Z WEBU (jediný zdroj faktov; ak sa netýkajú otázky, ignoruj ich a povedz, že údaj nemáš):\n' + ctx.join('\n\n').slice(0, 9000) +
+    '\n\nOdpovedz po slovensky, prirodzene a gramaticky správne. Nepíš o „podkladoch“, len odpovedz.';
+  const msgs = [{ role: 'system', content: sys }, ...messages.map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : '' }))];
+  const list = only ? [only] : (env.AI_CF_MODEL ? [env.AI_CF_MODEL] : CF_MODELS);
+  let lastErr;
+  for (const model of list) {
+    try {
+      const res = await env.AI.run(model, { messages: msgs, max_tokens: 700, temperature: 0.2 });
+      const text = String((res && (res.response ?? res.result?.response ?? res.choices?.[0]?.message?.content)) || '').trim();
+      if (text) return { answer: text, model };
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('bez odpovede');
 }

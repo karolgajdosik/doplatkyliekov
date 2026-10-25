@@ -1,0 +1,31 @@
+name: Test AI asistenta (dočasné)
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: model Workers AI (prázdne = predvolené poradie)
+        required: false
+        default: ""
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Otázky
+        env:
+          M: ${{ github.event.inputs.model }}
+        run: |
+          i=0
+          while IFS= read -r q; do
+            i=$((i+1))
+            body=$(jq -nc --arg q "$q" --arg m "$M" '{q:$q, m:$m, history:[]}')
+            out=$(curl -s -m 60 -X POST https://doplatkyliekov.sk/api/asistent -H 'content-type: application/json' -d "$body")
+            ans=$(echo "$out" | jq -r '(.model // "") + " | " + (.answer // .error // "?")' | head -c 1800 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::notice title=Q$i ${q:0:60}::$ans"
+          done <<'QS'
+          Koľko doplatím za Concor 10 mg?
+          Je lacnejšia náhrada za Xarelto 20 mg?
+          Koľko mi vráti poisťovňa, ak som dôchodca s dôchodkom 700 eur?
+          Ktoré lieky na tlak sú bez doplatku?
+          Čo sa mení od 1. novembra?
+          Aký je recept na palacinky?
+          QS
