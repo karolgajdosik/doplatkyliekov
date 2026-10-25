@@ -24,7 +24,7 @@ export async function onRequestPost({ request, env }) {
   const items = (Array.isArray(body.items) ? body.items : []).filter((x) => x && /^[0-9A-Z]{4,6}$/.test(String(x.kod))).slice(0, 30);
   if (!items.length) return json({ error: 'Zoznam je prázdny.' }, 400);
   const idx = await index(env, request);
-  const next = idx.next || 'budúceho mesiaca';
+  const next = /^\d{4}-\d{2}-\d{2}$/.test(idx.next || '') ? idx.next.slice(8, 10).replace(/^0/, '') + '. ' + idx.next.slice(5, 7).replace(/^0/, '') + '. ' + idx.next.slice(0, 4) : (idx.next || 'budúceho mesiaca');
   const lines = [];
   let pack = 0, year = 0, yearNow = 0;
   for (const x of items) {
