@@ -217,6 +217,32 @@
     box.append(info, ' ', again);
     return box;
   }
+  /* pripomienky užívania: časy pri lieku (pole t), notifikácia a/alebo kalendár */
+  function dosesBox(m, name) {
+    var box = el('div', 'mine-doses');
+    var times = Array.isArray(m.t) ? m.t : [];
+    box.append(el('span', null, times.length ? 'Pripomenúť užitie o ' : 'Pripomínať užitie? '));
+    times.forEach(function (t) {
+      var chip = el('span', 'dose-chip', t);
+      var x = el('button', null, '×'); x.type = 'button'; x.setAttribute('aria-label', 'Zrušiť pripomienku o ' + t + ': ' + name);
+      x.addEventListener('click', function () { Moje.update(m.kod, { t: times.filter(function (y) { return y !== t; }) }); window.renderMoje(); });
+      chip.append(x); box.append(chip);
+    });
+    if (times.length < 6) {
+      var add = el('button', 'linkish', times.length ? '+ ďalší čas' : 'Nastaviť čas'); add.type = 'button';
+      var ti = el('input'); ti.type = 'time'; ti.hidden = true; ti.setAttribute('aria-label', 'Čas užitia: ' + name); ti.step = 300;
+      add.addEventListener('click', function () { ti.hidden = false; add.hidden = true; ti.value = times.length ? '20:00' : '08:00'; ti.focus(); });
+      ti.addEventListener('change', function () {
+        if (!/^\d{2}:\d{2}$/.test(ti.value)) return;
+        var nt = times.concat([ti.value]).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
+        Moje.update(m.kod, { t: nt }); window.renderMoje();
+        var st = pushState(); var msg = document.getElementById('mine-tools-msg');
+        if (!st && msg) { msg.textContent = 'Aby pripomienky prišli do telefónu, zapnite nižšie notifikácie. Alebo si ich pridajte do kalendára.'; msg.className = 'form-msg ok'; }
+      });
+      box.append(add, ti);
+    }
+    return box;
+  }
   function icsFor(list) {
     var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//doplatkyliekov.sk//Moje lieky//SK', 'CALSCALE:GREGORIAN'];
     var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
@@ -230,6 +256,17 @@
         'DESCRIPTION:Balenie dôjde približne ' + skDate(out) + '. Ak treba\\, vyžiadajte si recept. doplatkyliekov.sk/moje-lieky/',
         'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Kúpiť liek', 'TRIGGER:PT9H', 'END:VALARM', 'END:VEVENT');
     });
+    var who = profiles().list.length > 1 ? ' (' + curProfile().name + ')' : '';
+    list.forEach(function (m) {
+      (Array.isArray(m.t) ? m.t : []).forEach(function (t) {
+        var hm = t.replace(':', '') + '00', d0 = todayIso().replace(/-/g, '');
+        var nm = (m.name || m.kod).replace(/[,;\\]/g, ' ');
+        lines.push('BEGIN:VEVENT', 'UID:dose-' + m.kod + '-' + t.replace(':', '') + '-' + curProfile().id + '@doplatkyliekov.sk', 'DTSTAMP:' + stamp,
+          'DTSTART:' + d0 + 'T' + hm, 'DURATION:PT5M', 'RRULE:FREQ=DAILY',
+          'SUMMARY:Užiť liek: ' + nm + ' (' + String(dose(m.d)).replace('.', '\\,') + ' ks)' + who.replace(/[,;]/g, ' '),
+          'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Užiť liek ' + nm, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
+      });
+    });
     lines.push('END:VCALENDAR');
     return lines.join('\r\n');
   }
@@ -242,7 +279,13 @@
   function b64u(s) { var p = '='.repeat((4 - s.length % 4) % 4); var b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); var a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
   function pushPayload() {
     // všetky profily v tomto zariadení; dátum dôjdenia z dátumu otvorenia balenia, dávky a počtu kusov
-    var kody = [], refills = {};
+    var kody = [], refills = {}, doses = [];
+    var P = profiles();
+    P.list.forEach(function (p) {
+      readKey(keyFor(p.id)).forEach(function (x) {
+        (Array.isArray(x.t) ? x.t : []).forEach(function (t) { doses.push({ k: x.kod, t: t, d: dose(x.d), w: P.list.length > 1 ? p.name : '' }); });
+      });
+    });
     allItems().forEach(function (x) {
       if (kody.indexOf(x.kod) < 0) kody.push(x.kod);
       if (x.s && x.k && /^\d{4}-\d{2}-\d{2}$/.test(x.s)) {
@@ -250,13 +293,14 @@
         if (!refills[x.kod] || out < refills[x.kod]) refills[x.kod] = out;
       }
     });
-    return { kody: kody, refills: refills };
+    var tz = 'Europe/Bratislava'; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch (e) { /* nič */ }
+    return { kody: kody, refills: refills, doses: doses, tz: tz };
   }
   function pushSync() {
     var st = pushState(); if (!st) return;
     var p = pushPayload(), sig = JSON.stringify(p);
     if (sig === st.sig) return;
-    fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', id: st.id, endpoint: st.endpoint, kody: p.kody, refills: p.refills }) })
+    fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', id: st.id, endpoint: st.endpoint, kody: p.kody, refills: p.refills, doses: p.doses, tz: p.tz }) })
       .then(function (r) { if (r.ok) { st.sig = sig; pushSave(st); } else if (r.status === 404) pushSave(null); }).catch(function () {});
   }
   function pushUI() {
@@ -285,7 +329,7 @@
         return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) });
       }).then(function (sub) {
         var p = pushPayload(), j = sub.toJSON();
-        return fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'subscribe', sub: j, kody: p.kody, refills: p.refills, consent: true }) })
+        return fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'subscribe', sub: j, kody: p.kody, refills: p.refills, doses: p.doses, tz: p.tz, consent: true }) })
           .then(function (r) { return r.json().then(function (x) { if (!r.ok) throw new Error(x.error || 'server'); pushSave({ id: x.id, endpoint: j.endpoint, sig: JSON.stringify(p) }); }); });
       }).then(function () { pushUI(); say('Hotovo. Notifikácie sú zapnuté na tomto zariadení.', true); })
         .catch(function (e) { say(e.message === 'perm' ? 'Notifikácie ste v prehliadači nepovolili. Povoľte ich v nastaveniach.' : 'Notifikácie sa nepodarilo zapnúť. ' + (e.message && e.message.length < 80 ? e.message : '')); })
@@ -419,6 +463,7 @@
             prow.dose = d.toLocaleString('sk-SK', { maximumFractionDigits: 2 }) + ' denne';
             if (!shared) line.append(refillBox(m, ks, d, name));
           }
+          if (!shared) line.append(dosesBox(m, name));
           var al = alerts.items && alerts.items[m.kod];
           if (al && al.n !== undefined && alerts.next) {
             line.append(el('small', 'mine-warn', al.n === null
@@ -490,7 +535,7 @@
       if (!shared) pushSync();
       var cal = document.getElementById('mine-ics');
       if (cal) {
-        cal.hidden = shared || !Object.keys(RUNOUT).length;
+        cal.hidden = shared || (!Object.keys(RUNOUT).length && !list.some(function (m) { return Array.isArray(m.t) && m.t.length; }));
         cal.onclick = function () {
           var blob = new Blob([icsFor(list)], { type: 'text/calendar;charset=utf-8' });
           var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'pripomienky-lieky.ics';

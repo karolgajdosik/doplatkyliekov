@@ -8,6 +8,26 @@ import { json } from '../../lib/mail.js';
 const HOSTS = /^(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9.-]+\.notify\.windows\.com|[a-z0-9.-]+\.push\.apple\.com)$/;
 const KOD = /^[0-9A-Z]{4,6}$/;
 
+// pripomienky užívania: [{ k: kód, t: 'HH:MM', d: dávka, w: meno profilu }]
+function cleanDoses(a, kody) {
+  const out = [];
+  for (const x of Array.isArray(a) ? a : []) {
+    if (!x || !kody.includes(String(x.k)) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(x.t || ''))) continue;
+    const d = +x.d > 0 && +x.d <= 20 ? +x.d : 1;
+    out.push({ k: String(x.k), t: String(x.t), d, w: String(x.w || '').replace(/[<>]/g, '').slice(0, 30) });
+    if (out.length >= 40) break;
+  }
+  return out;
+}
+function cleanTz(t) { return /^[A-Za-z_]+\/[A-Za-z_]+$/.test(String(t || '')) ? String(t) : 'Europe/Bratislava'; }
+// index časov pripomienok (aby skript každých 10 minút nečítal všetky záznamy)
+async function setIndex(env, id, doses) {
+  const idx = (await env.SUBS.get('doses:index', 'json')) || {};
+  const times = [...new Set(doses.map((x) => x.t))];
+  if (times.length) idx[id] = times; else delete idx[id];
+  await env.SUBS.put('doses:index', JSON.stringify(idx));
+}
+
 async function idOf(endpoint) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(endpoint));
   return [...new Uint8Array(d)].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -34,9 +54,11 @@ export async function onRequestPost({ request, env }) {
     const id = await idOf(sub.endpoint);
     const prev = await env.SUBS.get(`push:${id}`, 'json');
     const rec = { sub: { endpoint: sub.endpoint, keys: { p256dh: String(sub.keys.p256dh), auth: String(sub.keys.auth) } },
-      kody, refills: cleanRefills(b.refills, kody), created: prev?.created || new Date().toISOString(),
+      kody, refills: cleanRefills(b.refills, kody), doses: cleanDoses(b.doses, kody), tz: cleanTz(b.tz),
+      created: prev?.created || new Date().toISOString(),
       consentAt: new Date().toISOString(), notified: prev?.notified || {} };
     await env.SUBS.put(`push:${id}`, JSON.stringify(rec));
+    await setIndex(env, id, rec.doses);
     return json({ id });
   }
 
@@ -46,14 +68,19 @@ export async function onRequestPost({ request, env }) {
 
   if (b.action === 'delete') {
     await env.SUBS.delete(`push:${b.id}`);
+    await setIndex(env, b.id, []);
     return json({ ok: true });
   }
   if (b.action === 'update') {
     const kody = cleanKody(b.kody);
     const refills = cleanRefills(b.refills, kody);
-    if (JSON.stringify(kody) === JSON.stringify(rec.kody) && JSON.stringify(refills) === JSON.stringify(rec.refills)) return json({ ok: true, same: true });
-    rec.kody = kody; rec.refills = refills;
+    const doses = cleanDoses(b.doses, kody), tz = cleanTz(b.tz);
+    if (JSON.stringify(kody) === JSON.stringify(rec.kody) && JSON.stringify(refills) === JSON.stringify(rec.refills) &&
+      JSON.stringify(doses) === JSON.stringify(rec.doses || []) && tz === rec.tz) return json({ ok: true, same: true });
+    const dosesChanged = JSON.stringify(doses) !== JSON.stringify(rec.doses || []);
+    rec.kody = kody; rec.refills = refills; rec.doses = doses; rec.tz = tz;
     await env.SUBS.put(`push:${b.id}`, JSON.stringify(rec));
+    if (dosesChanged) await setIndex(env, b.id, doses);
     return json({ ok: true });
   }
   return json({ error: 'Neznáma akcia.' }, 400);

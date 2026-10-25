@@ -209,11 +209,11 @@ def digest_html(ctx):
     return f"Prehľad doplatkov od {nd}", inner
 
 
-def send_push(rec, payload):
+def send_push(rec, payload, ttl=86400):
     from pywebpush import webpush, WebPushException  # noqa: PLC0415
     try:
         webpush(subscription_info=rec["sub"], data=json.dumps(payload, ensure_ascii=False), vapid_private_key=VAPID_KEY,
-                vapid_claims={"sub": "mailto:kontakt@doplatkyliekov.sk"}, ttl=86400)
+                vapid_claims={"sub": "mailto:kontakt@doplatkyliekov.sk"}, ttl=ttl)
         return "ok"
     except WebPushException as e:
         code = getattr(getattr(e, "response", None), "status_code", None)

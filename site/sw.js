@@ -1,7 +1,7 @@
 /* Service worker doplatkyliekov.sk: stránky a dáta najprv zo siete (aby boli aktuálne),
    bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma z pamäte s obnovou na pozadí. */
 'use strict';
-var V = 'v5';
+var V = 'v6';
 var SHELL = 'shell-' + V, PAGES = 'pages-' + V;
 var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/',
   '/data.json', '/alerts.json', '/manifest.webmanifest', '/icons/icon-192.png'];
@@ -69,11 +69,13 @@ self.addEventListener('push', function (e) {
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : '' }; }
   e.waitUntil(self.registration.showNotification(d.title || 'doplatkyliekov.sk', {
     body: d.body || '', icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', tag: d.tag || 'doplatky', lang: 'sk',
-    data: { url: d.url || '/moje-lieky/' }
+    data: { url: d.url || '/moje-lieky/' }, renotify: !!d.dose, requireInteraction: !!d.dose,
+    actions: d.dose ? [{ action: 'done', title: 'Užité' }] : []
   }));
 });
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
+  if (e.action === 'done') return;
   var url = (e.notification.data && e.notification.data.url) || '/moje-lieky/';
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
     for (var i = 0; i < list.length; i++) { if ('focus' in list[i]) { list[i].navigate(url); return list[i].focus(); } }

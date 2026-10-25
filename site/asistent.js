@@ -119,6 +119,35 @@
     });
     box.append(wrap);
   }
+  /* čítanie odpovedí nahlas (syntéza reči v prehliadači) */
+  var TTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  var VLANG = UK ? 'uk' : HU ? 'hu' : 'sk', speaking = null;
+  function plain(md) {
+    return md.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\*\*/g, '').replace(/^#+\s*/gm, '').replace(/^\s*[-*•]\s+/gm, '')
+      .replace(/(\d),(\d{2})\s*€/g, function (a, x, y) { return x + ',' + y + ' ' + T('eura', 'euró', 'євро'); }).replace(/€/g, T('eur', 'euró', 'євро'))
+      .replace(/\bks\b/g, T('kusov', 'darab', 'штук')).replace(/\bmg\b/g, T('miligramov', 'milligramm', 'міліграмів')).replace(/\s+/g, ' ').trim();
+  }
+  function voice() {
+    var vs = speechSynthesis.getVoices();
+    return vs.filter(function (v) { return v.lang && v.lang.toLowerCase().indexOf(VLANG) === 0; })[0] || null;
+  }
+  function stopSpeak() { if (TTS) speechSynthesis.cancel(); if (speaking) { speaking.classList.remove('on'); speaking.textContent = speaking.dataset.l; } speaking = null; }
+  function speak(text, btn, done) {
+    if (!TTS) { if (done) done(); return; }
+    stopSpeak();
+    // dlhší text po vetách: niektoré prehliadače inak čítanie po 15 s utnú
+    var parts = plain(text).match(/[^.!?]+[.!?]*/g) || [plain(text)], v = voice(), i = 0;
+    if (btn) { speaking = btn; btn.classList.add('on'); btn.textContent = T('Zastaviť čítanie', 'Felolvasás leállítása', 'Зупинити читання'); }
+    var me = btn || {};
+    (function next() {
+      if (i >= parts.length || (btn && speaking !== btn)) { if (btn && speaking === btn) stopSpeak(); if (done && speaking === null) done(); return; }
+      var u = new SpeechSynthesisUtterance(parts[i++].trim());
+      u.lang = { sk: 'sk-SK', hu: 'hu-HU', uk: 'uk-UA' }[VLANG]; if (v) u.voice = v; u.rate = 0.95;
+      u.onend = next; u.onerror = function () { stopSpeak(); if (done) done(); };
+      speechSynthesis.speak(u);
+    })();
+    return me;
+  }
   function bubble(role, text, refs) {
     var wrap = el('div', 'ai-msg ' + (role === 'user' ? 'me' : 'bot'));
     wrap.append(el('span', 'ai-who', role === 'user' ? T('Vy', 'Ön', 'Ви') : T('Asistent', 'Asszisztens', 'Асистент')));
@@ -128,6 +157,11 @@
       var box = render(refs.length ? prelink(text, refs) : text);
       if (refs.length) { linkNames(box, refs); chips(box, text, refs); }
       wrap.append(box);
+      if (TTS) {
+        var sb = el('button', 'linkish ai-speak', T('🔊 Prečítať nahlas', '🔊 Felolvasás', '🔊 Прочитати вголос')); sb.type = 'button'; sb.dataset.l = sb.textContent;
+        sb.addEventListener('click', function () { if (speaking === sb) stopSpeak(); else speak(text, sb); });
+        wrap.append(sb); wrap._speak = sb;
+      }
     }
     log.append(wrap);
     return wrap;
@@ -156,7 +190,9 @@
         wait.remove();
         if (res.s === 200 && res.j.answer) {
           conv.push({ role: 'assistant', text: res.j.answer, refs: (res.j.refs || []).slice(0, 120) }); store();
-          scrollEnd(bubble('assistant', res.j.answer, res.j.refs));
+          var bb = bubble('assistant', res.j.answer, res.j.refs);
+          scrollEnd(bb);
+          if (voiceMode && bb._speak) speak(res.j.answer, bb._speak, function () { if (voiceMode && startListening) setTimeout(startListening, 300); });
         } else {
           conv.pop(); store();
           var err = el('div', 'ai-msg bot err');
@@ -173,12 +209,18 @@
 
   /* hlasové otázky (rozpoznávanie reči priamo v prehliadači) */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition, mic = document.getElementById('ai-mic');
+  var voiceMode = false, startListening = null;
   if (SR && mic) {
     mic.hidden = false;
     form.classList.add('has-mic');
     var rec = null, listening = false;
     mic.addEventListener('click', function () {
       if (listening && rec) { rec.stop(); return; }
+      stopSpeak();
+      startListening();
+    });
+    startListening = function () {
+      if (listening) return;
       rec = new SR();
       rec.lang = UK ? 'uk-UA' : HU ? 'hu-HU' : 'sk-SK';
       rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
@@ -198,14 +240,30 @@
         listening = false; mic.classList.remove('on'); mic.setAttribute('aria-label', T('Položiť otázku hlasom', 'Kérdés hanggal', 'Запитати голосом'));
         inp.placeholder = T('Napíšte otázku…', 'Írja be kérdését…', 'Напишіть запитання…');
         if (finalText.trim().length > 2) ask(finalText.trim());
+        else if (voiceMode) { voiceMode = false; var c2 = document.querySelector('.ai-voice input'); if (c2) c2.checked = false; try { sessionStorage.setItem('asistent.hlas', '0'); } catch (e) { /* nič */ } }
       };
       try { rec.start(); } catch (e) { /* už beží */ }
-    });
+    };
+    /* hlasový režim: odpoveď sa prečíta nahlas a potom sa znova zapne mikrofón */
+    if (TTS) {
+      var vm = el('label', 'switch ai-voice');
+      var cb = el('input'); cb.type = 'checkbox'; cb.setAttribute('role', 'switch');
+      vm.append(cb, el('strong', null, T('Hlasový režim', 'Hangos mód', 'Голосовий режим')),
+        el('small', null, T('Odpovede sa prečítajú nahlas a potom môžete hneď hovoriť ďalej. Hlas spracúva váš prehliadač.', 'A válaszokat felolvassa, utána rögtön beszélhet tovább. A hangot a böngésző dolgozza fel.', 'Відповіді читаються вголос, після цього можна одразу говорити далі. Голос обробляє ваш браузер.')));
+      form.parentNode.insertBefore(vm, form.nextSibling);
+      try { voiceMode = cb.checked = sessionStorage.getItem('asistent.hlas') === '1'; } catch (e) { /* nič */ }
+      cb.addEventListener('change', function () {
+        voiceMode = cb.checked;
+        try { sessionStorage.setItem('asistent.hlas', voiceMode ? '1' : '0'); } catch (e) { /* nič */ }
+        if (voiceMode) startListening(); else { stopSpeak(); if (listening && rec) rec.stop(); }
+      });
+    }
   }
   inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(inp.value); } });
   inp.addEventListener('input', autosize);
   sugg.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) ask(b.textContent); });
   document.getElementById('ai-new').addEventListener('click', function () {
+    stopSpeak();
     conv = []; kod = null; store(); paint(); if (ctxEl) ctxEl.hidden = true;
     history.replaceState(null, '', location.pathname); inp.focus();
   });

@@ -620,3 +620,8 @@ body { overflow-x: clip; }
 .foto-list .mono { color: var(--save); font-weight: 600; }
 .foto-list small { grid-column: 1 / -1; color: var(--muted); font-size: 14px; }
 .foto-list .foto-best { color: var(--accent); }
+
+/* ---------- hlasový režim asistenta ---------- */
+.ai-speak { justify-self: start; font-size: 14px; margin-top: 2px; }
+.ai-speak.on { color: var(--save); }
+.ai-voice { margin-top: 4px; }
