@@ -1,7 +1,7 @@
 /* Service worker doplatkyliekov.sk: stránky a dáta najprv zo siete (aby boli aktuálne),
    bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma z pamäte s obnovou na pozadí. */
 'use strict';
-var V = 'v4';
+var V = 'v5';
 var SHELL = 'shell-' + V, PAGES = 'pages-' + V;
 var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/',
   '/data.json', '/alerts.json', '/manifest.webmanifest', '/icons/icon-192.png'];

@@ -5,8 +5,8 @@
   var log = document.getElementById('ai-log'), form = document.getElementById('ai-form'), inp = document.getElementById('ai-q');
   var sendBtn = document.getElementById('ai-send'), sugg = document.getElementById('ai-sugg'), ctxEl = document.getElementById('ai-ctx');
   if (!log || !form) return;
-  var HU = document.documentElement.lang === 'hu';
-  function T(sk, hu) { return HU ? hu : sk; }
+  var LANG = document.documentElement.lang, HU = LANG === 'hu', UK = LANG === 'uk';
+  function T(sk, hu, uk) { return UK ? uk : HU ? hu : sk; }
   var params = new URLSearchParams(location.search);
   var kod = /^[0-9A-Z]{4,6}$/.test(params.get('kod') || '') ? params.get('kod') : null;
   var conv = [];
@@ -111,17 +111,17 @@
     out = out.filter(function (r) { if (seen[r[0]]) return false; seen[r[0]] = 1; return true; });
     out.sort(function (a, b) { return b[4] - a[4]; });
     if (!out.length) return;
-    var wrap = el('div', 'ai-refs'); wrap.append(el('p', 'eyebrow', T(out.length === 1 ? 'Liek v odpovedi' : 'Lieky v odpovedi', 'Gyógyszerek a válaszban')));
+    var wrap = el('div', 'ai-refs'); wrap.append(el('p', 'eyebrow', T(out.length === 1 ? 'Liek v odpovedi' : 'Lieky v odpovedi', 'Gyógyszerek a válaszban', 'Ліки у відповіді')));
     out.slice(0, 8).forEach(function (r) {
       var a = el('a', 'ai-ref'); a.href = r[0];
-      a.append(el('span', null, r[1]), el('small', null, (r[2] ? r[2] + ' · ' : '') + T('otvoriť stránku lieku', 'gyógyszer oldala')));
+      a.append(el('span', null, r[1]), el('small', null, (r[2] ? r[2] + ' · ' : '') + T('otvoriť stránku lieku', 'gyógyszer oldala', 'сторінка ліків')));
       wrap.append(a);
     });
     box.append(wrap);
   }
   function bubble(role, text, refs) {
     var wrap = el('div', 'ai-msg ' + (role === 'user' ? 'me' : 'bot'));
-    wrap.append(el('span', 'ai-who', role === 'user' ? T('Vy', 'Ön') : T('Asistent', 'Asszisztens')));
+    wrap.append(el('span', 'ai-who', role === 'user' ? T('Vy', 'Ön', 'Ви') : T('Asistent', 'Asszisztens', 'Асистент')));
     if (role === 'user') wrap.append(el('p', null, text));
     else {
       refs = Array.isArray(refs) ? refs : [];
@@ -147,10 +147,10 @@
     conv.push({ role: 'user', text: q }); store();
     sugg.hidden = true; document.getElementById('ai-new').hidden = false;
     var mine = bubble('user', q);
-    var wait = el('div', 'ai-msg bot wait'); wait.append(el('span', 'ai-who', T('Asistent', 'Asszisztens')), el('p', 'ai-typing', T('Hľadám v údajoch o liekoch…', 'Keresek a gyógyszeradatokban…')));
+    var wait = el('div', 'ai-msg bot wait'); wait.append(el('span', 'ai-who', T('Asistent', 'Asszisztens', 'Асистент')), el('p', 'ai-typing', T('Hľadám v údajoch o liekoch…', 'Keresek a gyógyszeradatokban…', 'Шукаю в даних про ліки…')));
     log.append(wait); scrollEnd(mine);
     inp.value = ''; autosize(); sendBtn.disabled = true; inp.setAttribute('aria-busy', 'true');
-    fetch('/api/asistent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lang: HU ? 'hu' : 'sk', q: q, kod: kod, history: history.map(function (m) { return { role: m.role, text: m.text }; }) }) })
+    fetch('/api/asistent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lang: UK ? 'uk' : HU ? 'hu' : 'sk', q: q, kod: kod, history: history.map(function (m) { return { role: m.role, text: m.text }; }) }) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { s: r.status, j: j }; }); })
       .then(function (res) {
         wait.remove();
@@ -160,11 +160,11 @@
         } else {
           conv.pop(); store();
           var err = el('div', 'ai-msg bot err');
-          err.append(el('span', 'ai-who', T('Asistent', 'Asszisztens')), el('p', null, res.j.error || (res.s === 404 || res.s === 405 ? T('Asistent sa práve spúšťa. Skúste to prosím neskôr.', 'Az asszisztens most indul. Próbálja később.') : T('Asistent teraz neodpovedá. Skúste to prosím o chvíľu.', 'Az asszisztens most nem válaszol. Próbálja kicsit később.'))));
+          err.append(el('span', 'ai-who', T('Asistent', 'Asszisztens', 'Асистент')), el('p', null, res.j.error || (res.s === 404 || res.s === 405 ? T('Asistent sa práve spúšťa. Skúste to prosím neskôr.', 'Az asszisztens most indul. Próbálja később.', 'Асистент саме запускається. Спробуйте пізніше.') : T('Asistent teraz neodpovedá. Skúste to prosím o chvíľu.', 'Az asszisztens most nem válaszol. Próbálja kicsit később.', 'Асистент зараз не відповідає. Спробуйте трохи згодом.'))));
           log.append(err); inp.value = q;
         }
       })
-      .catch(function () { wait.remove(); conv.pop(); store(); log.append(el('p', 'form-msg err', T('Nepodarilo sa spojiť so serverom. Skontrolujte pripojenie.', 'Nem sikerült kapcsolódni a szerverhez. Ellenőrizze a kapcsolatot.'))); inp.value = q; })
+      .catch(function () { wait.remove(); conv.pop(); store(); log.append(el('p', 'form-msg err', T('Nepodarilo sa spojiť so serverom. Skontrolujte pripojenie.', 'Nem sikerült kapcsolódni a szerverhez. Ellenőrizze a kapcsolatot.', 'Не вдалося з’єднатися із сервером. Перевірте підключення.'))); inp.value = q; })
       .then(function () { sendBtn.disabled = false; inp.removeAttribute('aria-busy'); inp.focus(); });
   }
   function autosize() { inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 180) + 'px'; }
@@ -180,10 +180,10 @@
     mic.addEventListener('click', function () {
       if (listening && rec) { rec.stop(); return; }
       rec = new SR();
-      rec.lang = document.documentElement.lang === 'hu' ? 'hu-HU' : 'sk-SK';
+      rec.lang = UK ? 'uk-UA' : HU ? 'hu-HU' : 'sk-SK';
       rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
       var finalText = '';
-      rec.onstart = function () { listening = true; mic.classList.add('on'); mic.setAttribute('aria-label', T('Zastaviť nahrávanie', 'Felvétel leállítása')); inp.placeholder = T('Počúvam… hovorte', 'Figyelek… beszéljen'); };
+      rec.onstart = function () { listening = true; mic.classList.add('on'); mic.setAttribute('aria-label', T('Zastaviť nahrávanie', 'Felvétel leállítása', 'Зупинити запис')); inp.placeholder = T('Počúvam… hovorte', 'Figyelek… beszéljen', 'Слухаю… говоріть'); };
       rec.onresult = function (ev) {
         var interim = '';
         for (var i = ev.resultIndex; i < ev.results.length; i++) {
@@ -192,11 +192,11 @@
         inp.value = (finalText + interim).trim(); autosize();
       };
       rec.onerror = function (ev) {
-        if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') inp.placeholder = T('Mikrofón nie je povolený. Povoľte ho v nastaveniach prehliadača.', 'A mikrofon nincs engedélyezve. Engedélyezze a böngésző beállításaiban.');
+        if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') inp.placeholder = T('Mikrofón nie je povolený. Povoľte ho v nastaveniach prehliadača.', 'A mikrofon nincs engedélyezve. Engedélyezze a böngésző beállításaiban.', 'Мікрофон не дозволено. Дозвольте його в налаштуваннях браузера.');
       };
       rec.onend = function () {
-        listening = false; mic.classList.remove('on'); mic.setAttribute('aria-label', T('Položiť otázku hlasom', 'Kérdés hanggal'));
-        inp.placeholder = T('Napíšte otázku…', 'Írja be kérdését…');
+        listening = false; mic.classList.remove('on'); mic.setAttribute('aria-label', T('Položiť otázku hlasom', 'Kérdés hanggal', 'Запитати голосом'));
+        inp.placeholder = T('Napíšte otázku…', 'Írja be kérdését…', 'Напишіть запитання…');
         if (finalText.trim().length > 2) ask(finalText.trim());
       };
       try { rec.start(); } catch (e) { /* už beží */ }

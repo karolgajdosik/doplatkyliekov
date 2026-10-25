@@ -471,7 +471,7 @@ body.sheet-open { overflow: hidden; }
 .slip-close { justify-self: start; }
 .wrap > main { display: grid; gap: 36px; min-width: 0; }
 @media (max-width: 640px) { .wrap > main { gap: 30px; } }
-@media print { .site-head, .bottom-nav, .sheet, .sheet-backdrop, .skip { display: none !important; } }
+@media print { .site-head, .bottom-nav, .sheet, .sheet-backdrop, .skip { display: none !important; } *, *::before, *::after { animation: none !important; transition: none !important; } body::before, body::after { display: none !important; } }
 
 .head-btn.disp .lbl { display: none; }
 .set-note { font-size: 14px; color: var(--muted); }
@@ -588,3 +588,35 @@ body { overflow-x: clip; }
 #push-card .consent { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 15px; color: var(--muted); }
 #push-card .consent input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--accent); }
 .bottom-nav a > span:last-child, .bottom-nav button > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- rodinné profily v Moje lieky ---------- */
+.mine-profiles { display: grid; gap: 10px; }
+.mp-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mp-chip, .mp-add { font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); padding: 9px 16px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.mp-chip small { font-family: var(--font-mono); font-size: 12px; background: var(--raise); border-radius: 999px; padding: 1px 7px; color: var(--muted); }
+.mp-chip.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.mp-chip.on small { background: rgba(0, 0, 0, .18); color: inherit; }
+.mp-add { color: var(--accent); border-style: dashed; font-weight: 500; }
+.mp-chip:hover, .mp-add:hover { border-color: var(--accent); }
+.mp-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mp-form input { font: inherit; font-size: 16px; color: var(--ink); background: var(--raise); border: 1px solid var(--line-strong); border-radius: 12px; padding: 10px 12px; min-width: 0; flex: 1 1 180px; max-width: 280px; }
+.mp-form button[type=submit] { font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-ink); padding: 10px 18px; }
+.mp-tools { font-size: 15px; color: var(--muted); }
+@media print { .mine-profiles { display: none !important; } }
+
+/* ---------- rozpoznanie lieku z fotky ---------- */
+.foto { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 4px; }
+.foto-btn { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; color: var(--accent); border: 1px solid var(--line-strong); border-radius: 999px; padding: 10px 18px; background: var(--surface); min-height: 44px; }
+.foto-btn:hover, .foto-btn:focus-within { border-color: var(--accent); box-shadow: 0 0 22px -6px var(--glow); }
+.foto-btn input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.foto-note { color: var(--muted); font-size: 13px; flex: 1 1 220px; }
+.foto-out { display: grid; gap: 10px; margin-top: 6px; }
+.foto-busy::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; border: 2px solid var(--accent); border-right-color: transparent; border-radius: 50%; vertical-align: -2px; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.foto-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.foto-list a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 16px; }
+.foto-list a:hover { border-color: var(--accent); }
+.foto-list strong { min-width: 0; overflow-wrap: anywhere; }
+.foto-list .mono { color: var(--save); font-weight: 600; }
+.foto-list small { grid-column: 1 / -1; color: var(--muted); font-size: 14px; }
+.foto-list .foto-best { color: var(--accent); }

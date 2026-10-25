@@ -3,16 +3,50 @@
    Používa ho každá stránka webu. */
 (function () {
   'use strict';
-  var KEY = 'mojeLieky.v1';
+  var BASE_KEY = 'mojeLieky.v1', PROF_KEY = 'mojeLieky.profily.v1';
 
-  function read() {
-    try { var v = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(v) ? v : []; }
+  /* rodinné profily: každý člen rodiny má vlastný zoznam; prvý profil používa pôvodný kľúč (spätná kompatibilita) */
+  function profiles() {
+    try { var v = JSON.parse(localStorage.getItem(PROF_KEY) || 'null'); if (v && Array.isArray(v.list) && v.list.length) return v; } catch (e) { /* nič */ }
+    return { cur: 'p0', list: [{ id: 'p0', name: 'Ja' }] };
+  }
+  function saveProfiles(v) { try { localStorage.setItem(PROF_KEY, JSON.stringify(v)); } catch (e) { /* nič */ } }
+  function keyFor(id) { return id === 'p0' ? BASE_KEY : BASE_KEY + '.' + id; }
+  function curProfile() { var P = profiles(); return P.list.filter(function (x) { return x.id === P.cur; })[0] || P.list[0]; }
+  function readKey(k) {
+    try { var v = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(v) ? v : []; }
     catch (e) { return []; }
   }
-  function write(list) {
-    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* súkromné okno, plné úložisko */ }
-    refresh();
+  function read() { return readKey(keyFor(curProfile().id)); }
+  function allItems() {
+    var out = [];
+    profiles().list.forEach(function (p) { readKey(keyFor(p.id)).forEach(function (x) { out.push(x); }); });
+    return out;
   }
+  function rawWrite(list) { try { localStorage.setItem(keyFor(curProfile().id), JSON.stringify(list)); } catch (e) { /* súkromné okno, plné úložisko */ } }
+  function write(list) { rawWrite(list); refresh(); }
+  var Profiles = {
+    all: function () { return profiles(); },
+    current: curProfile,
+    select: function (id) { var P = profiles(); P.cur = id; saveProfiles(P); refresh(); },
+    add: function (name) {
+      var P = profiles(); if (P.list.length >= 8) return null;
+      var id = 'p' + Date.now().toString(36);
+      P.list.push({ id: id, name: String(name).slice(0, 30) }); P.cur = id; saveProfiles(P); refresh(); return id;
+    },
+    rename: function (id, name) { var P = profiles(); P.list.forEach(function (x) { if (x.id === id) x.name = String(name).slice(0, 30); }); saveProfiles(P); refresh(); },
+    remove: function (id) {
+      var P = profiles(); if (P.list.length < 2) return;
+      try { localStorage.removeItem(keyFor(id)); } catch (e) { /* nič */ }
+      if (id === 'p0') { // prvý profil má pôvodný kľúč: presunieme naň druhý profil
+        var second = P.list[1];
+        try { localStorage.setItem(BASE_KEY, localStorage.getItem(keyFor(second.id)) || '[]'); localStorage.removeItem(keyFor(second.id)); } catch (e) { /* nič */ }
+        P.list.splice(1, 1); P.list[0] = { id: 'p0', name: second.name }; P.cur = 'p0';
+      } else { P.list = P.list.filter(function (x) { return x.id !== id; }); if (P.cur === id) P.cur = 'p0'; }
+      saveProfiles(P); refresh();
+    }
+  };
+  window.MojeProfily = Profiles;
   var Moje = {
     list: read,
     has: function (kod) { return read().some(function (x) { return x.kod === kod; }); },
@@ -39,8 +73,10 @@
     b.classList.toggle('on', on);
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     var t = b.querySelector('.mine-label');
-    var hu = document.documentElement.lang === 'hu';
-    if (t) t.textContent = on ? (hu ? 'Elmentve a Gyógyszereim közé' : 'Uložené v Mojich liekoch') : (hu ? 'Mentés a Gyógyszereim közé' : 'Pridať do Mojich liekov');
+    var lg = document.documentElement.lang;
+    var lbl = { hu: ['Elmentve a Gyógyszereim közé', 'Mentés a Gyógyszereim közé'], uk: ['Збережено в Моїх ліках', 'Зберегти в Мої ліки'] }[lg] || ['Uložené v Mojich liekoch', 'Pridať do Mojich liekov'];
+    var who = profiles().list.length > 1 ? ' (' + curProfile().name + ')' : '';
+    if (t) t.textContent = (on ? lbl[0] : lbl[1]) + who;
   }
   function refresh() {
     var n = read().length;
@@ -96,7 +132,7 @@
       var email = (form.querySelector('[name=email]').value || '').trim();
       var consent = form.querySelector('[name=consent]').checked;
       var hp = (form.querySelector('[name=web]') || {}).value || '';
-      var kody = read().map(function (x) { return x.kod; });
+      var kody = allItems().map(function (x) { return x.kod; }).filter(function (k, i, a) { return a.indexOf(k) === i; });
       var own = form.getAttribute('data-kod');
       if (own && kody.indexOf(own) < 0) kody.push(own);
       function say(t, ok) { out.textContent = t; out.className = 'form-msg ' + (ok ? 'ok' : 'err'); }
@@ -157,6 +193,7 @@
   function addDays(iso, n) { var p = iso.split('-'); var t = new Date(+p[0], +p[1] - 1, +p[2] + n); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
   function daysTo(iso) { var p = iso.split('-'); var a = new Date(+p[0], +p[1] - 1, +p[2]); var b = new Date(); b.setHours(0, 0, 0, 0); return Math.round((a - b) / 864e5); }
   function refillBox(m, ks, d, name) {
+    if (m.k !== ks) rawWrite(read().map(function (x) { if (x.kod === m.kod) x.k = ks; return x; }));
     var box = el('div', 'mine-refill');
     if (!m.s || !/^\d{4}-\d{2}-\d{2}$/.test(m.s)) {
       delete RUNOUT[m.kod];
@@ -204,8 +241,15 @@
   function pushSave(v) { try { if (v) localStorage.setItem(PKEY, JSON.stringify(v)); else localStorage.removeItem(PKEY); } catch (e) { /* nič */ } }
   function b64u(s) { var p = '='.repeat((4 - s.length % 4) % 4); var b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); var a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
   function pushPayload() {
-    var kody = read().map(function (x) { return x.kod; });
-    var refills = {}; kody.forEach(function (k) { if (RUNOUT[k]) refills[k] = RUNOUT[k]; });
+    // všetky profily v tomto zariadení; dátum dôjdenia z dátumu otvorenia balenia, dávky a počtu kusov
+    var kody = [], refills = {};
+    allItems().forEach(function (x) {
+      if (kody.indexOf(x.kod) < 0) kody.push(x.kod);
+      if (x.s && x.k && /^\d{4}-\d{2}-\d{2}$/.test(x.s)) {
+        var out = addDays(x.s, Math.floor(x.k / dose(x.d)));
+        if (!refills[x.kod] || out < refills[x.kod]) refills[x.kod] = out;
+      }
+    });
     return { kody: kody, refills: refills };
   }
   function pushSync() {
@@ -232,7 +276,7 @@
     if (st) say('Notifikácie sú zapnuté na tomto zariadení.', true);
     on.onclick = function () {
       if (!card.querySelector('#push-consent').checked) return say('Na zasielanie notifikácií potrebujeme váš súhlas.');
-      if (!read().length) return say('Najprv si uložte aspoň jeden liek.');
+      if (!allItems().length) return say('Najprv si uložte aspoň jeden liek.');
       on.disabled = true;
       Notification.requestPermission().then(function (perm) {
         if (perm !== 'granted') throw new Error('perm');
@@ -255,17 +299,70 @@
     };
   }
 
+  function profileBar(root, shared) {
+    var bar = document.getElementById('mine-profiles');
+    if (!bar) { bar = el('section', 'mine-profiles'); bar.id = 'mine-profiles'; bar.setAttribute('aria-label', 'Členovia rodiny'); root.parentNode.insertBefore(bar, root); }
+    bar.hidden = !!shared;
+    if (shared) return;
+    var P = profiles();
+    bar.replaceChildren();
+    var row = el('div', 'mp-row');
+    P.list.forEach(function (p) {
+      var b = el('button', 'mp-chip' + (p.id === P.cur ? ' on' : ''), p.name); b.type = 'button';
+      b.setAttribute('aria-pressed', p.id === P.cur ? 'true' : 'false');
+      var n = readKey(keyFor(p.id)).length; if (n) b.append(el('small', null, String(n)));
+      b.addEventListener('click', function () { Profiles.select(p.id); window.renderMoje(); });
+      row.append(b);
+    });
+    var addB = el('button', 'mp-add', '+ Pridať člena rodiny'); addB.type = 'button';
+    if (P.list.length >= 8) addB.hidden = true;
+    row.append(addB);
+    bar.append(row);
+    var form = el('form', 'mp-form'); form.hidden = true;
+    var inp = el('input'); inp.maxLength = 30; inp.placeholder = 'Meno, napr. Mama'; inp.setAttribute('aria-label', 'Meno člena rodiny');
+    var ok = el('button', null, 'Uložiť'); ok.type = 'submit';
+    var cancel = el('button', 'linkish', 'Zrušiť'); cancel.type = 'button';
+    form.append(inp, ok, cancel);
+    bar.append(form);
+    var mode = 'add';
+    addB.addEventListener('click', function () { mode = 'add'; inp.value = ''; form.hidden = false; inp.focus(); });
+    cancel.addEventListener('click', function () { form.hidden = true; });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); var v = inp.value.trim(); if (!v) return inp.focus();
+      if (mode === 'add') Profiles.add(v); else Profiles.rename(P.cur, v);
+      window.renderMoje();
+    });
+    var cur = curProfile();
+    var tools = el('p', 'mp-tools');
+    tools.append(el('span', null, 'Zoznam: ' + cur.name + ' · '));
+    var ren = el('button', 'linkish', 'Premenovať'); ren.type = 'button';
+    ren.addEventListener('click', function () { mode = 'rename'; inp.value = cur.name; form.hidden = false; inp.focus(); });
+    tools.append(ren);
+    if (P.list.length > 1) {
+      var del = el('button', 'linkish', 'Odstrániť zoznam'); del.type = 'button';
+      del.addEventListener('click', function () {
+        if (del.dataset.armed) { Profiles.remove(cur.id); window.renderMoje(); return; }
+        del.dataset.armed = '1'; del.textContent = 'Naozaj odstrániť zoznam ' + cur.name + '?';
+      });
+      tools.append(' · ', del);
+    }
+    bar.append(tools);
+    var hint = el('p', 'hint', 'Každý člen rodiny má vlastný zoznam liekov, dávkovanie aj pripomienky. Notifikácie a upozornenia e-mailom platia pre lieky zo všetkých zoznamov.');
+    if (P.list.length < 2) bar.append(hint);
+  }
+
   window.renderMoje = function () {
     var root = document.getElementById('moje-root');
     if (!root) return;
     var shared = sharedList();
+    profileBar(root, shared);
     var list = shared || read();
     var tools = document.getElementById('mine-tools');
     if (!list.length) {
       if (tools) tools.hidden = true;
       root.replaceChildren();
       var empty = el('div', 'card empty-state');
-      empty.append(el('h2', null, 'Zatiaľ nemáte uložený žiadny liek'));
+      empty.append(el('h2', null, profiles().list.length > 1 && !shared ? 'Zoznam ' + curProfile().name + ' je zatiaľ prázdny' : 'Zatiaľ nemáte uložený žiadny liek'));
       var p = el('p', 'page-sub');
       p.append('Vyhľadajte liek, ktorý užívate, a na jeho stránke kliknite na ', el('strong', null, 'Pridať do Mojich liekov'), '. Zoznam sa uloží len vo vašom prehliadači.');
       var a = el('a', 'cta', 'Vyhľadať liek →'); a.href = '/';
@@ -386,6 +483,7 @@
         tb.append(tr);
       });
       tbl.append(tb);
+      if (!shared && profiles().list.length > 1) root.append(el('p', 'print-only print-note', 'Pacient: ' + curProfile().name));
       var note = el('p', 'print-only print-note', 'Pán doktor / pani doktorka, prosím o posúdenie, či je možné predpísať liek s nižším doplatkom alebo predpisovať názvom účinnej látky. Alternatívy majú rovnakú účinnú látku, silu a veľkosť balenia.');
       root.append(tbl, note);
 
@@ -450,6 +548,8 @@
   }
 
   document.addEventListener('moje:refresh', refresh);
+  // zmena v inom okne (napr. pridanie lieku na inej karte)
+  window.addEventListener('storage', function (e) { if (e.key && e.key.indexOf(BASE_KEY) === 0 || e.key === PROF_KEY) { refresh(); if (window.renderMoje) window.renderMoje(); } });
 
   function init() {
     refresh();

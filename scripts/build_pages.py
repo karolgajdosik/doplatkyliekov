@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["hu", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+GENERATED = ["hu", "uk", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
@@ -185,6 +185,19 @@ COND_HU = {  # maďarské výrazy pre hľadanie asistenta
     "pohlavne-hormony": ["hormon", "hormonpótlás"],
 }
 
+COND_UK = {  # ukrajinské výrazy pre hľadanie asistenta
+    "vysoky-krvny-tlak": ["тиск", "гіпертонія", "гіпертензія"], "cholesterol": ["холестерин"],
+    "cukrovka": ["діабет", "цукровий", "інсулін", "цукор"], "stitna-zlaza": ["щитовидн", "щитоподібн"],
+    "riedenie-krvi": ["розрідження крові", "антикоагулянт", "згортання"], "srdce": ["серце", "серцев"], "astma-chochp": ["астма", "хозл"],
+    "alergia": ["алергі"], "zaludok-reflux": ["шлунок", "печія", "рефлюкс"], "bolest-zapal": ["біль", "болю", "запален", "знеболювальн"],
+    "migrena": ["мігрен"], "depresia-uzkost": ["депресі", "тривог"], "spanok": ["сон", "безсоння", "снодійн"],
+    "psychiatria": ["психоз", "шизофрені", "біполярн"], "epilepsia": ["епілепсі"], "parkinson": ["паркінсон"],
+    "demencia": ["деменці", "альцгеймер"], "osteoporoza": ["остеопороз"], "dna": ["подагр"],
+    "prostata-mocovy-mechur": ["простат", "сечов"], "glaukom": ["глауком"], "antibiotika": ["антибіотик", "інфекці"],
+    "pohlavne-hormony": ["гормон"],
+}
+
+
 def conditions_for(atc):
     return [c for c in CONDITIONS if any(atc.startswith(x) for x in c[3])]
 
@@ -303,7 +316,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
     ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
@@ -386,7 +399,7 @@ def bottom_nav(path):
     return f'<nav class="bottom-nav" aria-label="Rýchle odkazy">{"".join(out)}</nav>'
 
 
-def site_footer(platnost_html, hu_path=None):
+def site_footer(platnost_html, alts=None):
     cols = "".join(
         f'<section><h2>{esc(g)}</h2><ul>' + "".join(f'<li><a href="{h}">{esc(t)}</a></li>' for h, t in items) + "</ul></section>"
         for g, items in [MENU[0], (MENU[1][0], MENU[1][1] + MENU[2][1]), MENU[3]])
@@ -394,121 +407,128 @@ def site_footer(platnost_html, hu_path=None):
     <nav class="foot-cols" aria-label="Ďalšie stránky">{cols}</nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {platnost_html}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu, nie je reklamou na lieky a nenahrádza radu lekára ani lekárnika. Poradie liekov určuje výlučne výška doplatku.</p>
-    <p><a href="{esc(hu_path or '/hu/')}" hreflang="hu" lang="hu">Magyar nyelvű változat</a></p>
+    <p>{lang_links(alts or alt_paths("root"), "sk")}</p>
   </footer>"""
 
 
-# ---------- maďarská verzia (rozloženie) ----------
-# Maďarsky sú úvod, stránky liekov, AI asistent a ochranný limit; ostatné odkazy vedú na slovenské stránky (označené SK).
-NAV_TOP_HU = [("/hu/", "Keresés", "", ""), ("/choroby/", "Betegségek (SK)", "", ""),
-              ("/zmeny/", "Változások (SK)", "Változások", "m"), ("/vypadky/", "Kiesések (SK)", "Kiesések", "m"),
-              ("/bez-doplatku/", "Térítésmentes (SK)", "Ingyenes", "m x-960"), ("/hu/vedelmi-limit/", "Védelmi limit", "Limit", "m x-960")]
-MENU_HU = [
-    ("Magyarul", [("/hu/", "Gyógyszer keresése"), ("/hu/asszisztens/", "MI asszisztens"), ("/hu/vedelmi-limit/", "Védelmi limit és visszatérítés")]),
-    ("Szlovák nyelvű oldalak", [("/moje-lieky/", "Gyógyszereim (Moje lieky)"), ("/choroby/", "Gyógyszerek betegségek szerint"),
-                                ("/bez-doplatku/", "Térítésmentes gyógyszerek"), ("/zmeny/", "A térítési díjak változásai"),
-                                ("/vypadky/", "Szállítási kiesések"), ("/vyhody-poistovni/", "Biztosítói kedvezmények")]),
-    ("A weboldalról", [("/", "Slovenská verzia"), ("/o-nas/", "Rólunk (SK)"), ("/kontakt/", "Kapcsolat (SK)"),
-                       ("/ochrana-sukromia/", "Adatvédelem (SK)"), ("/pristupnost/", "Akadálymentesség (SK)")]),
-]
+# ---------- cudzojazyčné verzie (maďarská, ukrajinská) – texty v scripts/langs.py ----------
+from langs import LANGS
 
 
-def site_header_hu(path):
+def alt_paths(kind, slug=None):
+    """Cesty jednej stránky vo všetkých jazykoch: {"sk": …, "hu": …, "uk": …}."""
+    sk = {"root": "/", "drug": f"/liek/{slug}/", "ai": "/asistent/", "limit": "/ochranny-limit/"}[kind]
+    out = {"sk": sk}
+    for code, L in LANGS.items():
+        out[code] = L[kind] + (f"{slug}/" if kind == "drug" else "") if kind != "root" else L["root"]
+    return out
+
+
+def hreflang_links(alts):
+    return "".join(f'<link rel="alternate" hreflang="{c}" href="{esc(BASE + u)}">' for c, u in alts.items()) + \
+        f'<link rel="alternate" hreflang="x-default" href="{esc(BASE + alts["sk"])}">'
+
+
+def lang_links(alts, skip):
+    """Odkazy na ostatné jazykové verzie do pätičky."""
+    names = {"sk": "Slovenská verzia tejto stránky", **{c: L["self"] for c, L in LANGS.items()}}
+    return " · ".join(f'<a href="{esc(u)}" hreflang="{c}" lang="{c}">{esc(names[c])}</a>' for c, u in alts.items() if c != skip)
+
+
+def site_header_l(L, path):
+    root = L["root"]
+
     def nav_link(h, t, short, cls):
         label = f'<span class="l">{esc(t)}</span><span class="s">{esc(short)}</span>' if short else esc(t)
-        return f'<a href="{h}"{_cur(h, path) if h != "/hu/" else (" aria-current=\"page\"" if path == "/hu/" else "")}{f" class=\"{cls}\"" if cls else ""}>{label}</a>'
-    links = "".join(nav_link(*x) for x in NAV_TOP_HU)
-    return f"""<a class="skip" href="#obsah">Ugrás a tartalomra</a>
+        return f'<a href="{h}"{_cur(h, path) if h != root else (" aria-current=\"page\"" if path == root else "")}{f" class=\"{cls}\"" if cls else ""}>{label}</a>'
+    links = "".join(nav_link(*x) for x in L["nav_top"])
+    return f"""<a class="skip" href="#obsah">{esc(L["skip"])}</a>
 <header class="site-head">
   <div class="site-head-in">
-    <a class="brand-link" href="/hu/" aria-label="doplatkyliekov.sk – kezdőlap">{CAPSULE}<span class="brand-name">doplatky<b>liekov</b>.sk</span></a>
-    <nav class="top-nav" aria-label="Fő navigáció">{links}</nav>
-    <a class="head-btn mine" href="/moje-lieky/">{IC["mine"]}<span class="lbl">Gyógyszereim</span><span data-mine-count hidden></span></a>
-    <a class="head-btn ai-btn" href="/hu/asszisztens/"{_cur("/hu/asszisztens/", path)} aria-label="MI asszisztens" title="MI asszisztens – kérdezzen a gyógyszerekről">{IC["spark"]}<span class="lbl">MI asszisztens</span></a>
-    <button type="button" class="head-btn theme-btn" data-theme-toggle aria-label="Világos vagy sötét mód" title="Világos / sötét mód"><span class="to-light">{IC["sun"]}</span><span class="to-dark">{IC["moon"]}</span></button>
-    <button type="button" class="head-btn disp" data-open="zobrazenie" aria-haspopup="dialog" aria-controls="zobrazenie" aria-label="Megjelenítés: színmód, betűméret, gyengénlátó mód" title="Megjelenítés"><span class="aa" aria-hidden="true">Aa</span><span class="lbl">Megjelenítés</span></button>
-    <button type="button" class="head-btn menu-btn" data-open="menu" aria-haspopup="dialog" aria-controls="menu">{IC["menu"]}<span class="lbl">Menü</span></button>
+    <a class="brand-link" href="{root}" aria-label="{esc(L["brand_aria"])}">{CAPSULE}<span class="brand-name">doplatky<b>liekov</b>.sk</span></a>
+    <nav class="top-nav" aria-label="{esc(L["nav_aria"])}">{links}</nav>
+    <a class="head-btn mine" href="/moje-lieky/">{IC["mine"]}<span class="lbl">{esc(L["mine"])}</span><span data-mine-count hidden></span></a>
+    <a class="head-btn ai-btn" href="{L["ai"]}"{_cur(L["ai"], path)} aria-label="{esc(L["ai_lbl"])}" title="{esc(L["ai_btn_title"])}">{IC["spark"]}<span class="lbl">{esc(L["ai_lbl"])}</span></a>
+    <button type="button" class="head-btn theme-btn" data-theme-toggle aria-label="{esc(L["theme_aria"])}" title="{esc(L["theme_title"])}"><span class="to-light">{IC["sun"]}</span><span class="to-dark">{IC["moon"]}</span></button>
+    <button type="button" class="head-btn disp" data-open="zobrazenie" aria-haspopup="dialog" aria-controls="zobrazenie" aria-label="{esc(L["disp_aria"])}" title="{esc(L["disp_title"])}"><span class="aa" aria-hidden="true">Aa</span><span class="lbl">{esc(L["disp_lbl"])}</span></button>
+    <button type="button" class="head-btn menu-btn" data-open="menu" aria-haspopup="dialog" aria-controls="menu">{IC["menu"]}<span class="lbl">{esc(L["menu_lbl"])}</span></button>
   </div>
 </header>"""
 
 
-def site_panels_hu(path):
+def site_panels_l(L, path):
     groups = "".join(
         f'<section><h3>{esc(g)}</h3><ul>' + "".join(f'<li><a href="{h}"{" aria-current=\"page\"" if h == path else ""}>{esc(t)}</a></li>' for h, t in items)
-        + "</ul></section>" for g, items in MENU_HU)
+        + "</ul></section>" for g, items in L["menu"])
     return f"""<div class="sheet-backdrop" hidden data-close></div>
 <div class="sheet" id="menu" role="dialog" aria-modal="true" aria-labelledby="menu-h" hidden>
-  <div class="sheet-head"><h2 id="menu-h">Menü</h2><button type="button" class="sheet-close" data-close aria-label="Menü bezárása">×</button></div>
-  <button type="button" class="head-btn menu-display" data-open="zobrazenie"><span class="aa" aria-hidden="true">Aa</span>Megjelenítés: világos mód, betűméret, gyengénlátóknak</button>
-  <nav class="menu-groups" aria-label="Összes oldal">{groups}</nav>
+  <div class="sheet-head"><h2 id="menu-h">{esc(L["menu_h"])}</h2><button type="button" class="sheet-close" data-close aria-label="{esc(L["menu_close"])}">×</button></div>
+  <button type="button" class="head-btn menu-display" data-open="zobrazenie"><span class="aa" aria-hidden="true">Aa</span>{esc(L["menu_disp"])}</button>
+  <nav class="menu-groups" aria-label="{esc(L["menu_all"])}">{groups}</nav>
 </div>
 <div class="sheet settings" id="zobrazenie" role="dialog" aria-modal="true" aria-labelledby="zob-h" hidden>
-  <div class="sheet-head"><h2 id="zob-h">Megjelenítés</h2><button type="button" class="sheet-close" data-close aria-label="Beállítások bezárása">×</button></div>
+  <div class="sheet-head"><h2 id="zob-h">{esc(L["disp_h"])}</h2><button type="button" class="sheet-close" data-close aria-label="{esc(L["disp_close"])}">×</button></div>
   <fieldset class="set-group">
-    <legend>Színmód</legend>
+    <legend>{esc(L["theme_legend"])}</legend>
     <div class="seg">
-      <label>{IC["moon"]}<input type="radio" name="theme" value="dark">Sötét</label>
-      <label>{IC["sun"]}<input type="radio" name="theme" value="light">Világos</label>
-      <label>{IC["auto"]}<input type="radio" name="theme" value="auto">Eszköz szerint</label>
+      <label>{IC["moon"]}<input type="radio" name="theme" value="dark">{esc(L["t_dark"])}</label>
+      <label>{IC["sun"]}<input type="radio" name="theme" value="light">{esc(L["t_light"])}</label>
+      <label>{IC["auto"]}<input type="radio" name="theme" value="auto">{esc(L["t_auto"])}</label>
     </div>
   </fieldset>
   <div class="set-group">
-    <p class="set-label" id="fs-label">Betűméret</p>
+    <p class="set-label" id="fs-label">{esc(L["fs"])}</p>
     <div class="fs-row" role="group" aria-labelledby="fs-label">
-      <button type="button" class="minus" data-fs="-1" aria-label="Betű kicsinyítése">A−</button>
+      <button type="button" class="minus" data-fs="-1" aria-label="{esc(L["fs_minus"])}">A−</button>
       <output id="fs-out" aria-live="polite">100 %</output>
-      <button type="button" class="plus" data-fs="1" aria-label="Betű nagyítása">A+</button>
+      <button type="button" class="plus" data-fs="1" aria-label="{esc(L["fs_plus"])}">A+</button>
     </div>
   </div>
   <label class="switch">
-    <strong>Gyengénlátó mód</strong>
+    <strong>{esc(L["contrast"])}</strong>
     <input type="checkbox" role="switch" id="set-contrast">
-    <small>Nagy kontraszt, nagyobb és jobban olvasható betűk, aláhúzott hivatkozások, animációk és áttetsző hatások nélkül.</small>
+    <small>{esc(L["contrast_desc"])}</small>
   </label>
-  <button type="button" class="set-reset" id="set-reset">Eredeti megjelenítés visszaállítása</button>
-  <p class="set-note">A beállítás csak ebben a böngészőben tárolódik.</p>
+  <button type="button" class="set-reset" id="set-reset">{esc(L["reset"])}</button>
+  <p class="set-note">{esc(L["set_note"])}</p>
 </div>"""
 
 
-def bottom_nav_hu(path):
-    items = [("/hu/", "Keresés", "search"), ("/moje-lieky/", "Listám", "mine"), ("/hu/asszisztens/", "Asszisztens", "spark"),
-             ("/hu/vedelmi-limit/", "Limit", "shield")]
+def bottom_nav_l(L, path):
     out = []
-    for h, t, ic in items:
+    for h, t, ic in L["bottom"]:
         badge = '<span data-mine-count hidden></span>' if ic == "mine" else ""
-        cur = ' aria-current="page"' if (h == path or (h != "/hu/" and path.startswith(h))) else ""
+        cur = ' aria-current="page"' if (h == path or (h != L["root"] and path.startswith(h))) else ""
         out.append(f'<a href="{h}"{cur}>{IC[ic]}{badge}<span>{esc(t)}</span></a>')
-    out.append(f'<button type="button" data-open="menu" aria-haspopup="dialog" aria-controls="menu">{IC["menu"]}<span>Menü</span></button>')
-    return f'<nav class="bottom-nav" aria-label="Gyorslinkek">{"".join(out)}</nav>'
+    out.append(f'<button type="button" data-open="menu" aria-haspopup="dialog" aria-controls="menu">{IC["menu"]}<span>{esc(L["menu_lbl"])}</span></button>')
+    return f'<nav class="bottom-nav" aria-label="{esc(L["bottom_aria"])}">{"".join(out)}</nav>'
 
 
-def site_footer_hu(platnost_html, sk_path):
+def site_footer_l(L, platnost_html, alts):
     cols = "".join(
         f'<section><h2>{esc(g)}</h2><ul>' + "".join(f'<li><a href="{h}">{esc(t)}</a></li>' for h, t in items) + "</ul></section>"
-        for g, items in MENU_HU)
+        for g, items in L["menu"])
     return f"""<footer>
-    <nav class="foot-cols" aria-label="További oldalak">{cols}</nav>
-    <p><a href="{esc(sk_path)}" hreflang="sk" lang="sk">Slovenská verzia tejto stránky</a></p>
-    <p>Forrás: a Szlovák Egészségügyi Minisztérium kategorizált gyógyszerlistája (érvényes: {platnost_html}) és az ŠÚKL szállítási bejelentései. Az árak euróban, áfával értendők.</p>
-    <p>Az oldal tájékoztató jellegű, nem gyógyszerreklám, és nem helyettesíti az orvos vagy a gyógyszerész tanácsát. A gyógyszerek sorrendjét kizárólag a térítési díj határozza meg.</p>
+    <nav class="foot-cols" aria-label="{esc(L["foot_aria"])}">{cols}</nav>
+    <p>{lang_links(alts, L["code"])}</p>
+    <p>{L["foot_src"].format(platnost=platnost_html)}</p>
+    <p>{esc(L["foot_disc"])}</p>
   </footer>"""
 
 
-def page_hu(title, description, path, body, sk_path, jsonld=None, script="", og=None):
+def page_l(L, title, description, path, body, alts, jsonld=None, script="", og=None):
     og_url = BASE + (og or "/og/default.jpg")
     url = BASE + path
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
     return f"""<!doctype html>
-<html lang="hu">
+<html lang="{L["code"]}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{esc(url)}">
-<link rel="alternate" hreflang="hu" href="{esc(url)}">
-<link rel="alternate" hreflang="sk" href="{esc(BASE + sk_path)}">
-<link rel="alternate" hreflang="x-default" href="{esc(BASE + sk_path)}">
+{hreflang_links(alts)}
 <meta property="og:url" content="{esc(url)}">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(description)}">
@@ -516,7 +536,7 @@ def page_hu(title, description, path, body, sk_path, jsonld=None, script="", og=
 <meta property="og:image" content="{esc(og_url)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:locale" content="hu_HU">
+<meta property="og:locale" content="{L["locale"]}">
 <meta property="og:site_name" content="doplatkyliekov.sk">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="{ICON}">
@@ -527,15 +547,15 @@ def page_hu(title, description, path, body, sk_path, jsonld=None, script="", og=
 {ld}
 </head>
 <body>
-{site_header_hu(path)}
+{site_header_l(L, path)}
 <div class="wrap">
 <main id="obsah">
 {body}
 </main>
-  {site_footer_hu(esc(PLATNOST), sk_path)}
+  {site_footer_l(L, esc(PLATNOST), alts)}
 </div>
-{bottom_nav_hu(path)}
-{site_panels_hu(path)}
+{bottom_nav_l(L, path)}
+{site_panels_l(L, path)}
 <script src="/ui.js" defer></script>
 <script src="/moje.js" defer></script>
 {script}
@@ -544,16 +564,127 @@ def page_hu(title, description, path, body, sk_path, jsonld=None, script="", og=
 """
 
 
-def crumbs_hu(items):
-    return crumbs(items).replace('aria-label="Navigácia"', 'aria-label="Navigáció"')
+def crumbs_l(L, items):
+    return crumbs(items).replace('aria-label="Navigácia"', f'aria-label="{esc(L["crumbs_aria"])}"')
 
 
-def hu_date(iso):
-    y, m, d = iso[:10].split("-")
-    return f"{y}. {m}. {d}."
-
-
-TYPE_HU = {"Originál": "Originális", "Generikum": "Generikum", "Biologický": "Biológiai"}
+def drug_page_l(L, c):
+    """Stránka lieku v jazyku L; c = údaje pripravené pre slovenskú stránku."""
+    p, g, items, cheapest, saving, pk = c["p"], c["g"], c["items"], c["cheapest"], c["saving"], c["pk"]
+    D = L["drug"]
+    rows = []
+    for x in items:
+        cls = "row" + (" sel" if x is p else "") + (" best" if cheapest and x["dop"] == cheapest["dop"] else "")
+        tags = []
+        tl = L["types"].get(type_label(x["typ"]), "")
+        if tl:
+            tags.append(f'<span class="tag">{tl}</span>')
+        if cheapest and x["dop"] == cheapest["dop"] and len(items) > 1:
+            tags.append(f'<span class="tag best">{L["tag_best"]}</span>')
+        elif x["dop"] == 0:
+            tags.append(f'<span class="tag zero">{L["tag_zero"]}</span>')
+        if c["vyp"].get(x["kod"], {}).get("stav") in ("R", "Z"):
+            tags.append(f'<span class="tag">{L["tag_vyp"]}</span>')
+        nm = esc(x["name"]) if x is p else f'<a href="{D}{esc(x["slug"])}/">{esc(x["name"])}</a>'
+        width = round(x["dop"] / c["max_dop"] * 100, 1)
+        rows.append(f'<li class="{cls}"><div class="row-name">{nm}<span class="tags">{"".join(tags)}</span></div>'
+                    f'<div class="row-dop">{eur(x["dop"])}</div><div class="row-pack">{esc(x["pack"])}</div>'
+                    f'<div class="row-sub">{L["price_row"].format(eur(x["konc"]))}</div><div class="track"><i style="width:{width}%"></i></div></li>')
+    if saving > 0.005:
+        desc = L["desc_save"].format(name=p["name"], pk=pk, dop=eur(p["dop"]), cname=cheapest["name"], cdop=eur(cheapest["dop"]), save=eur(saving))
+        clink = f'<a href="{D}{esc(cheapest["slug"])}/">{esc(cheapest["name"])}</a>'
+        verdict = (f'<div class="verdict"><p>{L["verdict_save"].format(name=esc(p["name"]), dop=eur(p["dop"]), clink=clink, cdop=eur(cheapest["dop"]))}</p>'
+                   f'<div class="big">−{eur(saving)}<small>{L["per_pack"]}</small></div></div>')
+    elif len(items) > 1:
+        desc = L["desc_cheap"].format(name=p["name"], pk=pk, dop=eur(p["dop"]), s=g["s"])
+        verdict = f'<div class="verdict none"><p>{L["verdict_cheap"].format(name=esc(p["name"]), dop=eur(p["dop"]))}</p></div>'
+    else:
+        desc = L["desc_single"].format(name=p["name"], pk=pk, dop=eur(p["dop"]), konc=eur(p["konc"]), s=g["s"])
+        verdict = f'<div class="verdict none"><p>{L["verdict_single"].format(name=esc(p["name"]))}</p></div>'
+    alerts = []
+    vstate, nxt, change = c["vstate"], c["nxt"], c["change"]
+    if vstate and vstate.get("stav") in ("R", "Z", "PR", "PZ"):
+        alts_av = [x for x in c["available"] if x is not p]
+        extra = L["vyp_alt"].format(link=f'<a href="{D}{esc(alts_av[0]["slug"])}/">{esc(alts_av[0]["name"])}</a>', dop=eur(alts_av[0]["dop"])) if alts_av else ""
+        alerts.append(f'<div class="alert warn"><strong>{L["vyp"][vstate["stav"]]}</strong><p>{L["vyp_text"].format(od=L["date"](vstate["od"]), extra=extra)}</p></div>')
+    if change and nxt:
+        nd = L["date"](nxt["platnostIso"])
+        if change["gone"]:
+            alerts.append(f'<div class="alert warn"><strong>{L["gone_title"].format(nd=nd)}</strong><p>{L["gone_text"]}</p></div>')
+        elif change["diff"] is not None and abs(change["diff"]) >= 0.01:
+            up = change["diff"] > 0
+            alerts.append(f'<div class="alert {"warn" if up else "good"}"><strong>{L["change_title"].format(nd=nd, verb=L["up"] if up else L["down"], dop=eur(change["dop"]))}</strong>'
+                          f'<p>{L["change_now"].format(dop=eur(p["dop"]))}</p></div>')
+    hist = ""
+    if c["chart"]:
+        vals = [v for _, v in c["points"]]
+        hist = f"""
+  <section class="card">
+    <h2>{L["hist_h"]}</h2>
+    {c["chart"].replace('aria-label="Vývoj doplatku"', f'aria-label="{esc(L["chart_aria"])}"')}
+    <div class="stats3">
+      <div><span>{L["lo"]}</span><b>{eur(min(vals))}</b></div>
+      <div><span>{L["hi"]}</span><b>{eur(max(vals))}</b></div>
+      <div><span>{L["now"]}</span><b>{eur(vals[-1])}</b></div>
+    </div>
+  </section>"""
+    facts = []
+    if c["po"]:
+        facts.append((L["f_who"], L["only_spec"].format(list=", ".join(c["odb"].get(x, x) for x in c["po"]))))
+    elif "po" in p:
+        facts.append((L["f_who"], L["any_doc"]))
+    if c["io_flag"]:
+        facts.append((L["f_io"], L["io_val"]))
+    if p.get("gp"):
+        facts.append((L["f_gp"], L["gp_val"]))
+    if p.get("pdop") is not None:
+        facts.append((L["f_lim"], L["lim_val"].format(pdop=eur(p["pdop"]), limit=L["limit"])))
+    facts.append((L["f_subst"], f'{esc(g["s"])}, {esc(g["f"])}'))
+    if p.get("drz"):
+        facts.append((L["f_drz"], esc(c["drz_names"].get(p["drz"], p["drz"]))))
+    facts.append((L["f_kod"], f'<span class="mono">{esc(p["kod"])}</span> · <span class="mono">{esc(g["a"])}</span>'))
+    from urllib.parse import quote as _q
+    ai = "".join(f'<a href="{L["ai"]}?kod={esc(p["kod"])}&amp;q={_q(q)}">{esc(q)}</a>' for q in L["qs"])
+    notes = "".join(f'<div class="note"><h3>{esc(h)}</h3><p>{esc(t)}</p></div>' for h, t in L["notes"])
+    body = f"""{crumbs_l(L, [(L["home_lbl"], L["root"]), (g["s"], None)])}
+  <section class="intro">
+    <p class="eyebrow">{L["eyebrow"]}</p>
+    <h1 class="page-h1">{esc(p['name'])}</h1>
+    <p class="page-sub">{esc(p['pack'])}</p>
+    {mine_button(p).replace("Pridať do Mojich liekov", L["mine_add"])}
+  </section>
+    {"".join(alerts)}
+  <section class="slip">
+    <div class="slip-head">
+      <p class="eyebrow">{L["subst_eyebrow"]}</p>
+      <h2>{esc(g['s'])}, {esc(g['f'])}</h2>
+      <div class="slip-meta"><span class="mono">ATC {esc(g['a'])}</span><span class="mono">ŠÚKL {esc(p['kod'])}</span><span>{L["types"].get(type_label(p['typ']), L["type_default"])}</span></div>
+    </div>
+    <div class="prices">
+      <div><span>{L["prices"][0]}</span><b class="dop">{eur(p['dop'])}</b></div>
+      <div><span>{L["prices"][1]}</span><b>{eur(p['uzp'])}</b></div>
+      <div><span>{L["prices"][2]}</span><b>{eur(p['konc'])}</b></div>
+    </div>
+    {verdict}
+    <ul class="rows">{''.join(rows)}</ul>
+    <p class="slip-foot">{L["slip_foot"].format(n=len(items))}</p>
+  </section>
+{hist}
+  <section class="card">
+    <h2>{L["about_h"]}</h2>
+    <dl class="facts-dl">{"".join(f"<dt>{esc(k)}</dt><dd>{v}</dd>" for k, v in facts)}</dl>
+  </section>
+  <section class="card ai-card">
+    <h2>{IC["spark"]}{L["ai_h"]}</h2>
+    <nav class="cond-chips" aria-label="{esc(L["ai_aria"])}">{ai}</nav>
+    <p class="hint">{L["ai_hint"]}</p>
+  </section>
+  <section class="notes">
+    {notes}
+  </section>"""
+    path = D + p["slug"] + "/"
+    write(path, page_l(L, L["drug_title"].format(name=p["name"], pk=pk), desc, path, body, alt_paths("drug", p["slug"]), og=c["og"]))
+    return path
 
 
 EXTRA_CSS = """
@@ -813,7 +944,7 @@ def extract_css():
 PLATNOST = ""
 
 
-def page(title, description, path, body, jsonld=None, script="", og=None, hu_path=None):
+def page(title, description, path, body, jsonld=None, script="", og=None, alts=None):
     og_url = BASE + (og or "/og/default.jpg")
     url = BASE + path
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
@@ -825,7 +956,7 @@ def page(title, description, path, body, jsonld=None, script="", og=None, hu_pat
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{esc(url)}">
-{f'<link rel="alternate" hreflang="sk" href="{esc(url)}"><link rel="alternate" hreflang="hu" href="{esc(BASE + hu_path)}"><link rel="alternate" hreflang="x-default" href="{esc(url)}">' if hu_path else ""}
+{hreflang_links(alts) if alts else ""}
 <meta property="og:url" content="{esc(url)}">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(description)}">
@@ -849,7 +980,7 @@ def page(title, description, path, body, jsonld=None, script="", og=None, hu_pat
 <main id="obsah">
 {body}
 </main>
-  {site_footer(esc(PLATNOST), hu_path)}
+  {site_footer(esc(PLATNOST), alts)}
 </div>
 {bottom_nav(path)}
 {site_panels(path)}
@@ -899,7 +1030,7 @@ ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani 
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js"):
+    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -1317,129 +1448,13 @@ def build():
                    "description": desc}
         if chain:
             drug_ld["drugClass"] = {"@type": "DrugClass", "name": chain[-1][1]}
-        write(path, page(title, desc, path, body, [breadcrumb_ld(crumb_items), drug_ld], og=f"/og/latka/{subst_slug[g['s']]}.jpg", hu_path=f"/hu/gyogyszer/{p['slug']}/"))
-        # --- maďarská verzia stránky lieku ---
-        hu_path = f"/hu/gyogyszer/{p['slug']}/"
-        hu_rows = []
-        for x in items:
-            cls = "row" + (" sel" if x is p else "") + (" best" if cheapest and x["dop"] == cheapest["dop"] else "")
-            tags = []
-            tl = TYPE_HU.get(type_label(x["typ"]), "")
-            if tl:
-                tags.append(f'<span class="tag">{tl}</span>')
-            if cheapest and x["dop"] == cheapest["dop"] and len(items) > 1:
-                tags.append('<span class="tag best">Legalacsonyabb</span>')
-            elif x["dop"] == 0:
-                tags.append('<span class="tag zero">Térítésmentes</span>')
-            if vyp.get(x["kod"], {}).get("stav") in ("R", "Z"):
-                tags.append('<span class="tag">Kiesés</span>')
-            nm = esc(x["name"]) if x is p else f'<a href="/hu/gyogyszer/{esc(x["slug"])}/">{esc(x["name"])}</a>'
-            width = round(x["dop"] / max_dop * 100, 1)
-            hu_rows.append(f'<li class="{cls}"><div class="row-name">{nm}<span class="tags">{"".join(tags)}</span></div>'
-                           f'<div class="row-dop">{eur(x["dop"])}</div><div class="row-pack">{esc(x["pack"])}</div>'
-                           f'<div class="row-sub">ár {eur(x["konc"])}</div><div class="track"><i style="width:{width}%"></i></div></li>')
-        if saving > 0.005:
-            hu_desc = (f"{p['name']} ({pk}) térítési díja {eur(p['dop'])}. Olcsóbb alternatíva azonos hatóanyaggal: "
-                       f"{cheapest['name']} {eur(cheapest['dop'])}. Megtakarítás csomagonként {eur(saving)}.")
-            hu_verdict = (f'<div class="verdict"><p>A(z) <strong>{esc(p["name"])}</strong> térítési díja {eur(p["dop"])}. '
-                          f'A legolcsóbb, azonos hatóanyagú, hatáserősségű és kiszerelésű alternatíva: '
-                          f'<strong><a href="/hu/gyogyszer/{esc(cheapest["slug"])}/">{esc(cheapest["name"])}</a></strong>, {eur(cheapest["dop"])}.</p>'
-                          f'<div class="big">−{eur(saving)}<small>csomagonként</small></div></div>')
-        elif len(items) > 1:
-            hu_desc = f"{p['name']} ({pk}) térítési díja {eur(p['dop'])}, a legolcsóbbak közé tartozik ({g['s']})."
-            hu_verdict = (f'<div class="verdict none"><p>A(z) <strong>{esc(p["name"])}</strong> már a legolcsóbbak közé tartozik ebben a csoportban. '
-                          f'Térítési díj: {eur(p["dop"])}.</p></div>')
-        else:
-            hu_desc = f"{p['name']} ({pk}) térítési díja {eur(p['dop'])}, végső ár {eur(p['konc'])}. Hatóanyag: {g['s']}."
-            hu_verdict = (f'<div class="verdict none"><p>A(z) <strong>{esc(p["name"])}</strong> gyógyszernek nincs más változata '
-                          f'azonos hatóanyaggal, hatáserősséggel és kiszereléssel.</p></div>')
-        hu_alerts = []
-        if vstate and vstate.get("stav") in ("R", "Z", "PR", "PZ"):
-            od = hu_date(vstate["od"])
-            ttl = {"R": "Szünetel a szállítás", "Z": "Megszűnt a szállítás", "PR": "Bejelentett szállítási szünet", "PZ": "Bejelentett szállítás-megszűnés"}[vstate["stav"]]
-            alts = [x for x in available if x is not p]
-            extra = (f' Elérhető alternatíva: <a href="/hu/gyogyszer/{esc(alts[0]["slug"])}/">{esc(alts[0]["name"])}</a> ({eur(alts[0]["dop"])}).' if alts else "")
-            hu_alerts.append(f'<div class="alert warn"><strong>{ttl}</strong><p>A forgalomba hozatali engedély jogosultjának bejelentése szerint {od}-i hatállyal.{extra}</p></div>')
-        if change and nxt:
-            nd = hu_date(nxt["platnostIso"])
-            if change["gone"]:
-                hu_alerts.append(f'<div class="alert warn"><strong>{nd}-i hatállyal kikerül a támogatott gyógyszerek listájából</strong>'
-                                 f'<p>A biztosító ettől a naptól nem feltétlenül téríti. Beszéljen orvosával a helyettesítésről.</p></div>')
-            elif change["diff"] is not None and abs(change["diff"]) >= 0.01:
-                up = change["diff"] > 0
-                hu_alerts.append(f'<div class="alert {"warn" if up else "good"}"><strong>{nd}-i hatállyal a térítési díj '
-                                 f'{"nő" if up else "csökken"}: {eur(change["dop"])}</strong><p>Jelenleg {eur(p["dop"])}.</p></div>')
-        hu_hist = ""
-        if chart:
-            vals = [v for _, v in points]
-            hu_hist = f"""
-  <section class="card">
-    <h2>A térítési díj alakulása</h2>
-    {chart.replace('aria-label="Vývoj doplatku"', 'aria-label="A térítési díj alakulása"')}
-    <div class="stats3">
-      <div><span>Legalacsonyabb</span><b>{eur(min(vals))}</b></div>
-      <div><span>Legmagasabb</span><b>{eur(max(vals))}</b></div>
-      <div><span>Most</span><b>{eur(vals[-1])}</b></div>
-    </div>
-  </section>"""
-        hu_facts = []
-        if po:
-            hu_facts.append(("Ki írhatja fel", "Csak szakorvos: " + ", ".join(odb.get(c, c) for c in po) + " <small>(szakterület szlovákul)</small>"))
-        elif "po" in p:
-            hu_facts.append(("Ki írhatja fel", "Bármely orvos, a háziorvos is"))
-        if io_flag:
-            hu_facts.append(("Indikációs korlátozás", "Igen, a biztosító csak meghatározott betegségeknél téríti"))
-        if p.get("gp"):
-            hu_facts.append(("Felírás", "Hatóanyagnévvel írják fel<small>A gyógyszertárban bármelyik ilyen hatóanyagú gyógyszert választhatja, például a legolcsóbbat.</small>"))
-        if p.get("pdop") is not None:
-            hu_facts.append(("Védelmi limit", f'A limitbe {eur(p["pdop"])} számít bele<small><a href="/hu/vedelmi-limit/">Hogyan működik a védelmi limit</a></small>'))
-        hu_facts.append(("Hatóanyag", f'{esc(g["s"])}, {esc(g["f"])}'))
-        if p.get("drz"):
-            hu_facts.append(("Forgalomba hozatali engedély jogosultja", esc(drz_names.get(p["drz"], p["drz"]))))
-        hu_facts.append(("ŠÚKL-kód / ATC", f'<span class="mono">{esc(p["kod"])}</span> · <span class="mono">{esc(g["a"])}</span>'))
-        from urllib.parse import quote as _q
-        hu_qs = ["Van olcsóbb alternatívája ennek a gyógyszernek?", "Mennyi számít bele a védelmi limitbe?", "Ki írhatja fel nekem?"]
-        hu_ai = "".join(f'<a href="/hu/asszisztens/?kod={esc(p["kod"])}&amp;q={_q(q)}">{esc(q)}</a>' for q in hu_qs)
-        hu_body = f"""{crumbs_hu([("Kezdőlap", "/hu/"), (g["s"], None)])}
-  <section class="intro">
-    <p class="eyebrow">Gyógyszer térítési díja</p>
-    <h1 class="page-h1">{esc(p['name'])}</h1>
-    <p class="page-sub">{esc(p['pack'])}</p>
-    {mine_button(p).replace("Pridať do Mojich liekov", "Mentés a Gyógyszereim közé")}
-  </section>
-    {"".join(hu_alerts)}
-  <section class="slip">
-    <div class="slip-head">
-      <p class="eyebrow">Hatóanyag</p>
-      <h2>{esc(g['s'])}, {esc(g['f'])}</h2>
-      <div class="slip-meta"><span class="mono">ATC {esc(g['a'])}</span><span class="mono">ŠÚKL {esc(p['kod'])}</span><span>{TYPE_HU.get(type_label(p['typ']), 'Gyógyszer')}</span></div>
-    </div>
-    <div class="prices">
-      <div><span>Térítési díj</span><b class="dop">{eur(p['dop'])}</b></div>
-      <div><span>A biztosító fizeti</span><b>{eur(p['uzp'])}</b></div>
-      <div><span>Végső ár</span><b>{eur(p['konc'])}</b></div>
-    </div>
-    {hu_verdict}
-    <ul class="rows">{''.join(hu_rows)}</ul>
-    <p class="slip-foot">Azonos hatóanyagú, hatáserősségű és kiszerelésű gyógyszerek összehasonlítása ({len(items)}). A térítési díj a gyógyszertárban fizetendő legmagasabb összeg.</p>
-  </section>
-{hu_hist}
-  <section class="card">
-    <h2>A gyógyszerről</h2>
-    <dl class="facts-dl">{"".join(f"<dt>{esc(k)}</dt><dd>{v}</dd>" for k, v in hu_facts)}</dl>
-  </section>
-  <section class="card ai-card">
-    <h2>{IC["spark"]}Kérdezze az MI asszisztenst</h2>
-    <nav class="cond-chips" aria-label="Kérdések az asszisztensnek">{hu_ai}</nav>
-    <p class="hint">Mesterséges intelligencia válaszol a weboldal adatai alapján. Nem helyettesíti az orvost vagy a gyógyszerészt.</p>
-  </section>
-  <section class="notes">
-    <div class="note"><h3>Hogyan cserélhető a gyógyszer</h3><p>Kérdezze meg a gyógyszerészt olcsóbb alternatíváról. Kiadhatja, ha az orvos a recepten nem jelölte, hogy a gyógyszer nem cserélhető. Kétség esetén beszéljen orvosával.</p></div>
-    <div class="note"><h3>Mi a térítési díj</h3><p>A gyógyszertárban fizetendő legmagasabb összeg (doplatok). A végső ár többi részét az egészségbiztosító fizeti. A gyógyszertár kedvezményt is adhat.</p></div>
-  </section>"""
-        write(hu_path, page_hu(f"{p['name']} ({pk}) – térítési díj és olcsóbb alternatívák", hu_desc, hu_path, hu_body, path,
-                               og=f"/og/latka/{subst_slug[g['s']]}.jpg"))
-        urls.append((hu_path, "0.5"))
+        write(path, page(title, desc, path, body, [breadcrumb_ld(crumb_items), drug_ld], og=f"/og/latka/{subst_slug[g['s']]}.jpg", alts=alt_paths("drug", p["slug"])))
+        # --- cudzojazyčné verzie stránky lieku ---
+        ctx = {"p": p, "g": g, "items": items, "cheapest": cheapest, "saving": saving, "pk": pk, "vyp": vyp, "max_dop": max_dop,
+               "vstate": vstate, "nxt": nxt, "change": change, "available": available, "chart": chart, "points": points,
+               "po": po, "odb": odb, "io_flag": io_flag, "drz_names": drz_names, "og": f"/og/latka/{subst_slug[g['s']]}.jpg"}
+        for L in LANGS.values():
+            urls.append((drug_page_l(L, ctx), "0.5"))
 
         urls.append((path, "0.8"))
 
@@ -1759,7 +1774,7 @@ def build():
 </script>"""
     write("/ochranny-limit/", page("Ochranný limit doplatkov za lieky 2026 – kalkulačka",
                                    "Koľko vám poisťovňa vráti za doplatky za lieky: limity pre dôchodcov, ŤZP a deti na rok 2026, čo sa započítava, kalkulačka a prehľad vašich doplatkov.",
-                                   "/ochranny-limit/", body, breadcrumb_ld(crumb_items), script + '<script src="/limit.js" defer></script>', hu_path="/hu/vedelmi-limit/"))
+                                   "/ochranny-limit/", body, breadcrumb_ld(crumb_items), script + '<script src="/limit.js" defer></script>', alts=alt_paths("limit")))
 
     # --- lieky podľa ochorenia ---
     def subst_line(s, gs):
@@ -2126,6 +2141,7 @@ def build():
       <thead><tr><th>Názov</th><th>Na čo slúži</th><th>Kedy vznikne</th></tr></thead>
       <tbody>
         <tr><td class="mono">mojeLieky.v1</td><td>zoznam vašich liekov a dávkovanie</td><td>keď uložíte liek do Mojich liekov</td></tr>
+        <tr><td class="mono">mojeLieky.profily.v1, mojeLieky.v1.*</td><td>mená a zoznamy liekov ďalších členov rodiny</td><td>keď pridáte člena rodiny v Mojich liekoch</td></tr>
         <tr><td class="mono">limitTracker.v1, limitSettings.v1</td><td>váš prehľad doplatkov a nastavenie kalkulačky ochranného limitu</td><td>keď zapíšete nákup</td></tr>
         <tr><td class="mono">zobrazenie.v1</td><td>farebný režim, veľkosť písma a režim pre slabozrakých</td><td>keď zmeníte zobrazenie</td></tr>
         <tr><td class="mono">push.v1</td><td>identifikátor zariadenia pre notifikácie</td><td>keď zapnete notifikácie</td></tr>
@@ -2139,8 +2155,10 @@ def build():
     <h2 id="asistent">AI asistent</h2>
     <p>Keď položíte otázku AI asistentovi, text otázky, predchádzajúce otázky a odpovede z tej istej konverzácie a prípadne kód lieku, zo stránky ktorého sa pýtate, spracuje jazykový model umelej inteligencie, ktorý vygeneruje odpoveď. Model beží v službe Cloudflare Workers AI (Cloudflare, Inc., USA); ak ho v budúcnosti nahradíme modelom Claude, odpoveď vygeneruje spoločnosť Anthropic PBC (USA). Otázky ani odpovede neukladáme; konverzácia sa uchováva len v tejto karte prehliadača (sessionStorage) a po jej zatvorení zmizne. Poskytovatelia modelov podľa svojich podmienok nepoužívajú tieto údaje na trénovanie modelov. Prenos do USA prebieha na základe primeraných záruk (štandardné zmluvné doložky). <strong>Nezadávajte meno, rodné číslo, adresu ani iné údaje, podľa ktorých by sa dalo zistiť, kto ste.</strong> Právny základ: plnenie vašej žiadosti o odpoveď a náš oprávnený záujem na poskytovaní služby (čl. 6 ods. 1 písm. b) a f) GDPR). Odpovede generuje umelá inteligencia a môžu byť nepresné.</p>
     <p>Ak otázku položíte hlasom, reč prevedie na text priamo váš prehliadač alebo operačný systém (napríklad Google alebo Apple) podľa ich pravidiel; k nám príde len výsledný text otázky. Mikrofón sa zapne až po ťuknutí na tlačidlo a prehliadač si najprv vyžiada vaše povolenie.</p>
+    <h2 id="foto">Rozpoznanie lieku z fotky</h2>
+    <p>Ak na úvodnej stránke odfotíte balenie lieku alebo recept, prehliadač fotku zmenší a pošle ju jazykovému modelu umelej inteligencie v službe Cloudflare Workers AI (Cloudflare, Inc., USA), ktorý z nej vyčíta názov, silu a veľkosť balenia lieku. Fotku ani výsledok neukladáme; po spracovaní sa zahodí. Model má pokyn ignorovať osobné údaje, no fotka receptu ich môže obsahovať, preto <strong>meno, rodné číslo a adresu na recepte pred fotením zakryte</strong>. Ak by fotka obsahovala údaje o zdraví, spracúvajú sa len na váš výslovný pokyn (odfotenie a odoslanie) na účel, ktorý ste si vyžiadali (čl. 9 ods. 2 písm. a) GDPR). Prenos do USA prebieha na základe štandardných zmluvných doložiek.</p>
     <h2>Moje lieky</h2>
-    <p>Zoznam Moje lieky a prehľad doplatkov pre ochranný limit sa ukladajú len vo vašom prehliadači (pozri vyššie). Ak zoznam liekov zdieľate odkazom, kódy liekov sú súčasťou odkazu a vidí ich každý, komu ho pošlete.</p>
+    <p>Zoznam Moje lieky (aj zoznamy ďalších členov rodiny) a prehľad doplatkov pre ochranný limit sa ukladajú len vo vašom prehliadači (pozri vyššie). Ak zoznam liekov zdieľate odkazom, kódy liekov sú súčasťou odkazu a vidí ich každý, komu ho pošlete.</p>
     <h2>Upozornenia e-mailom</h2>
     <p>Ak sa prihlásite na upozornenia, spracúvame:</p>
     <ul>
@@ -2206,20 +2224,90 @@ def build():
     <h2>Ako sa dozviete o zmene vopred</h2>
     <p>Nový zoznam býva zverejnený pred začiatkom mesiaca, v ktorom platí. Na stránke <a href="/zmeny/">Zmeny doplatkov</a> porovnávame nový zoznam s aktuálnym. Pri každom lieku zároveň uvidíte graf vývoja doplatku za posledné mesiace.</p>"""),
     ]
+    # --- mesačné články o zmenách (automaticky z histórie a nového zoznamu) ---
+    MESIACE_NOM = ["január", "február", "marec", "apríl", "máj", "jún", "júl", "august", "september", "október", "november", "december"]
+    MESIACE_SLUG = ["januar", "februar", "marec", "april", "maj", "jun", "jul", "august", "september", "oktober", "november", "december"]
+    month_articles = []
+
+    def pri(n):
+        return f"{n} lieku" if n == 1 else f"{n:,} liekoch".replace(",", " ")
+    seq = list(history) + ([(nxt["platnostIso"][:7] + "-01", nxt["prices"])] if nxt else [])
+    for (piso, prev), (iso, cur) in zip(seq, seq[1:]):
+        y, m = int(iso[:4]), int(iso[5:7])
+        upcoming = bool(nxt) and iso[:7] == nxt["platnostIso"][:7]
+        ups, downs = [], []
+        for kod, v in cur.items():
+            if kod in prev and v[2] is not None and prev[kod][2] is not None:
+                d = round(v[2] - prev[kod][2], 2)
+                if abs(d) >= 0.01:
+                    (ups if d > 0 else downs).append((d, kod, prev[kod][2], v[2]))
+        gone = [k for k in prev if k not in cur]
+        new = [k for k in cur if k not in prev]
+        ups.sort(key=lambda t: -t[0])
+        downs.sort(key=lambda t: t[0])
+
+        def avg(pr):
+            vals = [v[2] for v in pr.values() if v[2] is not None]
+            return sum(vals) / len(vals) if vals else 0
+        a0, a1 = avg(prev), avg(cur)
+        zero0 = sum(1 for v in prev.values() if v[2] == 0)
+        zero1 = sum(1 for v in cur.values() if v[2] == 0)
+        datum = f"1. {MESIACE_GEN[m - 1]} {y}"
+
+        def top(lst, n=10):
+            out = []
+            for d, kod, old, new_v in lst:
+                if kod not in by_kod:
+                    continue
+                g_, p_ = by_kod[kod]
+                out.append(f'<li><a href="/liek/{esc(p_["slug"])}/">{esc(p_["name"])}</a> ({esc(short_pack(p_["pack"]))}): '
+                           f'{eur(old)} → <strong>{eur(new_v)}</strong> ({"+" if d > 0 else "−"}{eur(abs(d))})</li>')
+                if len(out) >= n:
+                    break
+            return "".join(out)
+        gone_names = [by_kod[k][1] for k in gone if k in by_kod][:12]
+        verb = "stúpne" if upcoming else "stúpol"
+        verb2 = "klesne" if upcoming else "klesol"
+        html_body = f"""<p>{"Od" if upcoming else "Dňom"} {datum} {"začne platiť" if upcoming else "začal platiť"} nový Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR. Porovnali sme ho s predchádzajúcim mesiacom: doplatok {verb} pri <strong>{pri(len(ups))}</strong>, {verb2} pri <strong>{pri(len(downs))}</strong>, zo zoznamu {"vypadne" if upcoming else "vypadlo"} {plural_lieky(len(gone))} a {"pribudne" if upcoming else "pribudlo"} {plural_lieky(len(new))}.</p>
+    <p>Priemerný doplatok za balenie {"bude" if upcoming else "je"} {eur(a1)} (predtým {eur(a0)}). Bez doplatku {"bude" if upcoming else "je"} {plural_lieky(zero1).replace(str(zero1), f"{zero1:,}".replace(",", " "))} (predtým {f"{zero0:,}".replace(",", " ")}).</p>
+    {f'<h2>Najväčšie zvýšenia doplatku</h2><ul>{top(ups)}</ul>' if top(ups) else ''}
+    {f'<h2>Najväčšie zníženia doplatku</h2><ul>{top(downs)}</ul>' if top(downs) else ''}
+    {('<h2>Vypadnú zo zoznamu</h2><p>Tieto lieky poisťovňa od ' + datum + ' nemusí hradiť: ' + ", ".join(f'<a href="/liek/{esc(p_["slug"])}/">{esc(p_["name"])}</a>' for p_ in gone_names) + (" a ďalšie." if len(gone) > len(gone_names) else ".") + ' Ak niektorý z nich užívate, poraďte sa s lekárom o náhrade.</p>') if upcoming and gone_names else ''}
+    <h2>Čo môžete urobiť</h2>
+    <ul>
+      <li>Ak vám doplatok stúpol, vyhľadajte liek na <a href="/">úvodnej stránke</a>. Uvidíte, či existuje lacnejšia verzia s rovnakou látkou, silou a balením.</li>
+      <li>Uložte si lieky do <a href="/moje-lieky/">Mojich liekov</a> a nechajte si posielať upozornenia e-mailom alebo do telefónu, keď sa doplatok zmení.</li>
+      <li>Dôchodcom a ľuďom s preukazom ŤZP vráti poisťovňa doplatky nad <a href="/ochranny-limit/">ochranný limit</a>.</li>
+    </ul>
+    {'<p>Úplný zoznam zmien je na stránke <a href="/zmeny/">Zmeny doplatkov</a>.</p>' if upcoming else ''}
+    <blockquote>Údaje pochádzajú zo Zoznamu kategorizovaných liekov MZ SR. O zmene lieku sa vždy poraďte s lekárom alebo lekárnikom.</blockquote>"""
+        sl = f"zmeny-doplatkov-{MESIACE_SLUG[m - 1]}-{y}"
+        t = f"Zmeny doplatkov za lieky od {datum}: čo {'zdražie' if upcoming else 'zdraželo'} a čo {'zlacnie' if upcoming else 'zlacnelo'}"
+        d = (f"Od {datum}: doplatok {verb} pri {pri(len(ups))}, {verb2} pri {pri(len(downs))}. "
+             f"Najväčšie zmeny a ako ušetriť.")
+        month_articles.append((sl, t, d, html_body, iso))
+    month_articles.reverse()
+    articles_all = articles + [x[:4] for x in month_articles]
+    article_dates = {x[0]: x[4] for x in month_articles}
+
     crumb_items = [("Domov", "/"), ("Články", None)]
     lis = "".join(f'<li><a href="/clanky/{sl}/"><strong>{esc(t)}</strong><span>{esc(d)}</span></a></li>' for sl, t, d, _ in articles)
+    lis_m = "".join(f'<li><a href="/clanky/{sl}/"><strong>{esc(t)}</strong><span>{esc(d)}</span></a></li>' for sl, t, d, _, _ in month_articles)
     body = f"""{crumbs(crumb_items)}
   <section class="intro">
     <p class="eyebrow">Návody a vysvetlenia</p>
     <h1 class="page-h1">Články</h1>
   </section>
-  <ul class="article-list">{lis}</ul>"""
+  <ul class="article-list">{lis}</ul>
+  <section class="intro"><h2>Zmeny doplatkov po mesiacoch</h2><p class="page-sub">Každý mesiac automaticky porovnávame nový zoznam ministerstva s predchádzajúcim.</p></section>
+  <ul class="article-list">{lis_m}</ul>"""
     write("/clanky/", page("Články o liekoch a doplatkoch", "Návody, ako ušetriť na liekoch na predpis, čo sú generiká a prečo sa menia doplatky.", "/clanky/", body, breadcrumb_ld(crumb_items)))
     urls.append(("/clanky/", "0.6"))
-    for sl, t, d, html_body in articles:
+    for sl, t, d, html_body in articles_all:
         path = f"/clanky/{sl}/"
         crumb_items = [("Domov", "/"), ("Články", "/clanky/"), (t, None)]
         ld = [breadcrumb_ld(crumb_items), {"@context": "https://schema.org", "@type": "Article", "headline": t,
+              **({"datePublished": article_dates[sl]} if sl in article_dates else {}),
               "description": d, "inLanguage": "sk", "author": {"@type": "Person", "name": OPERATOR},
               "publisher": {"@type": "Organization", "name": "doplatkyliekov.sk"}, "mainEntityOfPage": BASE + path}]
         body = f"""{crumbs(crumb_items)}
@@ -2318,122 +2406,63 @@ def build():
   </section>"""
     write("/asistent/", page("AI asistent – otázky o liekoch a doplatkoch",
                              "Opýtajte sa AI asistenta na doplatky, lacnejšie alternatívy, zmeny, výpadky liekov a ochranný limit. Odpovedá z údajov MZ SR a ŠÚKL.",
-                             "/asistent/", body, breadcrumb_ld(crumb_items), '<script src="/asistent.js" defer></script>', hu_path="/hu/asszisztens/"))
+                             "/asistent/", body, breadcrumb_ld(crumb_items), '<script src="/asistent.js" defer></script>', alts=alt_paths("ai")))
     urls.append(("/asistent/", "0.7"))
 
-    # --- maďarská stránka asistenta ---
-    sugg_hu = ["Mennyi a térítési díja a Concor 10 mg-nak?", "Van olcsóbb alternatíva a Xarelto 20 mg helyett?",
-               "Mennyit térít vissza a biztosító, ha nyugdíjas vagyok?", "Mely vérnyomáscsökkentők térítésmentesek?",
-               f"Mi változik {hu_date(nxt['platnostIso'])}-i hatállyal?" if nxt else "Mi változik jövő hónaptól?", "Melyik biztosító téríti vissza a gyerekeknek a térítési díjat?"]
-    body = f"""{crumbs_hu([("Kezdőlap", "/hu/"), ("MI asszisztens", None)])}
+    # --- cudzojazyčné stránky asistenta a ochranného limitu ---
+    for L in LANGS.values():
+        sugg = [x.format(next=L["date"](nxt["platnostIso"])) if "{next}" in x else x for x in L["ai_sugg"]] if nxt else \
+            [L["ai_sugg_nonext"] if "{next}" in x else x for x in L["ai_sugg"]]
+        body = f"""{crumbs_l(L, [(L["home_lbl"], L["root"]), (L["ai_crumb"], None)])}
   <section class="intro">
-    <p class="eyebrow">{IC["spark"]} MI asszisztens · béta</p>
-    <h1 class="page-h1">Kérdezzen a gyógyszerekről és a térítési díjakról</h1>
-    <p class="page-sub">Az asszisztens a weboldal teljes tartalmában keres: térítési díjak és olcsóbb alternatívák, változások, szállítási kiesések, gyógyszerek betegségek szerint, védelmi limit és a biztosítók kedvezményei.</p>
+    <p class="eyebrow">{IC["spark"]} {L["ai_eyebrow"]}</p>
+    <h1 class="page-h1">{L["ai_h1"]}</h1>
+    <p class="page-sub">{L["ai_sub"]}</p>
   </section>
   <div class="ai-notice" role="note">
-    <strong>Mesterséges intelligencia válaszol.</strong> Egy nyelvi modell a weboldal adatai alapján válaszol, és tévedhet, ezért ellenőrizze az adatokat a gyógyszer oldalán. Nem helyettesíti az orvost vagy a gyógyszerészt. Ne adja meg nevét, születési számát vagy más személyes adatát. <a href="/ochrana-sukromia/#asistent" lang="sk">Adatkezelés (szlovákul)</a>
+    {L["ai_notice"]}
   </div>
-  <p class="ai-ctx" id="ai-ctx" hidden>Gyógyszer: <b>…</b></p>
-  <section class="ai-chat" aria-label="Beszélgetés az asszisztenssel">
+  <p class="ai-ctx" id="ai-ctx" hidden>{L["ai_ctx"]} <b>…</b></p>
+  <section class="ai-chat" aria-label="{esc(L["ai_chat"])}">
     <div class="ai-log" id="ai-log" aria-live="polite"></div>
     <form class="ai-form" id="ai-form" autocomplete="off">
-      <label for="ai-q" class="sr-only">Az Ön kérdése</label>
-      <textarea id="ai-q" rows="1" maxlength="600" placeholder="Írja be kérdését…"></textarea>
-      <button type="button" id="ai-mic" class="ai-mic" aria-label="Kérdés hanggal" title="Kérdés hanggal" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-      <button type="submit" id="ai-send" aria-label="Kérdés elküldése"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <label for="ai-q" class="sr-only">{L["ai_q"]}</label>
+      <textarea id="ai-q" rows="1" maxlength="600" placeholder="{esc(L["ai_ph"])}"></textarea>
+      <button type="button" id="ai-mic" class="ai-mic" aria-label="{esc(L["ai_mic"])}" title="{esc(L["ai_mic"])}" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+      <button type="submit" id="ai-send" aria-label="{esc(L["ai_send"])}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
-    <div class="ai-sugg" id="ai-sugg"><p class="eyebrow">Próbálja megkérdezni</p>{"".join(f'<button type="button">{esc(x)}</button>' for x in sugg_hu)}</div>
-    <button type="button" class="linkish ai-new" id="ai-new" hidden>Új beszélgetés</button>
+    <div class="ai-sugg" id="ai-sugg"><p class="eyebrow">{L["ai_try"]}</p>{"".join(f'<button type="button">{esc(x)}</button>' for x in sugg)}</div>
+    <button type="button" class="linkish ai-new" id="ai-new" hidden>{L["ai_new"]}</button>
   </section>"""
-    write("/hu/asszisztens/", page_hu("MI asszisztens – kérdések a gyógyszerekről és térítési díjakról",
-                                      "Kérdezze az MI asszisztenst a szlovákiai gyógyszerek térítési díjáról, olcsóbb alternatívákról, kiesésekről és a védelmi limitről.",
-                                      "/hu/asszisztens/", body, "/asistent/", script='<script src="/asistent.js" defer></script>'))
-    urls.append(("/hu/asszisztens/", "0.6"))
+        write(L["ai"], page_l(L, L["ai_title"], L["ai_desc"], L["ai"], body, alt_paths("ai"), script='<script src="/asistent.js" defer></script>'))
+        urls.append((L["ai"], "0.6"))
 
-    # --- maďarská stránka ochranného limitu ---
-    body = f"""{crumbs_hu([("Kezdőlap", "/hu/"), ("Védelmi limit", None)])}
-  <section class="intro">
-    <p class="eyebrow">Védelmi limit (ochranný limit)</p>
-    <h1 class="page-h1">Mennyit térít vissza a biztosító a térítési díjakból</h1>
-    <p class="page-sub">A nyugdíjasoknak, a ŤZP igazolvánnyal rendelkezőknek, a rokkantnyugdíjasoknak és a kisgyermekeknek az egészségbiztosító visszatéríti a negyedéves limit feletti térítési díjakat. Nem kell kérvényezni.</p>
-  </section>
-  <section class="card">
-    <h2>Kalkulátor</h2>
-    <form class="calc" id="calc">
-      <label for="skupina">Kicsoda Ön
-        <select id="skupina">
-          <option value="dieta">6 év alatti gyermek</option>
-          <option value="ztp">ŤZP igazolvánnyal rendelkező vagy rokkantnyugdíjas</option>
-          <option value="dochodca" selected>Öregségi vagy előrehozott öregségi nyugdíjas</option>
-          <option value="iny">Egyik sem</option>
-        </select>
-      </label>
-      <label for="prijem" id="prijem-wrap">Nyugdíja és jövedelme
-        <select id="prijem">
-          <option value="nizky">Nyugdíj havonta legfeljebb 914,40 € és összjövedelem negyedévente legfeljebb 2 743,20 €</option>
-          <option value="vyssi" selected>Magasabb</option>
-        </select>
-      </label>
-      <label for="suma">Beszámítható térítési díjak negyedévente (€)
-        <input id="suma" type="number" inputmode="decimal" min="0" step="0.01" value="45">
-      </label>
-      <p class="result" id="vysledok" aria-live="polite"></p>
-    </form>
-    <p class="hint">Tájékoztató számítás a 2026-os szabályok szerint. A pontos összeget az egészségbiztosító erősíti meg.</p>
-  </section>
-  <section class="card">
-    <h2>Negyedéves limitek (2026)</h2>
-    <div class="scroll"><table class="ltable">
-      <thead><tr><th>Kinek</th><th>Limit</th><th>Feltétel</th></tr></thead>
-      <tbody>
-        <tr><td>6 év alatti gyermek</td><td class="num">0 €</td><td>Jövedelemtől függetlenül. A legolcsóbb helyettesítő gyógyszer térítési díját már a gyógyszertárban sem fizeti.</td></tr>
-        <tr><td>ŤZP igazolvánnyal rendelkező, rokkantnyugdíjas</td><td class="num">0 €</td><td>Nyugdíj havonta legfeljebb 914,40 € és összjövedelem negyedévente legfeljebb 2 743,20 €</td></tr>
-        <tr><td>Öregségi vagy előrehozott öregségi nyugdíjas</td><td class="num">0 €</td><td>Nyugdíj havonta legfeljebb 914,40 € és összjövedelem negyedévente legfeljebb 2 743,20 €</td></tr>
-        <tr><td>ŤZP igazolvánnyal rendelkező, rokkantnyugdíjas</td><td class="num">12 €</td><td>Magasabb jövedelem esetén</td></tr>
-        <tr><td>Öregségi vagy előrehozott öregségi nyugdíjas</td><td class="num">30 €</td><td>Magasabb jövedelem esetén</td></tr>
-      </tbody>
-    </table></div>
-  </section>
-  <section class="prose article">
-    <h2>Mi számít bele</h2>
-    <p>A limitbe nem a teljes kifizetett térítési díj számít bele, hanem csak <strong>a legolcsóbb helyettesítő gyógyszer térítési díja</strong> azonos hatóanyaggal. Ha drágább márkát választ, a különbözetet Ön fizeti, és a biztosító nem téríti vissza. Minden gyógyszer oldalán megtalálja, mennyi számít bele a limitbe.</p>
-    <p>Példa: öregségi nyugdíjas, havi 700 € nyugdíjjal és más jövedelem nélkül: negyedéves jövedelme 2 100 € (700 × 3), ez 2 743,20 € alatt van, ezért limitje 0 €.</p>
-    <h2>Hogyan kapja vissza a pénzt</h2>
-    <ul>
-      <li>A biztosító maga összesíti a térítési díjakat a gyógyszertárak adataiból, nem kell blokkokat küldeni.</li>
-      <li>A limit feletti összeget a negyedév végét követő 90 napon belül fizeti vissza, általában bankszámlára.</li>
-      <li>Ha a visszatérítés 3 €-nál kevesebb, átkerül a következő negyedévre.</li>
-    </ul>
-    <p>A biztosítók a törvényen felül saját kedvezményeket is adnak, például a gyermekek térítési díjának visszatérítését: <a href="/vyhody-poistovni/" lang="sk">a biztosítók kedvezményei (szlovákul)</a>.</p>
-  </section>"""
-    script_hu = """<script>
+        body = crumbs_l(L, [(L["home_lbl"], L["root"]), (L["lim_crumb"], None)]) + L["lim_body"]
+        script_l = """<script>
 (function () {
-  var f = document.getElementById('calc'); if (!f) return;
+  var M = %s, f = document.getElementById('calc'); if (!f) return;
   var sk = document.getElementById('skupina'), pr = document.getElementById('prijem'), wrap = document.getElementById('prijem-wrap');
   var su = document.getElementById('suma'), out = document.getElementById('vysledok');
-  function eur(n) { return n.toLocaleString('hu-HU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+  function eur(n) { return n.toLocaleString('%s', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
   function calc() {
     var g = sk.value, low = pr.value === 'nizky', s = parseFloat((su.value || '0').replace(',', '.')) || 0;
     wrap.hidden = (g === 'dieta' || g === 'iny');
-    if (g === 'iny') { out.innerHTML = 'A törvényes védelmi limit Önre nem vonatkozik. Egyes biztosítók azonban saját programokkal térítik vissza a térítési díjakat.'; return; }
+    if (g === 'iny') { out.innerHTML = M.none; return; }
     var limit = g === 'dieta' ? 0 : low ? 0 : (g === 'ztp' ? 12 : 30);
     var back = Math.max(0, s - limit);
-    var txt = 'Az Ön limitje <b>' + eur(limit) + '</b> negyedévente. ';
-    if (limit === 0) txt += 'A legolcsóbb helyettesítő gyógyszer térítési díját már a gyógyszertárban sem kellene fizetnie.';
-    else if (back >= 3) txt += 'A biztosító körülbelül <b>' + eur(back) + '</b> összeget térít vissza.';
-    else if (back > 0) txt += 'A ' + eur(back) + ' túlfizetés kevesebb mint 3 €, ezért átkerül a következő negyedévre.';
-    else txt += 'Nem lépte túl a limitet, visszatérítés még nem jár.';
+    var txt = M.limit.replace('{l}', eur(limit));
+    if (limit === 0) txt += M.zero;
+    else if (back >= 3) txt += M.back.replace('{b}', eur(back));
+    else if (back > 0) txt += M.carry.replace('{b}', eur(back));
+    else txt += M.notyet;
     out.innerHTML = txt;
   }
   f.addEventListener('input', calc); f.addEventListener('change', calc); f.addEventListener('submit', function (e) { e.preventDefault(); });
   calc();
 })();
-</script>"""
-    write("/hu/vedelmi-limit/", page_hu("Védelmi limit 2026 – mennyit térít vissza a biztosító a gyógyszerekért",
-                                        "Védelmi limit (ochranný limit) Szlovákiában 2026: limitek nyugdíjasoknak, ŤZP igazolvánnyal rendelkezőknek és gyermekeknek, mi számít bele, kalkulátor.",
-                                        "/hu/vedelmi-limit/", body, "/ochranny-limit/", script=script_hu))
-    urls.append(("/hu/vedelmi-limit/", "0.6"))
+</script>""" % (json.dumps(L["lim_js"], ensure_ascii=False), L["num"])
+        write(L["limit"], page_l(L, L["lim_title"], L["lim_desc"], L["limit"], body, alt_paths("limit"), script=script_l))
+        urls.append((L["limit"], "0.6"))
 
     # --- správa upozornení (zrušenie, odobratie liekov) ---
     body = f"""{crumbs([("Domov", "/"), ("Upozornenia e-mailom", None)])}
@@ -2460,6 +2489,142 @@ def build():
     html_page = page("Správa upozornení – doplatkyliekov.sk", "Úprava alebo zrušenie e-mailových upozornení na zmeny doplatkov a výpadky liekov.",
                      "/upozornenia/sprava/", body, script='<script src="/sprava.js" defer></script>')
     write("/upozornenia/sprava/", html_page.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">'))
+
+    # --- na vytlačenie: plagát A4 pre ambulancie a lekárne + leták A5 s QR kódom ---
+    try:
+        import segno
+    except ImportError:
+        import subprocess
+        subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--user", "segno"], timeout=180, check=False)
+        importlib.invalidate_caches()
+        import site as _site
+        sys.path.append(_site.getusersitepackages())
+        segno = importlib.import_module("segno")
+    qr_svg = segno.make(BASE + "/", error="m").svg_inline(scale=1, border=0, dark="#000", light=None, omitsize=True).replace("<svg ", '<svg role="img" aria-label="QR kód: doplatkyliekov.sk" ')
+    chronic = [x for c in CONDITIONS if c[0] not in ("antibiotika", "pohlavne-hormony", "bolest-zapal") for x in c[3]]
+    cand = []
+    for g in groups:
+        its = [x for x in sorted_items(g) if x["dop"] is not None]
+        if len(its) < 2 or not g["f"].startswith("p.o.") or not any(g["a"].startswith(x) for x in chronic):
+            continue
+        mn, mx = its[0], its[-1]
+        gap = mx["dop"] - mn["dop"]
+        if gap >= 2 and mx["dop"] <= 40 and mx["konc"] <= 120 and pack_count(mn["pack"]):
+            cand.append((gap, g, mn, mx, len(its)))
+    cand.sort(key=lambda t: -t[0])
+    seen_s, poster_rows = set(), []
+    for gap, g, mn, mx, n in cand:
+        if g["s"] in seen_s:
+            continue
+        seen_s.add(g["s"])
+        sila = re.sub(r"^.*?x\s*", "", short_pack(mn["pack"])) or g["f"]
+        poster_rows.append(f'<tr><td><strong>{esc(g["s"][:1].upper() + g["s"][1:])}</strong> {esc(sila)}<small>{pack_count(mn["pack"])} ks · {n} verzií</small></td>'
+                           f'<td class="num">{eur(mn["dop"])} – {eur(mx["dop"])}</td><td class="num save">až {eur(gap)}</td></tr>')
+        if len(poster_rows) >= 12:
+            break
+    mesiac = f"{MESIACE_NOM[int(cur_iso[5:7]) - 1]} {cur_iso[:4]}" if cur_iso else ""
+    flyer = f"""<div class="flyer">
+      <p class="fl-brand">{CAPSULE}<span>doplatky<b>liekov</b>.sk</span></p>
+      <h2>Rovnaký liek, nižší doplatok</h2>
+      <p class="fl-lead">Za lieky s rovnakou účinnou látkou môžete v lekárni platiť veľmi rozdielne sumy. Porovnajte si to zadarmo.</p>
+      <ul>
+        <li>Zadajte názov lieku z balenia alebo receptu</li>
+        <li>Uvidíte lacnejšie verzie, ktoré poisťovňa hradí rovnako</li>
+        <li>Upozorníme vás na zmenu doplatku alebo výpadok</li>
+      </ul>
+      <div class="fl-qr">{qr_svg}<p>Naskenujte fotoaparátom<br><b>doplatkyliekov.sk</b></p></div>
+      <p class="fl-note">Bezplatná informačná stránka podľa údajov Ministerstva zdravotníctva SR. Nie je reklamou na lieky. O zmene lieku sa poraďte s lekárom alebo lekárnikom.</p>
+    </div>"""
+    crumb_items = [("Domov", "/"), ("Na vytlačenie", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro no-print">
+    <p class="eyebrow">Pre ambulancie, lekárne a kluby dôchodcov</p>
+    <h1 class="page-h1">Na vytlačenie</h1>
+    <p class="page-sub">Plagát A4 s najväčšími rozdielmi v doplatkoch sa aktualizuje každý mesiac podľa nového zoznamu ministerstva. Leták A5 sa tlačí dvakrát na jeden list A4. Obidva môžete voľne tlačiť a vyvesiť.</p>
+    <div class="print-btns"><button type="button" data-print="poster">Vytlačiť plagát A4</button><button type="button" data-print="flyer">Vytlačiť letáky A5</button></div>
+  </section>
+  <section class="poster" id="poster" aria-label="Plagát A4">
+    <header class="po-head">
+      <p class="fl-brand">{CAPSULE}<span>doplatky<b>liekov</b>.sk</span></p>
+      <h2>Za rovnaký liek môžete platiť menej</h2>
+      <p>Lieky s rovnakou účinnou látkou, silou a balením hradí poisťovňa rovnako, ale doplatok v lekárni sa líši. Najväčšie rozdiely pri bežných liekoch na dlhodobú liečbu, {esc(mesiac)}:</p>
+    </header>
+    <table class="po-table">
+      <thead><tr><th>Účinná látka a sila</th><th>Doplatok v lekárni</th><th>Rozdiel na balení</th></tr></thead>
+      <tbody>{"".join(poster_rows)}</tbody>
+    </table>
+    <div class="po-foot">
+      <div class="fl-qr">{qr_svg}<p>Váš liek si porovnajte na<br><b>doplatkyliekov.sk</b></p></div>
+      <p>Opýtajte sa lekárnika na lacnejšiu verziu. Môže vám ju vydať, ak lekár na recepte nevyznačil, že liek sa nesmie zamieňať. O zmene lieku sa poraďte s lekárom alebo lekárnikom.<br><small>Údaje: Zoznam kategorizovaných liekov MZ SR platný od {esc(PLATNOST)}. Informačný materiál, nie reklama na lieky; poradie určuje len rozdiel v doplatku.</small></p>
+    </div>
+  </section>
+  <section class="flyers" id="flyers" aria-label="Letáky A5">
+    {flyer}
+    {flyer.replace('role="img" aria-label="QR kód: doplatkyliekov.sk"', 'aria-hidden="true"')}
+  </section>
+  <style>
+    .print-btns {{ display: flex; flex-wrap: wrap; gap: 10px; }}
+    .print-btns button {{ font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-ink); padding: 12px 20px; }}
+    .poster, .flyer {{ background: #fff; color: #111; border-radius: 14px; box-shadow: 0 10px 40px -20px #000; font-family: var(--font-body, Onest, sans-serif); }}
+    .poster {{ padding: 28px; display: grid; gap: 18px; max-width: 820px; }}
+    .poster h2, .flyer h2 {{ font-family: var(--font-display); color: #0b3d33; font-size: 30px; line-height: 1.1; margin: 0; }}
+    .poster p, .flyer p, .flyer li {{ color: #222; }}
+    .fl-brand {{ display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 18px; color: #111; margin: 0; }}
+    .fl-brand b {{ color: #0a8f6f; }}
+    .fl-brand .capsule rect {{ stroke: #0a8f6f; }} .fl-brand .capsule path {{ fill: #0a8f6f; }}
+    .po-table {{ width: 100%; border-collapse: collapse; font-size: 15px; }}
+    .po-table th {{ text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #555; border-bottom: 2px solid #0a8f6f; padding: 6px 8px; }}
+    .po-table td {{ border-bottom: 1px solid #ddd; padding: 7px 8px; vertical-align: top; color: #111; }}
+    .po-table td small {{ display: block; color: #666; font-size: 12px; }}
+    .po-table .num {{ font-family: var(--font-mono); white-space: nowrap; }}
+    .po-table .save {{ color: #b34a00; font-weight: 700; }}
+    .po-foot {{ display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; border-top: 2px solid #0a8f6f; padding-top: 14px; }}
+    .po-foot small {{ color: #555; }}
+    .fl-qr {{ display: flex; align-items: center; gap: 12px; }}
+    .fl-qr svg {{ width: 110px; height: 110px; padding: 6px; background: #fff; }}
+    .fl-qr p {{ margin: 0; font-size: 14px; }}
+    .flyers {{ display: grid; gap: 18px; }}
+    .flyer {{ padding: 26px; display: grid; gap: 12px; max-width: 560px; }}
+    .flyer .fl-lead {{ font-size: 17px; }}
+    .flyer ul {{ margin: 0; padding-left: 20px; display: grid; gap: 6px; }}
+    .flyer li::marker {{ color: #0a8f6f; }}
+    .fl-note {{ font-size: 12px; color: #555 !important; }}
+    @media (max-width: 560px) {{ .po-foot {{ grid-template-columns: 1fr; }} .poster {{ padding: 18px; }} .po-table {{ font-size: 13px; }} }}
+    @media print {{
+      @page {{ size: A4; margin: 0; }}
+      .site-head, .bottom-nav, footer, .crumbs, .no-print, .skip {{ display: none !important; }}
+      body.p-poster .flyers, body.p-flyer .poster {{ display: none !important; }}
+      html, body {{ height: auto !important; min-height: 0 !important; padding: 0 !important; background: #fff !important; }}
+      .wrap, main {{ display: block !important; padding: 0 !important; margin: 0 !important; max-width: none !important; min-height: 0 !important; }}
+      .flyers {{ display: block !important; }}
+      .poster, .flyer {{ box-shadow: none; border-radius: 0; max-width: none; }}
+      .poster {{ padding: 10mm 12mm; }}
+      .flyers {{ padding: 6mm 10mm; }}
+      .flyers {{ gap: 0; }}
+      .flyer {{ height: 135mm; box-sizing: border-box; border: 1px dashed #bbb; padding: 10mm 14mm; break-inside: avoid; }}
+      .poster {{ gap: 10px; }}
+      .poster h2 {{ font-size: 24pt; }}
+      .po-head p {{ font-size: 11pt; }}
+      .po-table {{ font-size: 10.5pt; }}
+      .po-table td {{ padding: 4px 6px; }}
+      .po-table td small {{ font-size: 8.5pt; }}
+      .po-foot {{ font-size: 10.5pt; padding-top: 8px; break-inside: avoid; }}
+      .fl-qr svg {{ width: 30mm; height: 30mm; }}
+    }}
+  </style>"""
+    script_pr = """<script>
+document.querySelectorAll('[data-print]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    document.body.classList.remove('p-poster', 'p-flyer');
+    document.body.classList.add('p-' + b.dataset.print);
+    window.print();
+  });
+});
+</script>"""
+    write("/na-vytlacenie/", page("Plagát a letáky na vytlačenie – doplatkyliekov.sk",
+                                  "Plagát A4 s najväčšími rozdielmi v doplatkoch za lieky a leták A5 s QR kódom pre ambulancie, lekárne a kluby dôchodcov.",
+                                  "/na-vytlacenie/", body, breadcrumb_ld(crumb_items), script_pr))
+    urls.append(("/na-vytlacenie/", "0.4"))
 
     # --- vyhlásenie o prístupnosti ---
     crumb_items = [("Domov", "/"), ("Prístupnosť", None)]
@@ -2517,91 +2682,36 @@ def build():
                          for h, ic, t, sub, cls in tiles)
     conds_html = "".join(f'<a href="/choroby/{c[0]}/">{esc(c[1][:1].upper() + c[1][1:])}</a>' for c in CONDITIONS[:8])
     for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header("/"), "TILES": tiles_html, "CONDS": conds_html,
-                 "FOOTER": site_footer(esc(PLATNOST), "/hu/"), "BOTTOM": bottom_nav("/"), "PANELS": site_panels("/")}.items():
+                 "FOOTER": site_footer(esc(PLATNOST)), "BOTTOM": bottom_nav("/"), "PANELS": site_panels("/")}.items():
         tpl = tpl.replace(f"<!--{k}-->", v)
-    tpl = tpl.replace('<link rel="canonical" href="https://doplatkyliekov.sk/">', '<link rel="canonical" href="https://doplatkyliekov.sk/">\n'
-                      '<link rel="alternate" hreflang="sk" href="https://doplatkyliekov.sk/">\n<link rel="alternate" hreflang="hu" href="https://doplatkyliekov.sk/hu/">\n'
-                      '<link rel="alternate" hreflang="x-default" href="https://doplatkyliekov.sk/">')
+    tpl = tpl.replace('<link rel="canonical" href="https://doplatkyliekov.sk/">', '<link rel="canonical" href="https://doplatkyliekov.sk/">\n' + hreflang_links(alt_paths("root")))
     (SITE / "index.html").write_text(versioned(tpl), encoding="utf-8")
-    # --- maďarská úvodná stránka (preklad slovenskej šablóny) ---
-    HU_HOME = [
-        ('<html lang="sk">', '<html lang="hu">'),
-        ('content="Nájdite lacnejší liek s rovnakou účinnou látkou. Porovnanie doplatkov za lieky na predpis podľa úradného zoznamu Ministerstva zdravotníctva SR."',
-         'content="Találjon olcsóbb gyógyszert azonos hatóanyaggal. A vényköteles gyógyszerek térítési díjainak összehasonlítása a Szlovák Egészségügyi Minisztérium hivatalos listája alapján."'),
-        ('<link rel="canonical" href="https://doplatkyliekov.sk/">',
-         '<link rel="canonical" href="https://doplatkyliekov.sk/hu/">\n<link rel="alternate" hreflang="hu" href="https://doplatkyliekov.sk/hu/">\n<link rel="alternate" hreflang="sk" href="https://doplatkyliekov.sk/">\n<link rel="alternate" hreflang="x-default" href="https://doplatkyliekov.sk/">'),
-        ('<meta property="og:url" content="https://doplatkyliekov.sk/">', '<meta property="og:url" content="https://doplatkyliekov.sk/hu/">'),
-        ('<meta property="og:title" content="Doplatky liekov – nájdite lacnejší liek">', '<meta property="og:title" content="Gyógyszerek térítési díja – találjon olcsóbbat">'),
-        ('content="Rovnaká účinná látka, nižší doplatok. Porovnajte doplatky za lieky na predpis."', 'content="Azonos hatóanyag, alacsonyabb térítési díj. Hasonlítsa össze a vényköteles gyógyszerek térítési díját."'),
-        ('<meta property="og:locale" content="sk_SK">', '<meta property="og:locale" content="hu_HU">'),
-        ('"inLanguage":"sk","description":"Porovnanie doplatkov za lieky hradené zdravotnou poisťovňou podľa údajov MZ SR."',
-         '"inLanguage":"hu","description":"A szlovákiai egészségbiztosító által támogatott gyógyszerek térítési díjainak összehasonlítása."'),
-        ('<title>Doplatky liekov – nájdite lacnejší liek</title>', '<title>Gyógyszerek térítési díja Szlovákiában – találjon olcsóbbat</title>'),
-        ('<h1>Rovnaká účinná látka, <em>nižší doplatok.</em></h1>', '<h1>Azonos hatóanyag, <em>alacsonyabb térítési díj.</em></h1>'),
-        ('<p class="lede">Zadajte názov lieku z balenia alebo receptu. Ukážeme lieky s rovnakou látkou, ktoré poisťovňa hradí rovnako, a koľko za ne doplatíte.</p>',
-         '<p class="lede">Írja be a gyógyszer nevét a dobozról vagy a receptről. Megmutatjuk az azonos hatóanyagú gyógyszereket, amelyeket a biztosító egyformán térít, és hogy mennyit fizet értük a gyógyszertárban.</p>'),
-        ('<label for="q" class="eyebrow">Hľadať liek alebo účinnú látku</label>', '<label for="q" class="eyebrow">Gyógyszer vagy hatóanyag keresése</label>'),
-        ('placeholder="napr. Concor, Controloc, metformín"', 'placeholder="pl. Concor, Controloc, metformin"'),
-        ('aria-label="Nájdené lieky"', 'aria-label="Talált gyógyszerek"'),
-        ('aria-label="Príklady"', 'aria-label="Példák"'),
-        ('<nav class="tiles" aria-label="Rýchle odkazy"><!--TILES--></nav>', '<nav class="tiles" aria-label="Gyorslinkek"><!--TILES_HU--></nav>'),
-        ('<p class="eyebrow">Bežné tablety a kapsuly</p>', '<p class="eyebrow">Gyakori tabletták és kapszulák</p>'),
-        ('<h2>Kde sa najviac preplatí</h2>', '<h2>Hol fizet a legtöbbet feleslegesen</h2>'),
-        ('<h2>Časté ochorenia</h2>', '<h2>Gyakori betegségek <small class="mono">(szlovákul)</small></h2>'),
-        ('<a class="all" href="/choroby/">Všetky ochorenia →</a>', '<a class="all" href="/choroby/">Összes betegség →</a>'),
-        ('<h2>Ako to funguje</h2>', '<h2>Hogyan működik</h2>'),
-        ('<details><summary>Ako vymeniť liek za lacnejší</summary><p>Opýtajte sa lekárnika na lacnejšiu alternatívu. Môže vám ju vydať, ak lekár na recepte nevyznačil, že liek sa nesmie zamieňať. Pri pochybnostiach sa poraďte s lekárom.</p></details>',
-         '<details><summary>Hogyan cserélhető olcsóbbra a gyógyszer</summary><p>Kérdezze meg a gyógyszerészt olcsóbb alternatíváról. Kiadhatja, ha az orvos a recepten nem jelölte, hogy a gyógyszer nem cserélhető. Kétség esetén beszéljen orvosával.</p></details>'),
-        ('<details><summary>Čo znamená doplatok</summary><p>Je to maximálna suma, ktorú zaplatíte v lekárni. Zvyšok konečnej ceny hradí zdravotná poisťovňa. Lekáreň vám môže dať zľavu, takže zaplatíte aj menej. Voľnopredajné lieky v úradnom zozname nie sú.</p></details>',
-         '<details><summary>Mi a térítési díj (doplatok)</summary><p>A gyógyszertárban fizetendő legmagasabb összeg. A végső ár többi részét az egészségbiztosító fizeti. A gyógyszertár kedvezményt is adhat. A vény nélküli gyógyszerek nem szerepelnek a hivatalos listában.</p></details>'),
-        ('<details><summary>Čo sú generiká</summary><p>Generikum obsahuje rovnakú účinnú látku v rovnakej sile ako originál a musí mať preukázaný rovnaký účinok. Líši sa výrobcom, názvom, obalom a často cenou. <a href="/clanky/co-su-generika/">Viac o generikách</a></p></details>',
-         '<details><summary>Mik a generikumok</summary><p>A generikum ugyanazt a hatóanyagot tartalmazza ugyanolyan erősségben, mint az eredeti gyógyszer, és igazoltan ugyanúgy hat. Gyártójában, nevében, csomagolásában és gyakran árában különbözik.</p></details>'),
-        ('<details><summary>Ochranný limit</summary><p>Dôchodcom, ľuďom s preukazom ŤZP a malým deťom vracia poisťovňa doplatky nad štvrťročný limit. <a href="/ochranny-limit/">Koľko vám vrátia</a></p></details>',
-         '<details><summary>Védelmi limit</summary><p>A nyugdíjasoknak, a ŤZP igazolvánnyal rendelkezőknek és a kisgyermekeknek a biztosító visszatéríti a negyedéves limit feletti térítési díjakat. <a href="/hu/vedelmi-limit/">Mennyit kaphat vissza</a></p></details>'),
-        ("n.toLocaleString('sk-SK',", "n.toLocaleString('hu-HU',"),
-        ("t[0] === 'O' ? 'Originál' : /B/.test(t) ? 'Biologický' : /G/.test(t) ? 'Generikum' : ''", "t[0] === 'O' ? 'Originális' : /B/.test(t) ? 'Biológiai' : /G/.test(t) ? 'Generikum' : ''"),
-        ("head.append(el('p', 'eyebrow', 'Porovnanie doplatkov'));", "head.append(el('p', 'eyebrow', 'Térítési díjak összehasonlítása'));"),
-        ("list.length + (list.length === 1 ? ' liek v skupine' : list.length < 5 ? ' lieky v skupine' : ' liekov v skupine')", "list.length + ' gyógyszer a csoportban'"),
-        ("const link = el('a', 'detail-link', 'Stránka lieku ' + item.name + ' →');", "const link = el('a', 'detail-link', item.name + ' – részletek →');"),
-        ("link.href = '/liek/' + productSlug(item.name, item.kod) + '/';", "link.href = '/hu/gyogyszer/' + productSlug(item.name, item.kod) + '/';"),
-        ("p.append('Za ', Object.assign(el('strong'), { textContent: item.name }), ' doplácate ' + eur(item.dop) + '. Najlacnejšia alternatíva je ', Object.assign(el('strong'), { textContent: cheapest.name }), ' za ' + eur(cheapest.dop) + '.');",
-         "p.append('A(z) ', Object.assign(el('strong'), { textContent: item.name }), ' térítési díja ' + eur(item.dop) + '. A legolcsóbb alternatíva: ', Object.assign(el('strong'), { textContent: cheapest.name }), ', ' + eur(cheapest.dop) + '.');"),
-        ("big.append(el('small', null, 'na jednom balení'));", "big.append(el('small', null, 'csomagonként'));"),
-        ("list.length > 1 ? ' už patrí medzi najlacnejšie lieky v tejto skupine. Doplatok ' + eur(item.dop) + '.' : ' nemá v zozname inú verziu s rovnakou látkou, silou a balením.'",
-         "list.length > 1 ? ' már a legolcsóbbak közé tartozik ebben a csoportban. Térítési díj: ' + eur(item.dop) + '.' : ' gyógyszernek nincs más változata azonos hatóanyaggal, erősséggel és kiszereléssel.'"),
-        ("const label = el('span', null, 'Balení za rok');", "const label = el('span', null, 'Csomag évente');"),
-        ("minus.setAttribute('aria-label', 'Menej balení');", "minus.setAttribute('aria-label', 'Kevesebb csomag');"),
-        ("plus.setAttribute('aria-label', 'Viac balení');", "plus.setAttribute('aria-label', 'Több csomag');"),
-        ("res.replaceChildren('Ročne ušetríte ',", "res.replaceChildren('Éves megtakarítás: ',"),
-        ("tags.append(el('span', 'tag best', 'Najnižší'));", "tags.append(el('span', 'tag best', 'Legalacsonyabb'));"),
-        ("tags.append(el('span', 'tag zero', 'Bez doplatku'));", "tags.append(el('span', 'tag zero', 'Térítésmentes'));"),
-        ("li.title = 'ŠÚKL ' + x.kod + ' · poisťovňa hradí ' + eur(x.uzp);", "li.title = 'ŠÚKL ' + x.kod + ' · a biztosító fizeti: ' + eur(x.uzp);"),
-        ("'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek ho porovnáte s ostatnými.'",
-         "'A térítési díj a gyógyszertárban fizetendő legmagasabb összeg. A biztosító a csoport minden gyógyszerére azonos vagy hasonló összeget fizet. Kattintson egy gyógyszerre az összehasonlításhoz.'"),
-        ("'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'", "'Nem találtunk ilyen nevű gyógyszert. Próbálja a hatóanyag nevével.'"),
-        ("ts.append(el('small', null, 'na balení'));", "ts.append(el('small', null, 'csomagonként'));"),
-        ("'<p class=\"slip-foot\">Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.</p>'", "'<p class=\"slip-foot\">A gyógyszeradatokat nem sikerült betölteni. Frissítse az oldalt.</p>'"),
-    ]
-    tpl_hu = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
-    for a, b2 in HU_HOME:
-        if a not in tpl_hu:
-            raise SystemExit(f"Maďarský preklad úvodnej stránky: v šablóne chýba text: {a[:70]}")
-        tpl_hu = tpl_hu.replace(a, b2)
-    tiles_hu = [
-        ("/hu/asszisztens/", "spark", "MI asszisztens", "Kérdezzen saját szavaival a gyógyszerekről és a térítési díjakról", ""),
-        ("/moje-lieky/", "mine", "Gyógyszereim (SK)", "Mentse el gyógyszereit, kövesse a díjakat és a kieséseket", ""),
-        ("/zmeny/", "trend", f"Változások {hu_date(nxt['platnostIso'])}" if nxt else "Változások", "Mi lesz olcsóbb és drágább (szlovákul)", ""),
-        ("/vypadky/", "alert", "Szállítási kiesések", f"{n_vyp} gyógyszer szállítása szünetel (szlovákul)", " warn"),
-        ("/bez-doplatku/", "zero", "Térítésmentes gyógyszerek", f"{zero_total} gyógyszer teljesen támogatott (szlovákul)", ""),
-        ("/hu/vedelmi-limit/", "shield", "Védelmi limit", "Mennyit térít vissza a biztosító", ""),
-    ]
-    tiles_hu_html = "".join(f'<a class="tile{cls}" href="{h}">{IC[ic]}<strong>{esc(t)}</strong><span>{esc(sub)}</span></a>'
-                            for h, ic, t, sub, cls in tiles_hu)
-    for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header_hu("/hu/"), "TILES_HU": tiles_hu_html, "CONDS": conds_html,
-                 "FOOTER": site_footer_hu(esc(PLATNOST), "/"), "BOTTOM": bottom_nav_hu("/hu/"), "PANELS": site_panels_hu("/hu/")}.items():
-        tpl_hu = tpl_hu.replace(f"<!--{k}-->", v)
-    write("/hu/", tpl_hu)
-    urls.append(("/hu/", "0.8"))
+    # --- cudzojazyčné úvodné stránky (preklad slovenskej šablóny, scripts/langs.py) ---
+    tpl_src = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    for L in LANGS.values():
+        tl = tpl_src
+        generic = {
+            '<html lang="sk">': f'<html lang="{L["code"]}">',
+            '<link rel="canonical" href="https://doplatkyliekov.sk/">': f'<link rel="canonical" href="{BASE}{L["root"]}">\n' + hreflang_links(alt_paths("root")),
+            '<meta property="og:url" content="https://doplatkyliekov.sk/">': f'<meta property="og:url" content="{BASE}{L["root"]}">',
+            '<meta property="og:locale" content="sk_SK">': f'<meta property="og:locale" content="{L["locale"]}">',
+            '"inLanguage":"sk"': f'"inLanguage":"{L["code"]}"',
+            "n.toLocaleString('sk-SK',": f"n.toLocaleString('{L['num']}',",
+            "link.href = '/liek/' + ": f"link.href = '{L['drug']}' + ",
+        }
+        for a2, b2 in list(generic.items()) + list(L["home"].items()):
+            if a2 not in tl:
+                raise SystemExit(f"Preklad úvodnej stránky ({L['code']}): v šablóne chýba text: {a2[:70]}")
+            tl = tl.replace(a2, b2)
+        tiles_l = L["tiles"](L["date"](nxt["platnostIso"]) if nxt else "", n_vyp, zero_total)
+        tiles_l_html = "".join(f'<a class="tile{cls}" href="{h}">{IC[ic]}<strong>{esc(t)}</strong><span>{esc(sub)}</span></a>'
+                               for h, ic, t, sub, cls in tiles_l)
+        for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header_l(L, L["root"]), "TILES": tiles_l_html, "CONDS": conds_html,
+                     "FOOTER": site_footer_l(L, esc(PLATNOST), alt_paths("root")), "BOTTOM": bottom_nav_l(L, L["root"]),
+                     "PANELS": site_panels_l(L, L["root"])}.items():
+            tl = tl.replace(f"<!--{k}-->", v)
+        write(L["root"], tl)
+        urls.append((L["root"], "0.8"))
 
 
 
@@ -2685,17 +2795,17 @@ def build():
                 subs.append([s_, min(x["dop"] for x in its), len(its), round(gap, 2), f"/latka/{subst_slug[s_]}/"])
         subs.sort(key=lambda r: -r[2])
         conds_ai[slug] = {"nazov": title, "kluc": short, "url": f"/choroby/{slug}/", "popis": intro, "latky": subs[:40],
-                          "hu": COND_HU.get(slug, [])}
+                          "hu": COND_HU.get(slug, []), "uk": COND_UK.get(slug, [])}
     (ai_dir / "conds.json").write_text(json.dumps(conds_ai, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     docs = []
-    for sl, t, d, html_body in articles:
+    for sl, t, d, html_body in articles + [x[:4] for x in month_articles[:6]]:
         for part in re.split(r"(?=<h2>)", html_body):
             txt = strip_html(part)
             if txt:
                 docs.append({"t": t, "u": f"/clanky/{sl}/", "x": txt[:1800]})
     docs += [
-        {"t": "Ochranný limit 2026", "u": "/ochranny-limit/", "k": "ochranný limit spoluúčasť dôchodca dôchodok vráti vrátenie preplatok ŤZP invalidný dieťa štvrťrok príjem védelmi limit nyugdíjas nyugdíj visszatérítés visszafizet gyerek negyedév", "x": (
+        {"t": "Ochranný limit 2026", "u": "/ochranny-limit/", "k": "ochranný limit spoluúčasť dôchodca dôchodok vráti vrátenie preplatok ŤZP invalidný dieťa štvrťrok príjem védelmi limit nyugdíjas nyugdíj visszatérítés visszafizet gyerek negyedév захисний ліміт пенсіонер пенсія повернення повертає інвалідність дитина квартал дохід", "x": (
             "Ochranný limit (limit spoluúčasti) na štvrťrok v roku 2026: dieťa do 6 rokov 0 € bez ohľadu na príjem; "
             "držiteľ preukazu ŤZP alebo invalidný dôchodca a starobný alebo predčasný starobný dôchodca 0 € ak má dôchodok do 914,40 € mesačne "
             "a celkový príjem do 2 743,20 € za štvrťrok; pri vyššom príjme ŤZP a invalidní dôchodcovia 12 €, starobní dôchodcovia 30 €. "
@@ -2709,7 +2819,7 @@ def build():
             "a doplatok za najlacnejší náhradný liek by nemal platiť už v lekárni. "
             "Príklad 2: starobný dôchodca s dôchodkom 1 100 € mesačne má limit 30 €; ak mu za štvrťrok vznikli započítateľné doplatky 50 €, "
             "poisťovňa mu vráti 20 €.")},
-        {"t": "Ako vymeniť liek za lacnejší", "u": "/clanky/ako-usetrit-na-liekoch/", "k": "vymeniť zameniť lacnejší lekárnik recept generikum csere cserélni gyógyszerész generikum", "x": (
+        {"t": "Ako vymeniť liek za lacnejší", "u": "/clanky/ako-usetrit-na-liekoch/", "k": "vymeniť zameniť lacnejší lekárnik recept generikum csere cserélni gyógyszerész generikum замінити заміна фармацевт аптека генерик рецепт", "x": (
             "Lekárnik môže vydať liek s rovnakou účinnou látkou, silou a veľkosťou balenia od iného výrobcu, ak lekár na recepte nevyznačil, "
             "že liek sa nesmie zamieňať. Ak lekár predpisuje názvom účinnej látky, môžete si vybrať ktorýkoľvek liek s touto látkou. "
             "O zmene sa poraďte s lekárom alebo lekárnikom, najmä pri liekoch na epilepsiu, štítnu žľazu alebo riedenie krvi.")},
@@ -2735,7 +2845,7 @@ def build():
         n_up, n_down, n_gone, nd_txt = zm_counts
         mon = MESIACE_GEN[int(nxt["platnostIso"][5:7]) - 1]
         docs.append({"t": f"Zmeny doplatkov od {nd_txt}", "u": "/zmeny/",
-                     "k": f"zmeny mení zmena budúci mesiac {mon} nový zoznam zdražie zlacnie stúpne klesne vypadne változás változik november december jövő hónap drágul olcsóbb", "x": (
+                     "k": f"zmeny mení zmena budúci mesiac {mon} nový zoznam zdražie zlacnie stúpne klesne vypadne változás változik november december jövő hónap drágul olcsóbb зміни зміниться наступного місяця подешевшає подорожчає листопада грудня", "x": (
             f"Podľa nového zoznamu ministerstva od 1. {mon} {nxt['platnostIso'][:4]}: doplatok stúpne pri {n_up} liekoch, klesne pri {n_down}, "
             f"zo zoznamu hradených liekov vypadne {n_gone}. "
             + ("Najväčšie zvýšenia: " + "; ".join(f"{p['name']} z {eur(p['dop'])} na {eur(c['dop'])} (/liek/{p['slug']}/)" for d, g, p, c in zm_ups[:6]) + ". " if zm_ups else "")
@@ -2743,7 +2853,7 @@ def build():
             + ("Vypadnú zo zoznamu: " + "; ".join(f"{p['name']} (/liek/{p['slug']}/)" for g, p in zm_gone[:6]) + ". " if zm_gone else "")
             + "Zoznam všetkých zmien je na stránke Zmeny doplatkov (/zmeny/).")})
     docs.append({"t": "Výhody poisťovní: vrátenie doplatkov", "u": "/vyhody-poistovni/",
-                 "k": "poisťovňa benefit výhody union dôvera všzp vrátenie preplatenie deti rodina peňaženka zdravia biztosító kedvezmény visszatérítés gyerekek család",
+                 "k": "poisťovňa benefit výhody union dôvera všzp vrátenie preplatenie deti rodina peňaženka zdravia biztosító kedvezmény visszatérítés gyerekek család страхова пільги повернення діти сім'я union dôvera всзп",
                  "x": ("Benefity nad rámec zákona (overené 25. 10. 2026): Union vracia deťom do 18 rokov doplatky za lieky a dietetické potraviny bez limitu, "
                        "ak je v Unione aj aspoň jeden zákonný zástupca; dospelým spolu až 300 € za celú dobu poistenia pri splnení preventívnych prehliadok; "
                        "žiada sa v aplikácii alebo Online pobočke. Dôvera: až 400 € na každého člena rodiny (rodičia a deti do 18 rokov), jednorazový kredit, "
