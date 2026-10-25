@@ -9,7 +9,7 @@
   var kod = /^[0-9A-Z]{4,6}$/.test(params.get('kod') || '') ? params.get('kod') : null;
   var conv = [];
   try { var s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (s && Array.isArray(s.m)) { conv = s.m; if (!kod && s.kod) kod = s.kod; } } catch (e) { /* nič */ }
-  function store() { try { sessionStorage.setItem(KEY, JSON.stringify({ m: conv.slice(-20), kod: kod })); } catch (e) { /* nič */ } }
+  function store() { try { sessionStorage.setItem(KEY, JSON.stringify({ m: conv.slice(-12), kod: kod })); } catch (e) { /* nič */ } }
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
@@ -44,16 +44,95 @@
     });
     return box;
   }
-  function bubble(role, text) {
+  /* odkazy na lieky a stránky z podkladov odpovede */
+  function nrm(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function shortName(n) {
+    var m = /^(.*?\d+(?:[.,]\d+)?(?:\s*(?:mg|µg|mcg|g|ml|%|IU|m\.j\.))?)(?=\s|$|,)/i.exec(n);
+    return (m ? m[1] : n.split(/\s+/).slice(0, 2).join(' ')).trim();
+  }
+  function escRe(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function prelink(md, refs) {
+    // „Názov (/liek/…/)“ → [Názov](/liek/…/) ; holá cesta → odkaz s názvom stránky
+    refs.forEach(function (r) {
+      var url = r[0], esc = escRe(url);
+      md = md.replace(new RegExp('\\]\\(' + esc + '\\)', 'g'), '](\u0000' + url.slice(1) + ')');
+      md = md.replace(new RegExp('([^\\n\\[\\]()]{0,90}?)\\s*\\(\\s*' + esc + '\\s*\\)', 'g'), function (all, before) {
+        var b = before.replace(/\s+$/, ''), name = r[1];
+        var nb = nrm(b), nn = nrm(name), sn = nrm(shortName(name));
+        var at = nb.lastIndexOf(nn); if (at < 0) { at = nb.lastIndexOf(sn); nn = sn; }
+        if (at >= 0 && at + nn.length >= nb.length - 2) return b.slice(0, at) + '[' + b.slice(at, at + nn.length) + '](' + url + ')' + b.slice(at + nn.length);
+        return b + ' [' + name + '](' + url + ')';
+      });
+      md = md.replace(new RegExp('(^|[\\s:])' + esc + '(?=$|[\\s.,;])', 'g'), function (all, pre) { return pre + '[' + r[1] + '](' + url + ')'; });
+    });
+    return md.replace(/\u0000/g, '/');
+  }
+  function linkNames(box, refs) {
+    var linked = {};
+    box.querySelectorAll('a').forEach(function (a) { linked[a.getAttribute('href')] = 1; });
+    // názov → lieky s týmto názvom (rôzne balenia); vyberie sa podľa „(30 ks)“ za názvom
+    var byName = {};
+    refs.forEach(function (r) {
+      if (r[3] !== 'liek' && r[3] !== 'latka') return;
+      [r[1], r[3] === 'liek' ? shortName(r[1]) : null].forEach(function (nm) {
+        if (!nm || nm.length < 4) return;
+        var k = nrm(nm); (byName[k] = byName[k] || { name: nm, refs: [] }).refs.push(r);
+      });
+    });
+    var names = Object.keys(byName).sort(function (a, b) { return b.length - a.length; });
+    var walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT, { acceptNode: function (n) { return n.parentNode.closest('a') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; } });
+    var nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i], txt = nrm(node.nodeValue), best = null;
+      names.forEach(function (k) {
+        var at = txt.indexOf(k);
+        if (at < 0) return;
+        var after = node.nodeValue.charAt(at + k.length);
+        if (after && /[0-9A-Za-zÀ-ž]/.test(after)) return;
+        if (!best || at < best.at || (at === best.at && k.length > best.k.length)) best = { at: at, k: k };
+      });
+      if (!best) continue;
+      var group = byName[best.k].refs, pick = null;
+      var m = /^\s*\(?\s*(\d+)\s*ks/.exec(node.nodeValue.slice(best.at + best.k.length, best.at + best.k.length + 20));
+      if (m) pick = group.filter(function (r) { return r[2] === m[1] + ' ks'; })[0];
+      if (!pick) pick = group.filter(function (r) { return r[4]; })[0] || group[0];
+      var rest = node.splitText(best.at), tail = rest.splitText(best.k.length);
+      if (!linked[pick[0]]) { var a = el('a', null, rest.nodeValue); a.href = pick[0]; rest.replaceWith(a); linked[pick[0]] = 1; }
+      nodes.splice(i + 1, 0, tail);
+    }
+  }
+  function chips(box, text, refs) {
+    var inText = {};
+    box.querySelectorAll('a[href^="/liek/"]').forEach(function (a) { inText[a.getAttribute('href')] = 1; });
+    var out = refs.filter(function (r) { return r[3] === 'liek' && (inText[r[0]] || (r[4] && nrm(text).indexOf(nrm(shortName(r[1]))) >= 0)); });
+    var seen = {};
+    out = out.filter(function (r) { if (seen[r[0]]) return false; seen[r[0]] = 1; return true; });
+    out.sort(function (a, b) { return b[4] - a[4]; });
+    if (!out.length) return;
+    var wrap = el('div', 'ai-refs'); wrap.append(el('p', 'eyebrow', out.length === 1 ? 'Liek v odpovedi' : 'Lieky v odpovedi'));
+    out.slice(0, 8).forEach(function (r) {
+      var a = el('a', 'ai-ref'); a.href = r[0];
+      a.append(el('span', null, r[1]), el('small', null, (r[2] ? r[2] + ' · ' : '') + 'otvoriť stránku lieku'));
+      wrap.append(a);
+    });
+    box.append(wrap);
+  }
+  function bubble(role, text, refs) {
     var wrap = el('div', 'ai-msg ' + (role === 'user' ? 'me' : 'bot'));
     wrap.append(el('span', 'ai-who', role === 'user' ? 'Vy' : 'Asistent'));
-    if (role === 'user') wrap.append(el('p', null, text)); else wrap.append(render(text));
+    if (role === 'user') wrap.append(el('p', null, text));
+    else {
+      refs = Array.isArray(refs) ? refs : [];
+      var box = render(refs.length ? prelink(text, refs) : text);
+      if (refs.length) { linkNames(box, refs); chips(box, text, refs); }
+      wrap.append(box);
+    }
     log.append(wrap);
     return wrap;
   }
   function paint() {
     log.replaceChildren();
-    conv.forEach(function (m) { bubble(m.role, m.text); });
+    conv.forEach(function (m) { bubble(m.role, m.text, m.refs); });
     sugg.hidden = conv.length > 0;
     document.getElementById('ai-new').hidden = conv.length === 0;
   }
@@ -69,13 +148,13 @@
     var wait = el('div', 'ai-msg bot wait'); wait.append(el('span', 'ai-who', 'Asistent'), el('p', 'ai-typing', 'Hľadám v údajoch o liekoch…'));
     log.append(wait); scrollEnd(mine);
     inp.value = ''; autosize(); sendBtn.disabled = true; inp.setAttribute('aria-busy', 'true');
-    fetch('/api/asistent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q, kod: kod, history: history }) })
+    fetch('/api/asistent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q, kod: kod, history: history.map(function (m) { return { role: m.role, text: m.text }; }) }) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { s: r.status, j: j }; }); })
       .then(function (res) {
         wait.remove();
         if (res.s === 200 && res.j.answer) {
-          conv.push({ role: 'assistant', text: res.j.answer }); store();
-          scrollEnd(bubble('assistant', res.j.answer));
+          conv.push({ role: 'assistant', text: res.j.answer, refs: (res.j.refs || []).slice(0, 120) }); store();
+          scrollEnd(bubble('assistant', res.j.answer, res.j.refs));
         } else {
           conv.pop(); store();
           var err = el('div', 'ai-msg bot err');

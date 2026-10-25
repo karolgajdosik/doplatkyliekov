@@ -276,9 +276,11 @@ PREFS_HEAD = ("<script>(function(){var d=document.documentElement;d.dataset.them
               "try{var s=JSON.parse(localStorage.getItem('zobrazenie.v1')||'{}');if(s.t)d.dataset.theme=s.t;"
               "if(s.f!=null)d.dataset.fs=s.f;if(s.c)d.dataset.contrast='high';}catch(e){}})();</script>")
 
-NAV_TOP = [("/", "Vyhľadať"), ("/asistent/", "AI asistent"), ("/choroby/", "Ochorenia"), ("/zmeny/", "Zmeny"),
-           ("/vypadky/", "Výpadky"), ("/bez-doplatku/", "Bez doplatku"), ("/ochranny-limit/", "Ochranný limit"),
-           ("/statistiky/", "Štatistiky")]
+# (adresa, názov, krátky názov na mobil, triedy: m = aj na mobile, x-960 / x-1100 = skryť pod danou šírkou)
+NAV_TOP = [("/", "Vyhľadať", "", ""), ("/asistent/", "AI asistent", "", ""), ("/choroby/", "Ochorenia", "", ""),
+           ("/zmeny/", "Zmeny", "Zmeny", "m"), ("/vypadky/", "Výpadky", "Výpadky", "m"),
+           ("/bez-doplatku/", "Bez doplatku", "Bez doplatku", "m x-960"), ("/ochranny-limit/", "Ochranný limit", "Limit", "m x-960"),
+           ("/statistiky/", "Štatistiky", "", "x-1100")]
 
 MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
@@ -298,7 +300,11 @@ def _cur(href, path):
 
 
 def site_header(path):
-    links = "".join(f'<a href="{h}"{_cur(h, path)}{' class="ai-link"' if h == "/asistent/" else ""}>{IC["spark"] if h == "/asistent/" else ""}{esc(t)}</a>' for h, t in NAV_TOP)
+    def nav_link(h, t, short, cls):
+        classes = (cls + (" ai-link" if h == "/asistent/" else "")).strip()
+        label = f'<span class="l">{esc(t)}</span><span class="s">{esc(short)}</span>' if short else esc(t)
+        return f'<a href="{h}"{_cur(h, path)}{f" class=\"{classes}\"" if classes else ""}>{IC["spark"] if h == "/asistent/" else ""}{label}</a>'
+    links = "".join(nav_link(*x) for x in NAV_TOP)
     return f"""<a class="skip" href="#obsah">Preskočiť na obsah</a>
 <header class="site-head">
   <div class="site-head-in">

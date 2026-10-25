@@ -478,19 +478,25 @@ body.sheet-open { overflow: hidden; }
 .sheet .menu-display { white-space: normal; text-align: left; height: auto; min-height: 48px; padding: 8px 14px; }
 footer .foot-cols a { border: 0; padding: 2px 0; background: none; border-radius: 0; font-size: 15px; display: inline-block; }
 
-/* ---------- horná lišta: odkazy aj na mobile (druhý riadok, posúvateľný) ---------- */
+/* ---------- horná lišta: len odkazy, ktoré sa zmestia (bez posúvania) ---------- */
 body { overflow-x: clip; }
 .top-nav a.ai-link { display: inline-flex; align-items: center; gap: 6px; }
 .top-nav a.ai-link svg { width: 16px; height: 16px; color: var(--accent); }
-@media (max-width: 1359px) {
+.top-nav .s { display: none; }
+@media all {
   .site-head-in { flex-wrap: wrap; row-gap: 8px; }
-  .top-nav { display: flex; order: 10; flex-basis: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; gap: 6px;
-    margin: 0 calc(-1 * max(18px, env(safe-area-inset-left, 0px))); padding: 2px max(18px, env(safe-area-inset-left, 0px)) 2px;
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 28px), transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 28px), transparent 100%); }
-  .top-nav::-webkit-scrollbar { display: none; }
-  .top-nav a { border: 1px solid var(--line-strong); background: var(--surface); padding: 6px 13px; font-size: 14.5px; flex: none; }
+  .top-nav { display: flex; order: 10; flex-basis: 100%; flex-wrap: nowrap; overflow: hidden; gap: 6px; }
+  .top-nav a { flex: 0 0 auto; border: 1px solid var(--line-strong); background: var(--surface); padding: 6px 13px; font-size: 14.5px; }
   .top-nav a[aria-current="page"] { border-color: var(--accent); }
+}
+@media (max-width: 1100px) { .top-nav .x-1100 { display: none; } }
+@media (max-width: 960px) { .top-nav .x-960 { display: none; } }
+@media (max-width: 760px) {
+  /* na mobile len odkazy, ktoré nie sú v spodnej lište; rovnomerne na celú šírku */
+  .top-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .top-nav a:not(.m) { display: none !important; }
+  .top-nav a.m { display: flex; justify-content: center; text-align: center; padding: 7px 4px; font-size: 13.5px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-nav .l { display: none; } .top-nav .s { display: inline; }
 }
 
 /* ---------- AI asistent ---------- */
@@ -528,3 +534,10 @@ body { overflow-x: clip; }
 .ai-card h2 { display: flex; align-items: center; gap: 10px; }
 .ai-card h2 svg { width: 22px; height: 22px; color: var(--accent); }
 .ai-card .cond-chips a { font-size: 14.5px; }
+
+.ai-refs { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+.ai-refs .eyebrow { flex-basis: 100%; margin-top: 4px; }
+.ai-ref { display: grid; gap: 1px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--raise); color: var(--ink); text-decoration: none; font-size: 14.5px; line-height: 1.35; max-width: 100%; }
+.ai-ref:hover { border-color: var(--accent); color: var(--accent); }
+.ai-ref small { color: var(--muted); font-size: 12.5px; }
+.ai-md a { font-weight: 500; }
