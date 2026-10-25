@@ -337,7 +337,7 @@
 
   function init() {
     refresh();
-    document.querySelectorAll('form.alert-form').forEach(bindForm);
+    document.querySelectorAll('form.alert-form:not(#manage-link-form)').forEach(bindForm);
     document.querySelectorAll('.year-calc').forEach(bindYearCalc);
     bindTools();
     showInstall();

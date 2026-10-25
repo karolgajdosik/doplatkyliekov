@@ -10,6 +10,7 @@
 <meta property="og:description" content="Rovnaká účinná látka, nižší doplatok. Porovnajte doplatky za lieky na predpis.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2305090b'/%3E%3Crect x='4' y='10' width='24' height='12' rx='6' fill='none' stroke='%2345f0c0' stroke-width='2'/%3E%3Cpath d='M10 10h6v12h-6a6 6 0 0 1 0-12z' fill='%2345f0c0'/%3E%3C/svg%3E">
 <title>Doplatky liekov – nájdite lacnejší liek</title>
+<!--PREFS_HEAD-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap">
@@ -22,30 +23,24 @@
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
-
+<!--HEADER-->
 <div class="wrap">
-  <header>
-    <div class="topbar">
-    <a class="brand" href="/">
-      <svg class="capsule" viewBox="0 0 40 22" aria-hidden="true"><rect x="1" y="1" width="38" height="20" rx="10" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M11 1h9v20h-9a10 10 0 0 1 0-20z" fill="var(--accent)"/></svg>
-      <span class="brand-name">doplatky<b>liekov</b>.sk</span>
-    </a>
-    <a class="mine-link" href="/moje-lieky/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>Moje lieky <span data-mine-count hidden></span></a>
-    </div>
+<main id="obsah">
+  <section class="hero">
     <h1>Rovnaká účinná látka, <em>nižší doplatok.</em></h1>
-    <p class="lede">Zadajte názov lieku, ktorý užívate. Ukážeme vám lieky s rovnakou látkou, silou a balením, ktoré poisťovňa hradí rovnako, a koľko by ste za ne doplácali v lekárni.</p>
-  </header>
+    <p class="lede">Zadajte názov lieku z balenia alebo receptu. Ukážeme lieky s rovnakou látkou, ktoré poisťovňa hradí rovnako, a koľko za ne doplatíte.</p>
+    <div class="search">
+      <label for="q" class="eyebrow">Hľadať liek alebo účinnú látku</label>
+      <input id="q" type="search" autocomplete="off" placeholder="napr. Concor, Controloc, metformín" role="combobox" aria-controls="results" aria-expanded="false" aria-autocomplete="list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <div id="results" class="results" role="listbox" aria-label="Nájdené lieky" hidden></div>
+      <div class="chips" id="chips" aria-label="Príklady"></div>
+    </div>
+  </section>
 
-  <div class="search">
-    <label for="q" class="eyebrow">Hľadať liek alebo účinnú látku</label>
-    <input id="q" type="search" autocomplete="off" placeholder="napr. Concor, Controloc, metformín" aria-controls="results" aria-expanded="false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <div id="results" class="results" role="listbox" hidden></div>
-    <div class="chips" id="chips" aria-label="Príklady"></div>
-  </div>
+  <section class="slip" id="slip" aria-live="polite" hidden></section>
 
-  <section class="slip" id="slip" aria-live="polite"></section>
+  <nav class="tiles" aria-label="Rýchle odkazy"><!--TILES--></nav>
 
   <section class="section">
     <div>
@@ -56,47 +51,29 @@
   </section>
 
   <section class="section conds">
-    <div>
-      <p class="eyebrow">Prehľady</p>
-      <h2>Lieky podľa ochorenia</h2>
-    </div>
-    <nav class="cond-chips" aria-label="Lieky podľa ochorenia"><a href="/choroby/vysoky-krvny-tlak/">Vysoký krvný tlak</a><a href="/choroby/cholesterol/">Vysoký cholesterol</a><a href="/choroby/cukrovka/">Cukrovka</a><a href="/choroby/stitna-zlaza/">Štítna žľaza</a><a href="/choroby/riedenie-krvi/">Riedenie krvi</a><a href="/choroby/srdce/">Choroby srdca</a><a href="/choroby/astma-chochp/">Astma a CHOCHP</a><a href="/choroby/alergia/">Alergia</a><a href="/choroby/zaludok-reflux/">Žalúdok a pálenie záhy</a><a href="/choroby/bolest-zapal/">Bolesť a zápal</a><a href="/choroby/migrena/">Migréna</a><a href="/choroby/depresia-uzkost/">Depresia a úzkosť</a><a class="all" href="/choroby/">Všetky ochorenia →</a></nav>
-    <p class="cond-more"><a href="/bez-doplatku/">Lieky bez doplatku</a> · <a href="/statistiky/">Doplatky v číslach</a></p>
+    <h2>Časté ochorenia</h2>
+    <nav class="cond-chips" aria-label="Lieky podľa ochorenia"><!--CONDS--><a class="all" href="/choroby/">Všetky ochorenia →</a></nav>
   </section>
 
-  <section class="facts" id="facts"></section>
-
-  <section class="notes">
-    <div class="note">
-      <h3>Ako vymeniť liek</h3>
-      <p>Opýtajte sa lekárnika na lacnejšiu alternatívu. Môže vám ju vydať, ak lekár na recepte nevyznačil, že liek sa nesmie zamieňať. Pri pochybnostiach sa poraďte s lekárom.</p>
-    </div>
-    <div class="note">
-      <h3>Čo znamená doplatok</h3>
-      <p>Je to maximálna suma, ktorú zaplatíte v lekárni. Zvyšok konečnej ceny hradí zdravotná poisťovňa. Lekáreň vám môže dať zľavu, takže zaplatíte aj menej. Voľnopredajné lieky v úradnom zozname nie sú.</p>
-    </div>
-    <div class="note">
-      <h3>Čo sú generiká</h3>
-      <p>Generikum obsahuje rovnakú účinnú látku v rovnakej sile ako originál a musí mať preukázaný rovnaký účinok. Líši sa výrobcom, názvom, obalom a často cenou.</p>
-    </div>
-    <div class="note">
-      <h3>Ochranný limit</h3>
-      <p>Dôchodcom, ľuďom s preukazom ŤZP a malým deťom vracia poisťovňa doplatky nad štvrťročný limit. <a href="/ochranny-limit/">Koľko vám vrátia</a></p>
+  <section class="section">
+    <h2>Ako to funguje</h2>
+    <div class="faq">
+      <details><summary>Ako vymeniť liek za lacnejší</summary><p>Opýtajte sa lekárnika na lacnejšiu alternatívu. Môže vám ju vydať, ak lekár na recepte nevyznačil, že liek sa nesmie zamieňať. Pri pochybnostiach sa poraďte s lekárom.</p></details>
+      <details><summary>Čo znamená doplatok</summary><p>Je to maximálna suma, ktorú zaplatíte v lekárni. Zvyšok konečnej ceny hradí zdravotná poisťovňa. Lekáreň vám môže dať zľavu, takže zaplatíte aj menej. Voľnopredajné lieky v úradnom zozname nie sú.</p></details>
+      <details><summary>Čo sú generiká</summary><p>Generikum obsahuje rovnakú účinnú látku v rovnakej sile ako originál a musí mať preukázaný rovnaký účinok. Líši sa výrobcom, názvom, obalom a často cenou. <a href="/clanky/co-su-generika/">Viac o generikách</a></p></details>
+      <details><summary>Ochranný limit</summary><p>Dôchodcom, ľuďom s preukazom ŤZP a malým deťom vracia poisťovňa doplatky nad štvrťročný limit. <a href="/ochranny-limit/">Koľko vám vrátia</a></p></details>
     </div>
   </section>
-
-  <footer>
-    <nav aria-label="Ďalšie stránky"><a href="/moje-lieky/">Moje lieky</a><a href="/choroby/">Lieky podľa ochorenia</a><a href="/bez-doplatku/">Lieky bez doplatku</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky liekov</a><a href="/ochranny-limit/">Ochranný limit</a><a href="/statistiky/">Štatistiky</a><a href="/clanky/">Články</a></nav>
-    <nav aria-label="O webe"><a href="/o-nas/">O nás</a><a href="/kontakt/">Kontakt</a><a href="/ochrana-sukromia/">Ochrana súkromia</a></nav>
-    <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od <span id="platnost">…</span>. Ceny sú v eurách s DPH.</p>
-    <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
-  </footer>
+</main>
+  <!--FOOTER-->
 </div>
+<!--BOTTOM-->
+<!--PANELS-->
 
 <script>
 function init(payload) {
 const DATA = payload.groups;
-document.getElementById('platnost').textContent = payload.platnost || '';
+const pl = document.getElementById('platnost'); if (pl) pl.textContent = payload.platnost || '';
 
 const eur = n => (n == null ? '–' : n.toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €');
 const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -123,6 +100,7 @@ function render(item) {
   const maxDop = Math.max(...list.map(x => x.dop), 0.01);
   const saving = item.dop != null && cheapest ? Math.max(0, item.dop - cheapest.dop) : 0;
   slip.replaceChildren();
+  slip.hidden = false;
 
   const head = el('div', 'slip-head');
   head.append(el('p', 'eyebrow', 'Porovnanie doplatkov'));
@@ -248,11 +226,12 @@ DATA.forEach((g, gi) => {
   if (l.length < 2) return;
   const mx = l.reduce((a, b) => b.dop > a.dop ? b : a), mn = l.reduce((a, b) => b.dop < a.dop ? b : a);
   const gap = mx.dop - mn.dop;
-  if (gap >= 2 && mx.dop <= 40 && mx.konc <= 120 && /^p\.o\./.test(g.f)) tops.push({ g, mx, mn, gap });
+  // bez opioidov a liekov na odvykanie (omamné látky nezvýrazňujeme)
+  if (gap >= 2 && mx.dop <= 40 && mx.konc <= 120 && /^p\.o\./.test(g.f) && !/^(N02A|N07B)/.test(g.a)) tops.push({ g, mx, mn, gap });
 });
 tops.sort((a, b) => b.gap - a.gap);
 const topEl = document.getElementById('top');
-tops.slice(0, 8).forEach(t => {
+tops.slice(0, 5).forEach(t => {
   const li = el('li'); const b = el('button'); b.type = 'button';
   const ts = el('span', 'ts', '−' + eur(t.gap)); ts.append(el('small', null, 'na balení'));
   const tn = el('span', 'tn'); tn.append(t.mx.name, el('span', 'arrow', '→'), t.mn.name);
@@ -261,23 +240,16 @@ tops.slice(0, 8).forEach(t => {
   li.append(b); topEl.append(li);
 });
 
-// facts
-const groupsWithGap = DATA.filter((g, gi) => { const l = groupItems(gi).filter(x => x.dop != null); return l.length > 1 && Math.max(...l.map(x => x.dop)) - Math.min(...l.map(x => x.dop)) >= 1; }).length;
-const zero = ITEMS.filter(x => x.dop === 0).length;
-const facts = document.getElementById('facts');
-[[ITEMS.length.toLocaleString('sk-SK'), 'balení liekov hradených poisťovňou'], [zero.toLocaleString('sk-SK'), 'balení je úplne bez doplatku'], [groupsWithGap.toLocaleString('sk-SK'), 'skupín, kde lacnejšia verzia ušetrí aspoň 1 €']]
-  .forEach(([n, t]) => { const f = el('div', 'fact'); f.append(el('b', null, n), el('span', null, t)); facts.append(f); });
-
-// opening state: a realistic example
-const start = ITEMS.find(x => x.name === 'Concor 10 mg' && /90|100/.test(x.pack)) || ITEMS.find(x => x.name === 'Concor 10 mg') || tops[0]?.mx || ITEMS[0];
-render(start);
-
+// predvolene sa nič nezobrazuje; zdieľaný odkaz ?liek=KOD otvorí porovnanie
+const want = new URLSearchParams(location.search).get('liek');
+if (want && byKod.get(want)) render(byKod.get(want));
 }
 fetch('data.json', { cache: 'no-cache' })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(init)
-  .catch(() => { document.getElementById('slip').innerHTML = '<p class="slip-foot">Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.</p>'; });
+  .catch(() => { const sl = document.getElementById('slip'); sl.hidden = false; sl.innerHTML = '<p class="slip-foot">Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.</p>'; });
 </script>
+<script src="/ui.js" defer></script>
 <script src="/moje.js" defer></script>
 </body>
 </html>

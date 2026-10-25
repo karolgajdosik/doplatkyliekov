@@ -178,13 +178,14 @@ def main():
         if not items:
             continue
         unsub = f"{SITE}/api/unsubscribe?t={rec['token']}"
+        manage = f"{SITE}/upozornenia/sprava/?t={rec['token']}"
         lis = "".join(
             f'<li style="margin:0 0 14px;line-height:1.5"><a href="{esc(u)}" style="color:#00866a;font-weight:bold">{esc(n)}</a><br>{esc(t)}</li>'
             for u, n, t in items)
         title = "Zmena pri vašich liekoch" if len(items) == 1 else f"Zmeny pri vašich liekoch ({len(items)})"
         body = layout(title, f'<ul style="padding-left:18px;margin:0">{lis}</ul>'
                              f'<p style="font-size:13px;color:#5d716b;line-height:1.5;margin:18px 0 0">Tento e-mail dostávate, lebo ste sa prihlásili na upozornenia na doplatkyliekov.sk. '
-                             f'<a href="{esc(unsub)}" style="color:#5d716b">Odhlásiť sa</a></p>')
+                             f'<a href="{esc(manage)}" style="color:#5d716b">Upraviť zoznam liekov</a> · <a href="{esc(unsub)}" style="color:#5d716b">Odhlásiť sa</a></p>')
         if DRY:
             print(f"[skúška] {rec['email']}: {len(items)} položiek")
             continue

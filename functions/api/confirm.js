@@ -18,5 +18,5 @@ export async function onRequestGet({ request, env }) {
   rec.confirmedAt = rec.confirmedAt || new Date().toISOString();
   await env.SUBS.put(`sub:${email}`, JSON.stringify(rec));   // bez expirácie
   await env.SUBS.put(`tok:${t}`, email);
-  return redirect('/upozornenia/potvrdene/');
+  return redirect(`/upozornenia/potvrdene/?t=${t}`);
 }

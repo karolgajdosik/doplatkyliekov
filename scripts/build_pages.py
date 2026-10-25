@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+GENERATED = ["pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
@@ -247,11 +247,127 @@ ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0
         "rx='8' fill='%2305090b'/%3E%3Crect x='4' y='10' width='24' height='12' rx='6' fill='none' stroke='%2345f0c0' "
         "stroke-width='2'/%3E%3Cpath d='M10 10h6v12h-6a6 6 0 0 1 0-12z' fill='%2345f0c0'/%3E%3C/svg%3E")
 
-FOOTER_NAV = ('<nav aria-label="Ďalšie stránky"><a href="/">Vyhľadať liek</a><a href="/moje-lieky/">Moje lieky</a>'
-              '<a href="/choroby/">Lieky podľa ochorenia</a><a href="/bez-doplatku/">Lieky bez doplatku</a>'
-              '<a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a>'
-              '<a href="/vypadky/">Výpadky</a><a href="/ochranny-limit/">Ochranný limit</a><a href="/statistiky/">Štatistiky</a>'
-              '<a href="/clanky/">Články</a></nav>')
+
+# ---------- spoločné rozloženie: hlavička, menu, zobrazenie, spodná lišta, pätička ----------
+
+def _svg(d):
+    return (f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+            f'stroke-linejoin="round" aria-hidden="true">{d}</svg>')
+
+
+IC = {
+    "search": _svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+    "mine": _svg('<path d="M6 3h12v18l-6-4.5L6 21z"/>'),
+    "heart": _svg('<path d="M20.4 5.6a5 5 0 0 0-7.1 0L12 6.9l-1.3-1.3a5 5 0 0 0-7.1 7.1L12 21l8.4-8.3a5 5 0 0 0 0-7.1z"/><path d="M3.5 12h4l1.5-3 3 6 1.5-3h7"/>'),
+    "shield": _svg('<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/>'),
+    "menu": _svg('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+    "trend": _svg('<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'),
+    "alert": _svg('<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.5"/>'),
+    "zero": _svg('<circle cx="12" cy="12" r="9"/><path d="M9 12.5l2 2 4-4.5"/>'),
+    "sun": _svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+    "moon": _svg('<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>'),
+    "auto": _svg('<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'),
+    "bell": _svg('<path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
+}
+
+# skript v <head>: použije uloženú voľbu zobrazenia ešte pred vykreslením (bez bliknutia)
+PREFS_HEAD = ("<script>(function(){var d=document.documentElement;d.dataset.theme='dark';d.dataset.fs='1';"
+              "try{var s=JSON.parse(localStorage.getItem('zobrazenie.v1')||'{}');if(s.t)d.dataset.theme=s.t;"
+              "if(s.f!=null)d.dataset.fs=s.f;if(s.c)d.dataset.contrast='high';}catch(e){}})();</script>")
+
+NAV_TOP = [("/", "Vyhľadať liek"), ("/choroby/", "Podľa ochorenia"), ("/zmeny/", "Zmeny doplatkov"),
+           ("/vypadky/", "Výpadky"), ("/ochranny-limit/", "Ochranný limit")]
+
+MENU = [
+    ("Lieky", [("/", "Vyhľadať liek"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
+               ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky")]),
+    ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
+                 ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
+    ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
+    ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
+                ("/pristupnost/", "Vyhlásenie o prístupnosti")]),
+]
+
+
+def _cur(href, path):
+    if href == "/":
+        return ' aria-current="page"' if path == "/" else ""
+    return ' aria-current="page"' if path.startswith(href) else ""
+
+
+def site_header(path):
+    links = "".join(f'<a href="{h}"{_cur(h, path)}>{esc(t)}</a>' for h, t in NAV_TOP)
+    return f"""<a class="skip" href="#obsah">Preskočiť na obsah</a>
+<header class="site-head">
+  <div class="site-head-in">
+    <a class="brand-link" href="/" aria-label="doplatkyliekov.sk – úvod">{CAPSULE}<span class="brand-name">doplatky<b>liekov</b>.sk</span></a>
+    <nav class="top-nav" aria-label="Hlavná navigácia">{links}</nav>
+    <a class="head-btn mine" href="/moje-lieky/"{_cur("/moje-lieky/", path)}>{IC["mine"]}<span class="lbl">Moje lieky</span><span data-mine-count hidden></span></a>
+    <button type="button" class="head-btn disp" data-open="zobrazenie" aria-haspopup="dialog" aria-controls="zobrazenie" aria-label="Zobrazenie: farebný režim, veľkosť písma, režim pre slabozrakých" title="Zobrazenie: farebný režim, veľkosť písma, režim pre slabozrakých"><span class="aa" aria-hidden="true">Aa</span><span class="lbl">Zobrazenie</span></button>
+    <button type="button" class="head-btn menu-btn" data-open="menu" aria-haspopup="dialog" aria-controls="menu">{IC["menu"]}<span class="lbl">Menu</span></button>
+  </div>
+</header>"""
+
+
+def site_panels(path):
+    groups = "".join(
+        f'<section><h3>{esc(g)}</h3><ul>' + "".join(f'<li><a href="{h}"{_cur(h, path) if h != "/" else ""}>{esc(t)}</a></li>' for h, t in items)
+        + "</ul></section>" for g, items in MENU)
+    return f"""<div class="sheet-backdrop" hidden data-close></div>
+<div class="sheet" id="menu" role="dialog" aria-modal="true" aria-labelledby="menu-h" hidden>
+  <div class="sheet-head"><h2 id="menu-h">Menu</h2><button type="button" class="sheet-close" data-close aria-label="Zavrieť menu">×</button></div>
+  <button type="button" class="head-btn menu-display" data-open="zobrazenie"><span class="aa" aria-hidden="true">Aa</span>Zobrazenie: svetlý režim, písmo, pre slabozrakých</button>
+  <nav class="menu-groups" aria-label="Všetky stránky">{groups}</nav>
+</div>
+<div class="sheet settings" id="zobrazenie" role="dialog" aria-modal="true" aria-labelledby="zob-h" hidden>
+  <div class="sheet-head"><h2 id="zob-h">Zobrazenie</h2><button type="button" class="sheet-close" data-close aria-label="Zavrieť nastavenia zobrazenia">×</button></div>
+  <fieldset class="set-group">
+    <legend>Farebný režim</legend>
+    <div class="seg">
+      <label>{IC["moon"]}<input type="radio" name="theme" value="dark">Tmavý</label>
+      <label>{IC["sun"]}<input type="radio" name="theme" value="light">Svetlý</label>
+      <label>{IC["auto"]}<input type="radio" name="theme" value="auto">Podľa zariadenia</label>
+    </div>
+  </fieldset>
+  <div class="set-group">
+    <p class="set-label" id="fs-label">Veľkosť písma</p>
+    <div class="fs-row" role="group" aria-labelledby="fs-label">
+      <button type="button" class="minus" data-fs="-1" aria-label="Zmenšiť písmo">A−</button>
+      <output id="fs-out" aria-live="polite">100 %</output>
+      <button type="button" class="plus" data-fs="1" aria-label="Zväčšiť písmo">A+</button>
+    </div>
+  </div>
+  <label class="switch">
+    <strong>Režim pre slabozrakých</strong>
+    <input type="checkbox" role="switch" id="set-contrast">
+    <small>Vysoký kontrast, väčšie a čitateľnejšie písmo, podčiarknuté odkazy, bez animácií a priehľadných efektov.</small>
+  </label>
+  <button type="button" class="set-reset" id="set-reset">Obnoviť pôvodné zobrazenie</button>
+  <p class="set-note">Voľba sa uloží len v tomto prehliadači.</p>
+</div>"""
+
+
+def bottom_nav(path):
+    items = [("/", "Hľadať", "search"), ("/moje-lieky/", "Moje lieky", "mine"), ("/choroby/", "Ochorenia", "heart"),
+             ("/ochranny-limit/", "Limit", "shield")]
+    out = []
+    for h, t, ic in items:
+        badge = '<span data-mine-count hidden></span>' if ic == "mine" else ""
+        out.append(f'<a href="{h}"{_cur(h, path)}>{IC[ic]}{badge}<span>{esc(t)}</span></a>')
+    out.append(f'<button type="button" data-open="menu" aria-haspopup="dialog" aria-controls="menu">{IC["menu"]}<span>Menu</span></button>')
+    return f'<nav class="bottom-nav" aria-label="Rýchle odkazy">{"".join(out)}</nav>'
+
+
+def site_footer(platnost_html):
+    cols = "".join(
+        f'<section><h2>{esc(g)}</h2><ul>' + "".join(f'<li><a href="{h}">{esc(t)}</a></li>' for h, t in items) + "</ul></section>"
+        for g, items in [MENU[0], (MENU[1][0], MENU[1][1] + MENU[2][1]), MENU[3]])
+    return f"""<footer>
+    <nav class="foot-cols" aria-label="Ďalšie stránky">{cols}</nav>
+    <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {platnost_html}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
+    <p>Stránka slúži na informáciu, nie je reklamou na lieky a nenahrádza radu lekára ani lekárnika. Poradie liekov určuje výlučne výška doplatku.</p>
+  </footer>"""
+
 
 EXTRA_CSS = """
 /* doplnky štýlu pre podstránky; základ je v /style.css */
@@ -369,6 +485,8 @@ details.io .code { display: block; margin-top: 8px; font-family: var(--font-mono
   .stats3 div:last-child { grid-column: 1 / -1; }
 }
 [hidden] { display: none !important; }
+.mine-tools .danger { color: var(--save); border-color: var(--save); }
+.mine-tools .danger.armed { background: var(--save); color: var(--bg); }
 /* ročný doplatok */
 .year-calc .yc-dose { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; font-weight: 600; }
 .yc-input { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 999px; overflow: hidden; background: var(--raise); }
@@ -484,6 +602,7 @@ def alert_form(kod=None, heading="Upozorníme vás na zmenu"):
       <label class="consent"><input type="checkbox" name="consent" id="alert-consent"> <span>Súhlasím so spracovaním e-mailu a zoznamu mojich liekov na zasielanie upozornení podľa <a href="/ochrana-sukromia/">zásad ochrany súkromia</a>.</span></label>
       <p class="form-msg" aria-live="polite"></p>
     </form>
+    <p class="hint">Už dostávate upozornenia? <a href="/upozornenia/sprava/">Upraviť alebo zrušiť upozornenia</a></p>
   </section>"""
 
 
@@ -510,28 +629,23 @@ def page(title, description, path, body, jsonld=None, script=""):
 <meta property="og:description" content="{esc(description)}">
 <meta property="og:type" content="website">
 <link rel="icon" href="{ICON}">
+{PREFS_HEAD}
 {FONTS}
 <link rel="stylesheet" href="/style.css">
 <link rel="stylesheet" href="/assets/pages.css">
 {ld}
 </head>
 <body>
+{site_header(path)}
 <div class="wrap">
-  <header class="topbar">
-    <a class="brand-link" href="/">
-      {CAPSULE}
-      <span class="brand-name">doplatky<b>liekov</b>.sk</span>
-    </a>
-    <a class="mine-link" href="/moje-lieky/">{BOOKMARK}Moje lieky <span data-mine-count hidden></span></a>
-  </header>
+<main id="obsah">
 {body}
-  <footer>
-    {FOOTER_NAV}
-    <nav aria-label="O webe"><a href="/o-nas/">O nás</a><a href="/kontakt/">Kontakt</a><a href="/ochrana-sukromia/">Ochrana súkromia</a></nav>
-    <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {esc(PLATNOST)}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
-    <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
-  </footer>
+</main>
+  {site_footer(esc(PLATNOST))}
 </div>
+{bottom_nav(path)}
+{site_panels(path)}
+<script src="/ui.js" defer></script>
 <script src="/moje.js" defer></script>
 {script}
 </body>
@@ -1103,6 +1217,7 @@ def build():
 
     # --- zmeny od budúceho mesiaca ---
     crumb_items = [("Domov", "/"), ("Zmeny doplatkov", None)]
+    zm_counts = None
     if nxt:
         nd = sk_date_long(nxt["platnostIso"])
         ups, downs, gone = [], [], []
@@ -1117,6 +1232,7 @@ def build():
         ups.sort(key=lambda t: -t[0])
         downs.sort(key=lambda t: t[0])
         new_kods = [k for k in nxt["prices"] if k not in by_kod]
+        zm_counts = (len(ups), len(downs), len(gone), sk_date(nxt["platnostIso"]))
 
         def change_list(lst, cls):
             return "".join(
@@ -1596,6 +1712,8 @@ def build():
     </ul>
     <h2>Nezávislosť</h2>
     <p>Web nie je prepojený so žiadnym výrobcom liekov, lekárňou ani zdravotnou poisťovňou. Poradie liekov určuje výlučne výška doplatku. Ak niekedy na webe pribudnú odkazy na internetové lekárne, budú zreteľne označené a na poradie liekov nebudú mať vplyv.</p>
+    <h2>Nie je to reklama na lieky</h2>
+    <p>Web preberá úradné údaje o cenách a úhradách v nezmenenej podobe a zobrazuje všetky hradené lieky rovnako. Neobsahuje propagačné tvrdenia o účinku liekov a výrobcovia ani lekárne zaň neplatia. Reklama na lieky viazané na lekársky predpis a na lieky hradené z verejného zdravotného poistenia je voči verejnosti zakázaná (zákon č. 147/2001 Z. z. o reklame), preto takúto reklamu na webe nikdy nezverejníme.</p>
     <h2>Dôležité upozornenie</h2>
     <p>Údaje majú informačný charakter. Doplatok v zozname je maximálny a lekáreň môže dať zľavu. O zmene lieku sa vždy poraďte s lekárom alebo lekárnikom. Ak nájdete chybu, napíšte nám na <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
     <p>Prevádzkovateľ: {esc(OPERATOR)}.</p>
@@ -1632,9 +1750,22 @@ def build():
     <h2>Kto spracúva údaje</h2>
     <p>Prevádzkovateľom webu doplatkyliekov.sk a prevádzkovateľom osobných údajov je {esc(OPERATOR)}, kontakt: <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
     <h2>Prehliadanie webu</h2>
-    <p>Web nepoužíva cookies na sledovanie ani reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
+    <p>Web nepoužíva cookies ani iné nástroje na sledovanie alebo reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, neukladá nič do vášho zariadenia, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
+    <h2>Údaje uložené vo vašom zariadení</h2>
+    <p>Niektoré funkcie, o ktoré sami požiadate, si ukladajú údaje do úložiska vášho prehliadača (localStorage). Ide o ukladanie nevyhnutné na poskytnutie funkcie, ktorú výslovne požadujete, preto podľa § 109 ods. 8 zákona č. 452/2021 Z. z. o elektronických komunikáciách nevyžaduje súhlas. Tieto údaje zostávajú vo vašom zariadení, neodosielame ich a nemáme k nim prístup.</p>
+    <div class="scroll"><table class="ltable">
+      <thead><tr><th>Názov</th><th>Na čo slúži</th><th>Kedy vznikne</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">mojeLieky.v1</td><td>zoznam vašich liekov a dávkovanie</td><td>keď uložíte liek do Mojich liekov</td></tr>
+        <tr><td class="mono">limitTracker.v1, limitSettings.v1</td><td>váš prehľad doplatkov a nastavenie kalkulačky ochranného limitu</td><td>keď zapíšete nákup</td></tr>
+        <tr><td class="mono">zobrazenie.v1</td><td>farebný režim, veľkosť písma a režim pre slabozrakých</td><td>keď zmeníte zobrazenie</td></tr>
+        <tr><td class="mono">upozornenia.t</td><td>tajný odkaz na správu vašich e-mailových upozornení</td><td>keď potvrdíte prihlásenie alebo otvoríte odkaz na správu</td></tr>
+        <tr><td>vyrovnávacia pamäť aplikácie</td><td>uložené stránky a údaje o liekoch, aby web fungoval aj bez internetu</td><td>pri návšteve webu</td></tr>
+      </tbody>
+    </table></div>
+    <p>Všetko vymažete vymazaním údajov stránky v nastaveniach prehliadača. Jednotlivé položky odstránite aj priamo na webe (odobratím liekov, nákupov alebo tlačidlom Obnoviť pôvodné zobrazenie).</p>
     <h2>Moje lieky</h2>
-    <p>Zoznam liekov, ktorý si uložíte v sekcii Moje lieky, ako aj prehľad doplatkov pre ochranný limit sa ukladajú iba vo vašom prehliadači (localStorage). Nikam ich neodosielame a nemáme k nim prístup. Ak zoznam liekov zdieľate odkazom, kódy liekov sú súčasťou odkazu a vidí ich každý, komu ho pošlete. Vymažete ich odobratím položiek alebo vymazaním údajov prehliadača.</p>
+    <p>Zoznam Moje lieky a prehľad doplatkov pre ochranný limit sa ukladajú len vo vašom prehliadači (pozri vyššie). Ak zoznam liekov zdieľate odkazom, kódy liekov sú súčasťou odkazu a vidí ich každý, komu ho pošlete.</p>
     <h2>Upozornenia e-mailom</h2>
     <p>Ak sa prihlásite na upozornenia, spracúvame:</p>
     <ul>
@@ -1643,7 +1774,7 @@ def build():
       <li>dátum prihlásenia a potvrdenia a údaj o tom, aké upozornenia sme vám už poslali.</li>
     </ul>
     <p><strong>Účel:</strong> zasielanie upozornení na zmeny doplatkov, výpadky dodávok a nové lacnejšie alternatívy vašich liekov. <strong>Právny základ:</strong> váš výslovný súhlas (čl. 6 ods. 1 písm. a) a čl. 9 ods. 2 písm. a) GDPR). Zoznam liekov môže nepriamo vypovedať o vašom zdraví, preto ho spracúvame len s vaším výslovným súhlasom a nepoužívame ho na žiadny iný účel.</p>
-    <p><strong>Doba uchovávania:</strong> do odvolania súhlasu. Súhlas odvoláte kedykoľvek odkazom v každom e-maile alebo e-mailom na {CONTACT}; údaje potom bez zbytočného odkladu vymažeme. Nepotvrdené prihlásenia mažeme po 7 dňoch.</p>
+    <p><strong>Doba uchovávania:</strong> do odvolania súhlasu. Súhlas odvoláte kedykoľvek odkazom v každom e-maile, na stránke <a href="/upozornenia/sprava/">Správa upozornení</a> alebo e-mailom na {CONTACT}; údaje potom hneď vymažeme. Nepotvrdené prihlásenia mažeme po 7 dňoch.</p>
     <p><strong>Sprostredkovatelia:</strong> Cloudflare, Inc., USA (uloženie údajov) a Sendinblue SAS (Brevo), Francúzsko (odosielanie e-mailov). Prenos údajov do USA sa riadi rámcom ochrany údajov EÚ – USA (EU-U.S. Data Privacy Framework), resp. štandardnými zmluvnými doložkami. Údaje nepredávame ani neposkytujeme tretím stranám na marketing.</p>
     <h2>Vaše práva</h2>
     <p>Máte právo na prístup k údajom, ich opravu, vymazanie, obmedzenie spracúvania, prenosnosť a právo kedykoľvek odvolať súhlas. Žiadosti posielajte na {CONTACT}. Máte tiež právo podať sťažnosť Úradu na ochranu osobných údajov Slovenskej republiky (dataprotection.gov.sk).</p>
@@ -1728,9 +1859,94 @@ def build():
         urls.append((path, "0.6"))
     urls += [("/moje-lieky/", "0.5"), ("/o-nas/", "0.3"), ("/kontakt/", "0.3"), ("/ochrana-sukromia/", "0.2")]
 
+    # --- správa upozornení (zrušenie, odobratie liekov) ---
+    body = f"""{crumbs([("Domov", "/"), ("Upozornenia e-mailom", None)])}
+  <section class="intro">
+    <p class="eyebrow">Upozornenia e-mailom</p>
+    <h1 class="page-h1">Správa upozornení</h1>
+    <p class="page-sub">Tu upravíte, na ktoré lieky vám posielame upozornenia, alebo ich úplne zrušíte. Pri zrušení vymažeme váš e-mail aj zoznam liekov.</p>
+  </section>
+  <section class="card" id="sprava-root" aria-live="polite">
+    <p class="page-sub">Načítavam…</p>
+  </section>
+  <section class="card" id="sprava-link">
+    <h2>Nemáte odkaz na správu?</h2>
+    <p class="page-sub">Zadajte e-mail, na ktorý chodia upozornenia. Ak je prihlásený, pošleme naň odkaz, cez ktorý upozornenia upravíte alebo zrušíte. Odkaz nájdete aj v každom e-maile s upozornením.</p>
+    <form class="alert-form" id="manage-link-form" novalidate>
+      <div class="fields">
+        <label class="hp" aria-hidden="true">Web <input name="web" tabindex="-1" autocomplete="off"></label>
+        <input type="email" name="email" autocomplete="email" placeholder="vas@email.sk" aria-label="E-mailová adresa" required>
+        <button type="submit">Poslať odkaz</button>
+      </div>
+      <p class="form-msg" aria-live="polite"></p>
+    </form>
+  </section>"""
+    html_page = page("Správa upozornení – doplatkyliekov.sk", "Úprava alebo zrušenie e-mailových upozornení na zmeny doplatkov a výpadky liekov.",
+                     "/upozornenia/sprava/", body, script='<script src="/sprava.js" defer></script>')
+    write("/upozornenia/sprava/", html_page.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">'))
+
+    # --- vyhlásenie o prístupnosti ---
+    crumb_items = [("Domov", "/"), ("Prístupnosť", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Vyhlásenie o prístupnosti</p>
+    <h1 class="page-h1">Prístupnosť webu</h1>
+    <p class="page-sub">Chceme, aby web doplatkyliekov.sk mohol používať každý, aj ľudia so zrakovým, sluchovým, pohybovým alebo kognitívnym znevýhodnením a starší ľudia.</p>
+  </section>
+  <section class="article">
+    <h2>Čo web ponúka</h2>
+    <ul>
+      <li><strong>Zobrazenie</strong> (tlačidlo Aa v hornej lište): tmavý, svetlý alebo automatický režim podľa zariadenia, zväčšenie písma až na 150 % a režim pre slabozrakých s vysokým kontrastom, väčším písmom, podčiarknutými odkazmi a bez animácií.</li>
+      <li>Ovládanie klávesnicou vrátane viditeľného zvýraznenia aktívneho prvku a odkazu „Preskočiť na obsah“.</li>
+      <li>Štruktúrované nadpisy, popisy formulárov a orientačných prvkov pre čítačky obrazovky.</li>
+      <li>Grafy majú textový popis a najdôležitejšie hodnoty sú uvedené aj v texte pod nimi.</li>
+      <li>Rozloženie sa prispôsobí mobilu aj zväčšeniu v prehliadači bez vodorovného posúvania.</li>
+      <li>Rešpektujeme nastavenie zariadenia „obmedziť pohyb“.</li>
+    </ul>
+    <h2>Stav súladu</h2>
+    <p>Web sa snaží spĺňať úroveň AA pravidiel WCAG 2.2 a harmonizovanej normy EN 301 549. Je čiastočne v súlade: prístupnosť sme kontrolovali vlastným testovaním, nie nezávislým auditom.</p>
+    <p>Známe obmedzenia:</p>
+    <ul>
+      <li>Grafy vývoja doplatkov sú obrázky s textovým popisom; jednotlivé mesačné hodnoty čítačka obrazovky neprečíta.</li>
+      <li>Údaje preberáme zo zoznamu ministerstva v pôvodnom znení, preto názvy balení obsahujú skratky (napríklad „tbl flm“ = filmom obalené tablety).</li>
+      <li>Odkazy na externé stránky (ŠÚKL, ministerstvo) nemáme pod kontrolou.</li>
+    </ul>
+    <h2>Spätná väzba</h2>
+    <p>Ak narazíte na prekážku, napíšte nám na <a href="mailto:{CONTACT}">{CONTACT}</a>. Pokúsime sa ju odstrániť alebo vám požadovanú informáciu poskytneme inak.</p>
+    <p>Vyhlásenie bolo vypracované {sk_date(dt.date.today().isoformat())}.</p>
+  </section>"""
+    write("/pristupnost/", page("Vyhlásenie o prístupnosti – doplatkyliekov.sk",
+                                "Ako je web doplatkyliekov.sk prístupný: svetlý a tmavý režim, zväčšenie písma, režim pre slabozrakých, ovládanie klávesnicou.",
+                                "/pristupnost/", body, breadcrumb_ld(crumb_items)))
+    urls.append(("/pristupnost/", "0.3"))
+
+    # --- úvodná stránka zo šablóny ---
+    tpl = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    tiles = [
+        ("/moje-lieky/", "mine", "Moje lieky", "Uložte si lieky a sledujte doplatky, zmeny a výpadky", ""),
+        ("/choroby/", "heart", "Lieky podľa ochorenia", "Tlak, cholesterol, cukrovka, štítna žľaza a ďalšie", ""),
+    ]
+    if zm_counts:
+        n_up, n_down, n_gone, nd_txt = zm_counts
+        tiles.append(("/zmeny/", "trend", f"Zmeny od {nd_txt}", f"{n_down} zlacnení, {n_up} zdražení, {n_gone} vypadne", ""))
+    else:
+        tiles.append(("/zmeny/", "trend", "Zmeny doplatkov", "Nový zoznam ministerstva na budúci mesiac", ""))
+    tiles += [
+        ("/vypadky/", "alert", "Výpadky liekov", f"{plural_lieky(n_vyp)} s prerušenými dodávkami", " warn"),
+        ("/bez-doplatku/", "zero", "Lieky bez doplatku", f"{plural_lieky(zero_total)} plne hradených poisťovňou", ""),
+        ("/ochranny-limit/", "shield", "Ochranný limit", "Koľko vám vráti poisťovňa a prehľad doplatkov", ""),
+    ]
+    tiles_html = "".join(f'<a class="tile{cls}" href="{h}">{IC[ic]}<strong>{esc(t)}</strong><span>{esc(sub)}</span></a>'
+                         for h, ic, t, sub, cls in tiles)
+    conds_html = "".join(f'<a href="/choroby/{c[0]}/">{esc(c[1][:1].upper() + c[1][1:])}</a>' for c in CONDITIONS[:8])
+    for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header("/"), "TILES": tiles_html, "CONDS": conds_html,
+                 "FOOTER": site_footer(esc(PLATNOST)), "BOTTOM": bottom_nav("/"), "PANELS": site_panels("/")}.items():
+        tpl = tpl.replace(f"<!--{k}-->", v)
+    (SITE / "index.html").write_text(tpl, encoding="utf-8")
+
     # --- výsledky prihlásenia na upozornenia ---
     for sl, title, text in [
-        ("potvrdene", "Prihlásenie je potvrdené", "Ďakujeme. Keď sa zmení doplatok niektorého z vašich liekov, výrobca ohlási výpadok alebo pribudne lacnejšia alternatíva, pošleme vám e-mail. Odhlásiť sa môžete odkazom v každom e-maile."),
+        ("potvrdene", "Prihlásenie je potvrdené", "Ďakujeme. Keď sa zmení doplatok niektorého z vašich liekov, výrobca ohlási výpadok alebo pribudne lacnejšia alternatíva, pošleme vám e-mail. Upozornenia môžete kedykoľvek upraviť alebo zrušiť na stránke Správa upozornení alebo odkazom v každom e-maile."),
         ("odhlasene", "Boli ste odhlásený", "Upozornenia vám už posielať nebudeme a vaše údaje sme vymazali. Zoznam Moje lieky vo vašom prehliadači zostáva."),
         ("chyba", "Odkaz je neplatný alebo vypršal", "Odkaz na potvrdenie platí 7 dní. Prihláste sa prosím znova na stránke Moje lieky."),
     ]:
@@ -1738,9 +1954,9 @@ def build():
     <p class="eyebrow">Upozornenia e-mailom</p>
     <h1 class="page-h1">{esc(title)}</h1>
     <p class="page-sub">{esc(text)}</p>
-    <p><a class="cta" href="/moje-lieky/">Moje lieky →</a></p>
+    <p><a class="cta" href="/moje-lieky/">Moje lieky →</a> {'<a class="cta" href="/upozornenia/sprava/">Správa upozornení →</a>' if sl == "potvrdene" else ""}</p>
   </section>"""
-        html_page = page(title, text, f"/upozornenia/{sl}/", body).replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">')
+        html_page = page(title, text, f"/upozornenia/{sl}/", body, script='<script src="/sprava.js" defer></script>' if sl == "potvrdene" else "").replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">')
         write(f"/upozornenia/{sl}/", html_page)
 
     # --- 404 ---

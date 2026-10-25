@@ -1,9 +1,9 @@
 /* Service worker doplatkyliekov.sk: stránky a dáta najprv zo siete (aby boli aktuálne),
    bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma z pamäte s obnovou na pozadí. */
 'use strict';
-var V = 'v1';
+var V = 'v2';
 var SHELL = 'shell-' + V, PAGES = 'pages-' + V;
-var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/', '/style.css', '/assets/pages.css', '/moje.js', '/limit.js',
+var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/', '/style.css', '/assets/pages.css', '/moje.js', '/limit.js', '/ui.js', '/sprava.js',
   '/data.json', '/alerts.json', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', function (e) {
