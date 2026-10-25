@@ -52,9 +52,13 @@ function itemLine(r, nextIso, mark) {
   return parts.join('; ');
 }
 function groupBlock(g, nextIso, markKod, limit = 12) {
-  const rows = g.i.slice(0, limit).map((r) => '  - ' + itemLine(r, nextIso, r[0] === markKod)).join('\n');
-  const more = g.i.length > limit ? `\n  (+ ďalších ${g.i.length - limit})` : '';
-  return `Skupina: ${g.s}, ${g.f} (ATC ${g.a}${g.atc ? ', ' + g.atc : ''}${g.cond.length ? '; ' + g.cond.join(', ') : ''}); všetky sily a balenia: ${g.latka}\n` +
+  let shown = g.i.slice(0, limit);
+  const marked = g.i.find((r) => r[0] === markKod);
+  if (marked && !shown.includes(marked)) shown = shown.slice(0, limit - 1).concat([marked]);
+  const rows = shown.map((r) => '  - ' + itemLine(r, nextIso, r[0] === markKod)).join('\n');
+  const more = g.i.length > shown.length ? `\n  (+ ďalších ${g.i.length - shown.length} s vyšším doplatkom)` : '';
+  const head = marked ? `Hľadaný liek (►): ${marked[1]}, doplatok ${eur(marked[3])}; najnižší doplatok v skupine ${eur(g.i[0][3])}${marked[3] - g.i[0][3] > 0.005 ? `, rozdiel ${eur(marked[3] - g.i[0][3])} na balení` : ' (už patrí medzi najlacnejšie)'}.\n` : '';
+  return head + `Skupina: ${g.s}, ${g.f} (ATC ${g.a}${g.atc ? ', ' + g.atc : ''}${g.cond.length ? '; ' + g.cond.join(', ') : ''}); všetky sily a balenia: ${g.latka}\n` +
     `Lieky s rovnakou látkou, silou a balením, zoradené od najnižšieho doplatku:\n${rows}${more}`;
 }
 
@@ -78,7 +82,9 @@ async function toolSearch(env, request, q) {
     const it = idx.items[i];
     if (seen.has(it[2])) continue;
     seen.add(it[2]);
-    out.push(groupBlock(await group(env, request, it[2]), idx.next || 'budúceho mesiaca', it[0], 8));
+    const subst = norm(idx.groups[it[2]][0]);
+    const byName = words.some((w) => !/^\d+$/.test(w) && norm(it[1]).includes(w) && !subst.includes(w));
+    out.push(groupBlock(await group(env, request, it[2]), idx.next || 'budúceho mesiaca', byName ? it[0] : null, 8));
     if (out.length >= 4) break;
   }
   const extra = new Set(scored.map(([, i]) => idx.items[i][2])).size - out.length;
@@ -103,8 +109,8 @@ async function toolDocs(env, request, q) {
   const docs = await asset(env, request, '/ai/docs.json');
   const words = norm(q).split(/[^a-z0-9]+/).filter((w) => w.length >= 3 && !STOP.has(w));
   const scored = docs.map((d) => {
-    const k = norm(d.t + ' ' + d.x);
-    return [words.reduce((s, w) => s + (k.includes(w.slice(0, Math.max(4, w.length - 2))) ? 1 : 0), 0), d];
+    const k = norm(d.t + ' ' + (d.k || '') + ' ' + d.x), kw = norm(d.t + ' ' + (d.k || ''));
+    return [words.reduce((s, w) => { const st = w.slice(0, Math.max(4, w.length - 2)); return s + (kw.includes(st) ? 2 : k.includes(st) ? 1 : 0); }, 0), d];
   }).filter((x) => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 4);
   if (!scored.length) return 'V obsahu webu sme k tomu nič nenašli.';
   return scored.map(([, d]) => `${d.t} (${d.u}):\n${d.x}`).join('\n\n');
@@ -137,6 +143,8 @@ Pravidlá:
 - Údaje o liekoch, doplatkoch, cenách, výpadkoch, zmenách, ochorení a ochrannom limite ber VÝLUČNE z nástrojov. Nič si nevymýšľaj. Ak údaj nenájdeš, povedz to a odporuč vyhľadávanie na webe.
 - Pred odpoveďou o konkrétnom lieku vždy použi nástroj. Ak je dotaz nejednoznačný (viac síl alebo balení), stručne vymenuj možnosti alebo sa dopýtaj.
 - Ceny píš v eurách s desatinnou čiarkou. Pri liekoch pridaj odkaz v tvare [Názov](/liek/...). Odkazy na iné stránky webu tiež ako [text](/cesta/).
+- Pri konkrétnom lieku uveď jeho doplatok, najlacnejšiu alternatívu a rozdiel. Ak má liek viac balení alebo síl, uveď každé zvlášť.
+- Ochranný limit: štvrťročný príjem = mesačný dôchodok × 3 (plus iné príjmy). Hranice sú 914,40 € mesačne a 2 743,20 € za štvrťrok. Počítaj presne, postup ukáž krátko.
 - Lacnejšia alternatíva znamená liek s rovnakou účinnou látkou, silou a veľkosťou balenia. Doplatok je maximálny, lekáreň môže dať zľavu.
 - Nie si lekár ani lekárnik. Nestanovuj diagnózu, neodporúčaj dávkovanie ani začatie, ukončenie či zmenu liečby. Pri lacnejšej alternatíve vždy dodaj, nech zmenu preberú s lekárom alebo lekárnikom; pri liekoch na epilepsiu, štítnu žľazu a riedenie krvi to zdôrazni.
 - Nepoužívaj propagačné výrazy o liekoch (najlepší, odporúčaný a pod.). Hovor o doplatkoch a faktoch zo zoznamu.
@@ -214,8 +222,8 @@ async function viaClaude(env, request, system, messages) {
 }
 
 // modely Workers AI v poradí; pri chybe sa skúsi ďalší (premenná AI_CF_MODEL má prednosť)
-const CF_MODELS = ['@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-4-scout-17b-16e-instruct',
-  '@cf/google/gemma-3-12b-it', '@cf/meta/llama-3.3-70b-instruct-fp8-fast'];
+const CF_MODELS = ['@cf/meta/llama-4-scout-17b-16e-instruct', '@cf/mistralai/mistral-small-3.1-24b-instruct',
+  '@cf/meta/llama-3.3-70b-instruct-fp8-fast'];
 
 async function viaWorkersAI(env, request, system, messages, q, kod, only) {
   // najprv nájdeme podklady (aj podľa predošlej otázky, ak je nová len doplňujúca), potom ich dáme modelu ako kontext

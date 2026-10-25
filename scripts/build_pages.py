@@ -1253,6 +1253,7 @@ def build():
     # --- zmeny od budúceho mesiaca ---
     crumb_items = [("Domov", "/"), ("Zmeny doplatkov", None)]
     zm_counts = None
+    zm_ups = zm_downs = zm_gone = []
     if nxt:
         nd = sk_date_long(nxt["platnostIso"])
         ups, downs, gone = [], [], []
@@ -1268,6 +1269,7 @@ def build():
         downs.sort(key=lambda t: t[0])
         new_kods = [k for k in nxt["prices"] if k not in by_kod]
         zm_counts = (len(ups), len(downs), len(gone), sk_date(nxt["platnostIso"]))
+        zm_ups, zm_downs, zm_gone = ups, downs, gone
 
         def change_list(lst, cls):
             return "".join(
@@ -2101,7 +2103,7 @@ def build():
             if txt:
                 docs.append({"t": t, "u": f"/clanky/{sl}/", "x": txt[:1800]})
     docs += [
-        {"t": "Ochranný limit 2026", "u": "/ochranny-limit/", "x": (
+        {"t": "Ochranný limit 2026", "u": "/ochranny-limit/", "k": "ochranný limit spoluúčasť dôchodca dôchodok vráti vrátenie preplatok ŤZP invalidný dieťa štvrťrok príjem", "x": (
             "Ochranný limit (limit spoluúčasti) na štvrťrok v roku 2026: dieťa do 6 rokov 0 € bez ohľadu na príjem; "
             "držiteľ preukazu ŤZP alebo invalidný dôchodca a starobný alebo predčasný starobný dôchodca 0 € ak má dôchodok do 914,40 € mesačne "
             "a celkový príjem do 2 743,20 € za štvrťrok; pri vyššom príjme ŤZP a invalidní dôchodcovia 12 €, starobní dôchodcovia 30 €. "
@@ -2109,8 +2111,13 @@ def build():
             "Poisťovňa sčíta doplatky sama z údajov lekární, netreba posielať bločky. Sumu nad limit vráti do 90 dní po skončení štvrťroka, "
             "preplatok pod 3 € sa prenáša do ďalšieho štvrťroka. Ľudia s nulovým limitom a deti do 6 rokov doplatok za najlacnejší náhradný liek "
             "v lekárni vôbec neplatia. Započítavajú sa lieky, pomôcky a dietetické potraviny na predpis čiastočne hradené poisťovňou, voľnopredajné nie. "
-            "Na stránke Ochranný limit je kalkulačka a prehľad, kam si môžete zapisovať nákupy.")},
-        {"t": "Ako vymeniť liek za lacnejší", "u": "/clanky/ako-usetrit-na-liekoch/", "x": (
+            "Na stránke Ochranný limit je kalkulačka a prehľad, kam si môžete zapisovať nákupy. "
+            "Príklad 1: starobný dôchodca s dôchodkom 700 € mesačne a bez iných príjmov má štvrťročný príjem 2 100 € (700 × 3), "
+            "čo je pod 2 743,20 €, a dôchodok je pod 914,40 €, preto má limit 0 €: poisťovňa mu vráti všetky započítateľné doplatky za štvrťrok "
+            "a doplatok za najlacnejší náhradný liek by nemal platiť už v lekárni. "
+            "Príklad 2: starobný dôchodca s dôchodkom 1 100 € mesačne má limit 30 €; ak mu za štvrťrok vznikli započítateľné doplatky 50 €, "
+            "poisťovňa mu vráti 20 €.")},
+        {"t": "Ako vymeniť liek za lacnejší", "u": "/clanky/ako-usetrit-na-liekoch/", "k": "vymeniť zameniť lacnejší lekárnik recept generikum", "x": (
             "Lekárnik môže vydať liek s rovnakou účinnou látkou, silou a veľkosťou balenia od iného výrobcu, ak lekár na recepte nevyznačil, "
             "že liek sa nesmie zamieňať. Ak lekár predpisuje názvom účinnej látky, môžete si vybrať ktorýkoľvek liek s touto látkou. "
             "O zmene sa poraďte s lekárom alebo lekárnikom, najmä pri liekoch na epilepsiu, štítnu žľazu alebo riedenie krvi.")},
@@ -2121,7 +2128,7 @@ def build():
         {"t": "Moje lieky", "u": "/moje-lieky/", "x": (
             "Na stránke lieku kliknite na Pridať do Mojich liekov. Zoznam sa uloží len v prehliadači. Ukáže doplatky, lacnejšie alternatívy, "
             "ročný doplatok podľa dávkovania, zmeny od budúceho mesiaca a výpadky. Dá sa vytlačiť pre lekára alebo zdieľať odkazom.")},
-        {"t": "Upozornenia e-mailom", "u": "/upozornenia/sprava/", "x": (
+        {"t": "Upozornenia e-mailom", "u": "/upozornenia/sprava/", "k": "upozornenie email odhlásiť zrušiť prihlásiť", "x": (
             "Na stránke lieku alebo v Mojich liekoch zadajte e-mail a súhlas. Po potvrdení e-mailom vám pošleme upozornenie, keď sa zmení doplatok, "
             "výrobca ohlási výpadok alebo pribudne lacnejšia alternatíva. Upozornenia upravíte alebo zrušíte na stránke Správa upozornení "
             "alebo odkazom v každom e-maile.")},
@@ -2134,10 +2141,16 @@ def build():
     ]
     if zm_counts:
         n_up, n_down, n_gone, nd_txt = zm_counts
-        docs.append({"t": f"Zmeny doplatkov od {nd_txt}", "u": "/zmeny/", "x": (
-            f"Podľa nového zoznamu ministerstva od {nd_txt}: doplatok stúpne pri {n_up} liekoch, klesne pri {n_down}, "
-            f"zo zoznamu hradených liekov vypadne {n_gone}. Zoznam všetkých zmien je na stránke Zmeny doplatkov.")})
-    docs.append({"t": "Výpadky liekov", "u": "/vypadky/", "x": (
+        mon = MESIACE_GEN[int(nxt["platnostIso"][5:7]) - 1]
+        docs.append({"t": f"Zmeny doplatkov od {nd_txt}", "u": "/zmeny/",
+                     "k": f"zmeny mení zmena budúci mesiac {mon} nový zoznam zdražie zlacnie stúpne klesne vypadne", "x": (
+            f"Podľa nového zoznamu ministerstva od 1. {mon} {nxt['platnostIso'][:4]}: doplatok stúpne pri {n_up} liekoch, klesne pri {n_down}, "
+            f"zo zoznamu hradených liekov vypadne {n_gone}. "
+            + ("Najväčšie zvýšenia: " + "; ".join(f"{p['name']} z {eur(p['dop'])} na {eur(c['dop'])} (/liek/{p['slug']}/)" for d, g, p, c in zm_ups[:6]) + ". " if zm_ups else "")
+            + ("Najväčšie zníženia: " + "; ".join(f"{p['name']} z {eur(p['dop'])} na {eur(c['dop'])} (/liek/{p['slug']}/)" for d, g, p, c in zm_downs[:6]) + ". " if zm_downs else "")
+            + ("Vypadnú zo zoznamu: " + "; ".join(f"{p['name']} (/liek/{p['slug']}/)" for g, p in zm_gone[:6]) + ". " if zm_gone else "")
+            + "Zoznam všetkých zmien je na stránke Zmeny doplatkov (/zmeny/).")})
+    docs.append({"t": "Výpadky liekov", "u": "/vypadky/", "k": "výpadok výpadky nedostupný chýba prerušené dodávky", "x": (
         f"Podľa hlásení ŠÚKL má prerušené alebo ukončené dodávky {plural_lieky(n_vyp)} hradených poisťovňou. "
         "Pri každom je uvedená dostupná alternatíva s rovnakou látkou. Dostupnosť v konkrétnej lekárni sa líši.")})
     docs.append({"t": "Doplatky v číslach", "u": "/statistiky/", "x": (
