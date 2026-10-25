@@ -111,115 +111,137 @@ def load(name, default=None):
 
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700'
-         '&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">')
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600'
+         '&family=Onest:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap">'
+         '<meta name="theme-color" content="#05090b">')
 
-ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='10' y='2' "
-        "width='8' height='24' rx='2' fill='%230f6b4f'/%3E%3Crect x='2' y='10' width='24' height='8' rx='2' "
-        "fill='%230f6b4f'/%3E%3C/svg%3E")
+CAPSULE = ('<svg class="capsule" viewBox="0 0 40 22" aria-hidden="true"><rect x="1" y="1" width="38" height="20" rx="10" '
+           'fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M11 1h9v20h-9a10 10 0 0 1 0-20z" fill="var(--accent)"/></svg>')
+
+ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' "
+        "rx='8' fill='%2305090b'/%3E%3Crect x='4' y='10' width='24' height='12' rx='6' fill='none' stroke='%2345f0c0' "
+        "stroke-width='2'/%3E%3Cpath d='M10 10h6v12h-6a6 6 0 0 1 0-12z' fill='%2345f0c0'/%3E%3C/svg%3E")
 
 EXTRA_CSS = """
-a { color: var(--accent); }
-.crumbs { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 14px; color: var(--muted); }
+/* doplnky štýlu pre podstránky; základ je v /style.css */
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 14px; color: var(--muted); align-items: center; }
 .crumbs a { color: var(--muted); text-decoration: none; }
-.crumbs a:hover { color: var(--accent); text-decoration: underline; }
-.crumbs span[aria-hidden] { opacity: .6; }
-.brand-link { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
-.page-h1 { font-size: clamp(28px, 5.5vw, 40px); line-height: 1.1; font-weight: 700; }
-.page-sub { color: var(--muted); max-width: 62ch; }
-.intro { display: grid; gap: 8px; }
+.crumbs a:hover { color: var(--accent); }
+.crumbs span[aria-hidden] { color: var(--faint); }
+.page-h1 { font-size: clamp(30px, 6.6vw, 48px); line-height: 1.08; font-weight: 700; }
+.page-sub { color: var(--muted); max-width: 62ch; font-size: 17px; }
+.intro { display: grid; gap: 12px; }
 .row-name a { color: var(--ink); text-decoration: none; }
-.row-name a:hover { color: var(--accent); text-decoration: underline; }
+.row-name a:hover { color: var(--accent); }
 .row { cursor: default; }
-.prices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.prices div { background: var(--surface); padding: 12px 20px; display: grid; gap: 2px; }
-.prices span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
-.prices b { font-family: var(--font-mono); font-weight: 500; font-size: 18px; }
-.prices b.dop { color: var(--save); }
-.cta { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; color: var(--accent); }
-.cta:hover { text-decoration: underline; }
-.purpose { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
-.purpose a { text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; color: var(--ink); background: var(--surface); }
+.prices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.prices div { padding: 18px 24px; display: grid; gap: 6px; min-width: 0; }
+.prices div + div { border-left: 1px solid var(--line); }
+.prices span { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; }
+.prices b { font-family: var(--font-mono); font-weight: 600; font-size: 24px; letter-spacing: -0.02em; white-space: nowrap; }
+.prices b.dop { color: var(--save); text-shadow: 0 0 22px rgba(255, 150, 60, 0.35); }
+.cta { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; color: var(--accent); border: 1px solid var(--line-strong); border-radius: 999px; padding: 10px 18px; background: var(--surface); justify-self: start; }
+.cta:hover { border-color: var(--accent); box-shadow: 0 0 22px -6px var(--glow); }
+.purpose { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 15px; }
+.purpose .eyebrow { margin-right: 4px; }
+.purpose a { text-decoration: none; border: 1px solid var(--line-strong); border-radius: 999px; padding: 5px 13px; color: var(--ink); background: var(--surface); }
 .purpose a:hover { border-color: var(--accent); color: var(--accent); }
-.alert { display: grid; gap: 4px; padding: 14px 16px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); border-left: 4px solid var(--muted); }
-.alert strong { font-family: var(--font-display); font-size: 17px; font-weight: 600; }
-.alert p { font-size: 15px; color: var(--muted); }
-.alert.warn { border-left-color: var(--save); background: var(--save-soft); }
+.alert { display: grid; gap: 6px; padding: 18px 20px 18px 22px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); position: relative; overflow: hidden; }
+.alert::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--muted); }
+.alert strong { font-family: var(--font-display); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.35; }
+.alert p { font-size: 16px; color: var(--muted); }
+.alert.warn { background: var(--save-soft); border-color: rgba(255, 178, 107, 0.25); }
+.alert.warn::before { background: var(--save); box-shadow: 0 0 14px var(--save); }
 .alert.warn strong { color: var(--save); }
-.alert.good { border-left-color: var(--accent); background: var(--accent-soft); }
+.alert.good { background: var(--accent-soft); border-color: var(--line-strong); }
+.alert.good::before { background: var(--accent); box-shadow: 0 0 14px var(--glow); }
 .alert.good strong { color: var(--accent); }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 12px; min-width: 0; }
-.card h2 { font-size: 20px; font-weight: 600; }
-.card .hint { font-size: 13px; color: var(--muted); }
-.facts-dl { display: grid; grid-template-columns: minmax(0, 13em) minmax(0, 1fr); gap: 10px 16px; margin: 0; }
-.facts-dl dt { color: var(--muted); font-size: 14px; }
-.facts-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.facts-dl dd small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
-details.io { border-top: 1px solid var(--line); padding-top: 10px; }
+.card { padding: 24px; display: grid; gap: 18px; }
+.card h2 { font-size: 21px; font-weight: 600; }
+.card .hint, .hint { font-size: 14px; color: var(--muted); }
+.facts-dl { display: grid; grid-template-columns: minmax(0, 12em) minmax(0, 1fr); gap: 0 20px; margin: 0; }
+.facts-dl dt, .facts-dl dd { padding: 12px 0; border-top: 1px solid var(--line); }
+.facts-dl dt:first-of-type, .facts-dl dd:first-of-type { border-top: 0; padding-top: 0; }
+.facts-dl dt { color: var(--muted); font-size: 15px; }
+.facts-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.facts-dl dd small { display: block; color: var(--muted); font-size: 14px; margin-top: 4px; font-weight: 400; line-height: 1.5; }
+details.io { border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; background: var(--accent-soft); }
+details.io + details.io { margin-top: -6px; }
 details.io summary { cursor: pointer; font-weight: 600; color: var(--accent); }
-details.io p { white-space: pre-line; font-size: 14px; margin-top: 8px; color: var(--ink); }
-details.io .code { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-.chart { width: 100%; height: auto; display: block; overflow: visible; }
-.chart text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+details.io p { white-space: pre-line; font-size: 15px; margin-top: 10px; color: var(--ink); line-height: 1.6; }
+details.io .code { display: block; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.chart { width: 100%; max-width: 560px; height: auto; display: block; overflow: visible; }
+.chart text { font-family: var(--font-mono); font-size: 16px; fill: var(--muted); }
+@media (min-width: 641px) { .chart text { font-size: 12px; } }
 .chart .grid { stroke: var(--line); stroke-width: 1; }
-.chart .line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.chart .line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); }
 .chart .area { fill: var(--accent-soft); }
-.chart .dot { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
-.chart .dot.end { fill: var(--accent); }
-.chart .next { fill: none; stroke: var(--save); stroke-width: 2.5; stroke-dasharray: 5 5; }
+.chart .dot { fill: var(--bg); stroke: var(--accent); stroke-width: 2; }
+.chart .dot.end { fill: var(--accent); filter: drop-shadow(0 0 6px var(--glow)); }
+.chart .next { fill: none; stroke: var(--save); stroke-width: 3; stroke-dasharray: 6 6; }
 .chart .dot.nx { fill: var(--save); stroke: var(--save); }
-.chart .val { fill: var(--ink); font-weight: 500; }
-.stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; font-size: 14px; }
-.stats3 div { display: grid; gap: 2px; }
-.stats3 span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
-.stats3 b { font-family: var(--font-mono); font-weight: 500; }
-.glist { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.glist li { background: var(--surface); padding: 14px 16px; display: grid; gap: 6px; }
+.stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.stats3 div { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.stats3 span { font-family: var(--font-mono); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+.stats3 b { font-family: var(--font-mono); font-weight: 600; font-size: 16px; overflow-wrap: anywhere; }
+.glist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.glist li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 8px; min-width: 0; }
+.card .glist li { background: transparent; }
 .glist h3 { font-size: 17px; font-weight: 600; }
-.glist .gline { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; font-size: 14px; }
-.glist .gline a { min-width: 0; overflow-wrap: anywhere; }
-.glist .gline .mono { white-space: nowrap; }
-.glist .gline small { grid-column: 1 / -1; color: var(--muted); }
-.glist .save { color: var(--save); font-weight: 600; font-size: 13px; }
+.glist .gline { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; font-size: 16px; align-items: baseline; }
+.glist .gline + .gline { border-top: 1px solid var(--line); padding-top: 8px; }
+.glist .gline a { min-width: 0; overflow-wrap: anywhere; text-decoration: none; color: var(--ink); font-weight: 500; }
+.glist .gline a:hover { color: var(--accent); }
+.glist .gline .mono { white-space: nowrap; font-weight: 600; }
+.glist .gline small { grid-column: 1 / -1; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.glist .gline small a { color: var(--accent); font-weight: 500; }
+.glist .save { color: var(--save); font-weight: 600; font-size: 14px; }
 .glist .up { color: var(--save); }
 .glist .down { color: var(--accent); }
-.az { display: flex; flex-wrap: wrap; gap: 6px; }
-.az a { font-family: var(--font-mono); padding: 4px 9px; border: 1px solid var(--line); border-radius: 6px; text-decoration: none; color: var(--ink); }
-.az a:hover { border-color: var(--accent); color: var(--accent); }
-.letter { display: grid; gap: 8px; scroll-margin-top: 16px; }
+.az { display: flex; flex-wrap: wrap; gap: 8px; }
+.az a { font-family: var(--font-mono); min-width: 38px; text-align: center; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 10px; text-decoration: none; color: var(--ink); background: var(--surface); }
+.az a:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 16px -6px var(--glow); }
+.letter { display: grid; gap: 12px; scroll-margin-top: 16px; }
 .letter h2 { font-size: 22px; }
-.cols { columns: 2 220px; column-gap: 24px; margin: 0; padding: 0; list-style: none; }
-.cols li { break-inside: avoid; padding: 3px 0; }
-.cols small { color: var(--muted); }
-.ltable { width: 100%; border-collapse: collapse; font-size: 15px; }
-.ltable th, .ltable td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.ltable th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
-.ltable td.num { font-family: var(--font-mono); white-space: nowrap; }
+.letter h2 a { color: var(--ink); text-decoration: none; }
+.letter h2 a:hover { color: var(--accent); }
+.cols { columns: 2 240px; column-gap: 28px; margin: 0; padding: 0; list-style: none; }
+.cols li { break-inside: avoid; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.cols li a { text-decoration: none; color: var(--ink); }
+.cols li a:hover { color: var(--accent); }
+.cols small { color: var(--faint); font-family: var(--font-mono); margin-left: 6px; }
+.ltable { width: 100%; border-collapse: collapse; font-size: 16px; }
+.ltable th, .ltable td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ltable th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 500; }
+.ltable td.num { font-family: var(--font-mono); white-space: nowrap; color: var(--accent); font-weight: 600; }
 .scroll { overflow-x: auto; }
-.calc { display: grid; gap: 14px; }
-.calc label { display: grid; gap: 6px; font-weight: 600; font-size: 15px; }
-.calc select, .calc input { font: inherit; font-weight: 400; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; width: 100%; max-width: 420px; }
+.calc { display: grid; gap: 18px; }
+.calc label { display: grid; gap: 8px; font-weight: 600; font-size: 16px; }
+.calc select, .calc input { font: inherit; font-weight: 400; font-size: 17px; color: var(--ink); background: var(--raise); border: 1px solid var(--line-strong); border-radius: 12px; padding: 12px 14px; width: 100%; max-width: 460px; }
 .calc select:focus-visible, .calc input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.calc .result { padding: 14px 16px; border-radius: var(--r); background: var(--accent-soft); font-size: 16px; }
-.calc .result b { font-family: var(--font-mono); color: var(--accent); }
-.prose { display: grid; gap: 12px; max-width: 65ch; }
-.prose h2 { font-size: 22px; font-weight: 600; margin-top: 8px; }
-.prose ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
-@media (max-width: 600px) {
-  .prices { grid-template-columns: 1fr; } .prices div { padding-left: 16px; padding-right: 16px; }
-  .facts-dl { grid-template-columns: 1fr; gap: 2px 0; } .facts-dl dd { margin-bottom: 10px; }
-  .card { padding: 16px; }
+.calc .result { padding: 18px 20px; border-radius: var(--r); background: var(--accent-soft); border: 1px solid var(--line-strong); font-size: 17px; line-height: 1.55; }
+.calc .result b { font-family: var(--font-mono); color: var(--accent); font-size: 20px; }
+.prose { display: grid; gap: 14px; max-width: 65ch; }
+.prose h2 { font-size: 22px; font-weight: 600; margin-top: 12px; }
+.prose ul { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
+.prose li::marker { color: var(--accent); }
+@media (max-width: 640px) {
+  .prices { grid-template-columns: 1fr; }
+  .prices div { padding: 14px 18px; }
+  .prices div + div { border-left: 0; border-top: 1px solid var(--line); }
+  .facts-dl { grid-template-columns: 1fr; }
+  .facts-dl dt { padding-bottom: 2px; }
+  .facts-dl dd { border-top: 0; padding-top: 0; }
+  .facts-dl dt:first-of-type { padding-top: 0; }
+  .card { padding: 20px 18px; }
   .stats3 { grid-template-columns: 1fr 1fr; }
+  .stats3 div:last-child { grid-column: 1 / -1; }
 }
 """
 
 
 def extract_css():
-    page_html = (SITE / "index.html").read_text(encoding="utf-8")
-    m = re.search(r"<style>(.*?)</style>", page_html, re.S)
-    if not m:
-        raise SystemExit("V site/index.html chýba <style>.")
-    return m.group(1) + EXTRA_CSS
+    return EXTRA_CSS
 
 
 PLATNOST = ""
@@ -242,20 +264,21 @@ def page(title, description, path, body, jsonld=None, script=""):
 <meta property="og:type" content="website">
 <link rel="icon" href="{ICON}">
 {FONTS}
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
 {ld}
 </head>
 <body>
 <div class="wrap">
   <header>
     <a class="brand-link" href="/">
-      <svg class="cross" viewBox="0 0 28 28" aria-hidden="true"><rect x="10" y="2" width="8" height="24" rx="2" fill="var(--accent)"/><rect x="2" y="10" width="24" height="8" rx="2" fill="var(--accent)"/></svg>
-      <span class="brand-name">doplatkyliekov.sk</span>
+      {CAPSULE}
+      <span class="brand-name">doplatky<b>liekov</b>.sk</span>
     </a>
   </header>
 {body}
   <footer>
-    <p><a href="/">Vyhľadať liek</a> · <a href="/skupiny/">Lieky podľa skupín</a> · <a href="/lieky/">Účinné látky</a> · <a href="/zmeny/">Zmeny doplatkov</a> · <a href="/vypadky/">Výpadky</a> · <a href="/ochranny-limit/">Ochranný limit</a></p>
+    <nav aria-label="Ďalšie stránky"><a href="/">Vyhľadať liek</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky</a><a href="/ochranny-limit/">Ochranný limit</a></nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {esc(PLATNOST)}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
   </footer>
@@ -316,7 +339,7 @@ def history_chart(points, next_point=None):
     if len(points) < 2:
         return ""
     allp = points + ([next_point] if next_point else [])
-    W, H, L, R, T, B = 640, 200, 44, 16, 14, 28
+    W, H, L, R, T, B = 400, 200, 54, 14, 14, 34  # malé súradnice = čitateľné popisy aj na mobile
     n = len(allp)
     vmax = max(v for _, v in allp)
     top = max(1.0, vmax * 1.15)
@@ -335,7 +358,8 @@ def history_chart(points, next_point=None):
         v = top * k / ticks
         yy = y(v)
         parts.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{yy:.1f}" y2="{yy:.1f}"/>')
-        parts.append(f'<text x="{L - 6}" y="{yy + 4:.1f}" text-anchor="end">{v:.0f} €</text>')
+        lbl = f"{v:.1f}".rstrip("0").rstrip(".").replace(".", ",")
+        parts.append(f'<text x="{L - 6}" y="{yy + 5:.1f}" text-anchor="end">{lbl} €</text>')
     xs = [x(i) for i in range(len(points))]
     ys = [y(v) for _, v in points]
     line = " ".join(f"{a:.1f},{b:.1f}" for a, b in zip(xs, ys))
@@ -347,7 +371,7 @@ def history_chart(points, next_point=None):
         yr, mo = int(iso[:4]), int(iso[5:7])
         if i == 0 or i == n - 1 or mo == 1:
             anchor = "start" if i == 0 else "end" if i == n - 1 else "middle"
-            parts.append(f'<text x="{x(i):.1f}" y="{H - 8}" text-anchor="{anchor}">{MESIACE[mo - 1]} {yr}</text>')
+            parts.append(f'<text x="{x(i):.1f}" y="{H - 6}" text-anchor="{anchor}">{MESIACE[mo - 1]} {yr}</text>')
     for i, (a, b) in enumerate(zip(xs, ys)):
         if i == len(xs) - 1:
             parts.append(f'<circle class="dot end" cx="{a:.1f}" cy="{b:.1f}" r="4.5"/>')
@@ -395,7 +419,7 @@ def build():
     for d in GENERATED:
         shutil.rmtree(SITE / d, ignore_errors=True)
     (SITE / "assets").mkdir(parents=True)
-    (SITE / "assets" / "style.css").write_text(extract_css(), encoding="utf-8")
+    (SITE / "assets" / "pages.css").write_text(extract_css(), encoding="utf-8")
 
     # produkty, látky, skupiny
     by_subst = defaultdict(list)
