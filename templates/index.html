@@ -252,7 +252,7 @@ tops.slice(0, 5).forEach(t => {
 const want = new URLSearchParams(location.search).get('liek');
 if (want && byKod.get(want)) render(byKod.get(want));
 }
-fetch('data.json', { cache: 'no-cache' })
+fetch('/data.json', { cache: 'no-cache' })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(init)
   .catch(() => { const sl = document.getElementById('slip'); sl.hidden = false; sl.innerHTML = '<p class="slip-foot">Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.</p>'; });

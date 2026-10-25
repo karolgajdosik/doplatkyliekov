@@ -39,7 +39,8 @@
     b.classList.toggle('on', on);
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     var t = b.querySelector('.mine-label');
-    if (t) t.textContent = on ? 'Uložené v Mojich liekoch' : 'Pridať do Mojich liekov';
+    var hu = document.documentElement.lang === 'hu';
+    if (t) t.textContent = on ? (hu ? 'Elmentve a Gyógyszereim közé' : 'Uložené v Mojich liekoch') : (hu ? 'Mentés a Gyógyszereim közé' : 'Pridať do Mojich liekov');
   }
   function refresh() {
     var n = read().length;

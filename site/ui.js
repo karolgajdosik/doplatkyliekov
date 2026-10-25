@@ -5,6 +5,7 @@
   var KEY = 'zobrazenie.v1';
   var FS = [90, 100, 115, 130, 150];
   var root = document.documentElement;
+  var HU = root.lang === 'hu';
 
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
   function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* bez úložiska */ } }
@@ -25,7 +26,7 @@
   }
   function paint() {
     var p = cur();
-    document.querySelectorAll('[data-theme-toggle]').forEach(function (b) { b.setAttribute('aria-label', root.dataset.eff === 'light' ? 'Prepnúť na tmavý režim' : 'Prepnúť na svetlý režim'); b.setAttribute('aria-pressed', root.dataset.eff === 'light' ? 'true' : 'false'); });
+    document.querySelectorAll('[data-theme-toggle]').forEach(function (b) { b.setAttribute('aria-label', HU ? (root.dataset.eff === 'light' ? 'Váltás sötét módra' : 'Váltás világos módra') : (root.dataset.eff === 'light' ? 'Prepnúť na tmavý režim' : 'Prepnúť na svetlý režim')); b.setAttribute('aria-pressed', root.dataset.eff === 'light' ? 'true' : 'false'); });
     document.querySelectorAll('input[name="theme"]').forEach(function (r) { r.checked = r.value === p.t; });
     var out = document.getElementById('fs-out');
     if (out) out.textContent = FS[p.f] + ' %';
@@ -85,7 +86,7 @@
       var next = root.dataset.eff === 'light' ? 'dark' : 'light';
       set('t', next);
       var b = t.closest('[data-theme-toggle]');
-      b.setAttribute('aria-label', next === 'light' ? 'Prepnúť na tmavý režim' : 'Prepnúť na svetlý režim');
+      b.setAttribute('aria-label', HU ? (next === 'light' ? 'Váltás sötét módra' : 'Váltás világos módra') : (next === 'light' ? 'Prepnúť na tmavý režim' : 'Prepnúť na svetlý režim'));
     }
   });
   document.addEventListener('change', function (e) {

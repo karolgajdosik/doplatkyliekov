@@ -587,3 +587,4 @@ body { overflow-x: clip; }
 :root[data-eff="light"] .mine-start input { color-scheme: light; }
 #push-card .consent { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 15px; color: var(--muted); }
 #push-card .consent input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--accent); }
+.bottom-nav a > span:last-child, .bottom-nav button > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
