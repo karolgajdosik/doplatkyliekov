@@ -34,7 +34,7 @@ function latinize(q) {
 }
 
 function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
-function eur(n) { return n == null ? '–' : n.toFixed(2).replace('.', ',') + ' €'; }
+export function eur(n) { return n == null ? '–' : n.toFixed(2).replace('.', ',') + ' €'; }
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 }
@@ -48,19 +48,19 @@ async function asset(env, request, path) {
   cache[path] = await r.json();
   return cache[path];
 }
-async function index(env, request) {
+export async function index(env, request) {
   if (cache.idx) return cache.idx;
   const s = await asset(env, request, '/ai/search.json');
   s.keys = s.items.map((it) => norm(it[1] + ' ' + s.groups[it[2]][0]));
   cache.idx = s;
   return s;
 }
-async function group(env, request, gi) {
+export async function group(env, request, gi) {
   const shard = await asset(env, request, `/ai/g/${Math.floor(gi / 100)}.json`);
   return shard[String(gi)];
 }
 
-function itemLine(r, nextIso, mark) {
+export function itemLine(r, nextIso, mark) {
   // [kód, názov, balenie, doplatok, cena, úhrada, započítateľný, typ, slug, obmedzenia, budúci doplatok, výpadok]
   const parts = [`${mark ? '► ' : ''}${r[1]} (${r[2]}) – doplatok ${eur(r[3])}, konečná cena ${eur(r[4])}, poisťovňa hradí ${eur(r[5])}`];
   if (r[6] != null) parts.push(`do ochranného limitu sa započíta ${eur(r[6])}`);

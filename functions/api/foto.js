@@ -7,10 +7,10 @@ const MODELS = ['@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-
 const TIMEOUT = 30000;
 function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
 const PROMPT = `Na fotke je balenie lieku, príbalový leták alebo lekársky recept zo Slovenska.
-Nájdi na nej názvy liekov. Pre každý liek vypíš obchodný názov (napr. Concor, Controloc, Xarelto), silu (napr. 10 mg) a počet kusov v balení, ak je uvedený.
+Nájdi na nej názvy liekov. Pre každý liek vypíš obchodný názov (napr. Concor, Controloc, Xarelto), silu (napr. 10 mg), počet kusov v balení, ak je uvedený, a kód ŠÚKL, ak je na obale (5 znakov, napr. 94163 alebo 8157A, býva pri texte „kód ŠÚKL“).
 Ignoruj meno pacienta, rodné číslo, adresu, lekára, poisťovňu a iné osobné údaje – nikdy ich nevypisuj.
 Odpovedz IBA platným JSON bez ďalšieho textu v tvare:
-{"lieky":[{"nazov":"Concor","sila":"10 mg","kusov":30}]}
+{"lieky":[{"nazov":"Concor","sila":"10 mg","kusov":30,"kod":"94163"}]}
 Ak na fotke nie je žiadny liek, odpovedz {"lieky":[]}.`;
 
 function json(obj, status = 200) {
@@ -46,6 +46,7 @@ function parseJson(text) {
       nazov: String(x.nazov || '').replace(/[^\p{L}\p{N} .,+\-/]/gu, '').trim().slice(0, 60),
       sila: String(x.sila || '').replace(/[^\p{L}\p{N} .,/%]/gu, '').trim().slice(0, 30),
       kusov: Number.isFinite(+x.kusov) && +x.kusov > 0 && +x.kusov < 1000 ? Math.round(+x.kusov) : null,
+      kod: /^[0-9A-Z]{5}$/.test(String(x.kod || '').toUpperCase().replace(/\s/g, '')) ? String(x.kod).toUpperCase().replace(/\s/g, '') : null,
     })).filter((x) => x.nazov.length >= 3);
   } catch { return []; }
 }
@@ -72,6 +73,18 @@ async function match(env, request, found) {
   const items = [];
   const seen = new Set();
   for (const f of found) {
+    // presná zhoda podľa kódu ŠÚKL z obalu, ak sedí aj názov
+    const exact = f.kod && idx.items.find((it) => it[0] === f.kod && norm(it[1]).includes(norm(f.nazov).split(/[^a-z0-9]+/)[0] || '#'));
+    if (exact && !seen.has(exact[0])) {
+      seen.add(exact[0]);
+      const shard = await asset(env, request, `/ai/g/${Math.floor(exact[2] / 100)}.json`);
+      const g = shard[String(exact[2])], row = g.i.find((r) => r[0] === exact[0]), cheapest = g.i[0];
+      if (row) {
+        items.push({ kod: row[0], name: row[1], pack: row[2], dop: row[3], slug: row[8], pack_ok: true, exact: true,
+          best: cheapest && cheapest[0] !== row[0] && row[3] - cheapest[3] > 0.005 ? { name: cheapest[1], dop: cheapest[3], slug: cheapest[8] } : null });
+        continue;
+      }
+    }
     const words = norm(f.nazov).split(/[^a-z0-9]+/).filter((w) => w.length >= 3);
     if (!words.length) continue;
     const num = (norm(f.sila).match(/\d+(?:[.,]\d+)?/) || [''])[0].replace(',', '.');
@@ -102,7 +115,7 @@ async function match(env, request, found) {
         best: cheapest && cheapest[0] !== row[0] && row[3] - cheapest[3] > 0.005 ? { name: cheapest[1], dop: cheapest[3], slug: cheapest[8] } : null });
     }
   }
-  items.sort((a, b) => (b.pack_ok ? 1 : 0) - (a.pack_ok ? 1 : 0));
+  items.sort((a, b) => (b.exact ? 2 : b.pack_ok ? 1 : 0) - (a.exact ? 2 : a.pack_ok ? 1 : 0));
   return items.slice(0, 6);
 }
 

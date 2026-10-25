@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["hu", "uk", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+GENERATED = ["hu", "uk", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
@@ -1030,7 +1030,7 @@ ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani 
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js"):
+    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -2023,6 +2023,24 @@ def build():
     (SITE / "slugs.json").write_text(json.dumps({p["kod"]: p["slug"] for _, p in products}, separators=(",", ":")),
                                      encoding="utf-8")
 
+    # --- história doplatkov pre graf v Moje lieky: /hist/<n>.json, n = súčet kódov znakov kódu % 32 (rovnako v moje2.js) ---
+    if history:
+        hist_months = [h[0][:7] for h in history]
+        shards = defaultdict(dict)
+        for g in groups:
+            kods = [it["kod"] for it in g["i"]]
+            mins = []
+            for _, prices in history:
+                vals = [prices[k][2] for k in kods if k in prices and prices[k][2] is not None]
+                mins.append(round(min(vals), 2) if vals else None)
+            for k in kods:
+                own = [(prices[k][2] if k in prices else None) for _, prices in history]
+                shards[sum(ord(c) for c in k) % 32][k] = [own, mins]
+        hdir = SITE / "hist"
+        hdir.mkdir(parents=True, exist_ok=True)
+        for n in range(32):
+            (hdir / f"{n}.json").write_text(json.dumps({"m": hist_months, "k": shards.get(n, {})}, separators=(",", ":")), encoding="utf-8")
+
     # --- alerts.json pre Moje lieky ---
     alert_items = {}
     for g, p in products:
@@ -2053,14 +2071,44 @@ def build():
     <button type="button" id="mine-print">Vytlačiť pre lekára</button>
     <button type="button" id="mine-share">Zdieľať zoznam</button>
     <button type="button" id="mine-ics" hidden>Pripomienky do kalendára</button>
+    <button type="button" id="mine-brag" hidden>Zdieľať moju úsporu</button>
     <a href="/ochranny-limit/#tracker">Prehľad doplatkov pre ochranný limit</a>
     <p class="form-msg" id="mine-tools-msg" aria-live="polite"></p>
+  </div>
+  <div class="mine-extras" id="mine-extras" hidden>
+    <section class="card" id="mine-chart" hidden>
+      <h2>Vaše doplatky v čase</h2>
+      <div class="mc-body"><p class="hint">Načítavam históriu…</p></div>
+    </section>
+    <section class="card" id="check-card">
+      <h2>{IC["spark"]}AI kontrola mojich liekov</h2>
+      <p class="page-sub">Umelá inteligencia prejde celý zoznam: kde môžete ušetriť, čo sa od budúceho mesiaca mení, čo má výpadok a na čo sa opýtať lekára. Výsledok si môžete vytlačiť a vziať k lekárovi.</p>
+      <div class="mine-tools"><button type="button" id="mine-check">Skontrolovať moje lieky</button><button type="button" id="mine-check-print" hidden>Vytlačiť pre lekára</button></div>
+      <div id="mine-check-out" class="check-out" aria-live="polite" hidden></div>
+      <p class="hint">Na kontrolu sa pošlú len kódy liekov a dávkovanie, bez mena. Neukladáme ich.</p>
+    </section>
+    <section class="card" id="sos-card">
+      <h2>Karta liekov pre núdzu</h2>
+      <p class="page-sub">Vytvorte si obrázok so zoznamom liekov a dôležitými údajmi a nastavte si ho ako tapetu uzamknutej obrazovky. Záchranár alebo lekár ho uvidí aj bez odomknutia telefónu.</p>
+      <form id="sos-form" class="sos-form">
+        <label>Meno <input name="meno" maxlength="60" autocomplete="name"></label>
+        <label>Rok narodenia <input name="nar" maxlength="10" inputmode="numeric"></label>
+        <label>Krvná skupina <input name="krv" maxlength="10" placeholder="napr. A Rh+"></label>
+        <label class="wide">Alergie <input name="alergie" maxlength="200" placeholder="napr. penicilín"></label>
+        <label class="wide">Ochorenia <input name="diag" maxlength="200" placeholder="napr. cukrovka, vysoký tlak"></label>
+        <label class="wide">Kontakt v núdzi <input name="kontakt" maxlength="200" placeholder="napr. dcéra Jana, 0900 123 456" autocomplete="off"></label>
+        <div class="wide mine-tools"><button type="submit">Vytvoriť obrázok karty</button></div>
+        <p class="form-msg wide" id="sos-msg" aria-live="polite"></p>
+      </form>
+      <div id="sos-preview" class="sos-preview" hidden></div>
+      <p class="hint">Všetky polia sú nepovinné. Údaje aj obrázok zostávajú len v tomto zariadení, nikam ich neposielame. Ako tapetu ho nastavíte v Nastaveniach telefónu (Tapeta → Uzamknutá obrazovka). Po zmene liekov si kartu vytvorte znova.</p>
+    </section>
   </div>
 {alert_form(None, "Upozornenia e-mailom")}
   <section class="card" id="push-card" hidden>
     <h2>Upozornenia v telefóne</h2>
-    <p class="page-sub">Notifikácia príde, keď sa zmení doplatok vašich liekov, výrobca ohlási výpadok, pribudne lacnejšia alternatíva alebo keď vám o pár dní dôjde balenie. Funguje bez e-mailu, len na tomto zariadení.</p>
-    <label class="consent"><input type="checkbox" id="push-consent"> <span>Súhlasím, aby sa zoznam mojich liekov a dátumy, kedy mi dôjdu, uložili na zasielanie notifikácií podľa <a href="/ochrana-sukromia/#notifikacie">zásad ochrany súkromia</a>.</span></label>
+    <p class="page-sub">Notifikácia príde v čase užitia, ktorý si nastavíte pri lieku, a keď sa zmení doplatok, výrobca ohlási výpadok, pribudne lacnejšia alternatíva alebo vám o pár dní dôjde balenie. Funguje bez e-mailu, len na tomto zariadení.</p>
+    <label class="consent"><input type="checkbox" id="push-consent"> <span>Súhlasím, aby sa zoznam mojich liekov, časy užitia, dávkovanie a dátumy, kedy mi dôjdu, uložili na zasielanie notifikácií podľa <a href="/ochrana-sukromia/#notifikacie">zásad ochrany súkromia</a>.</span></label>
     <div class="mine-tools"><button type="button" id="push-on">Zapnúť notifikácie</button><button type="button" id="push-off" hidden>Vypnúť notifikácie</button></div>
     <p class="form-msg" aria-live="polite"></p>
   </section>
@@ -2069,7 +2117,8 @@ def build():
     <p class="page-sub" id="install-text">Pridajte si web na plochu telefónu. Otvorí sa ako aplikácia a Moje lieky budete mať vždy po ruke, aj bez internetu.</p>
     <button type="button" id="install-btn" hidden>Nainštalovať aplikáciu</button>
   </section>"""
-    write("/moje-lieky/", page("Moje lieky – sledovanie doplatkov", "Uložte si lieky, ktoré užívate, a sledujte ich doplatky, zmeny a výpadky na jednom mieste.", "/moje-lieky/", body, breadcrumb_ld(crumb_items)))
+    write("/moje-lieky/", page("Moje lieky – sledovanie doplatkov", "Uložte si lieky, ktoré užívate, a sledujte ich doplatky, zmeny a výpadky na jednom mieste.", "/moje-lieky/", body, breadcrumb_ld(crumb_items),
+                               script='<script src="/moje2.js" defer></script>'))
 
     # --- čísla do textov ---
     gap_groups = 0
@@ -2141,6 +2190,7 @@ def build():
       <thead><tr><th>Názov</th><th>Na čo slúži</th><th>Kedy vznikne</th></tr></thead>
       <tbody>
         <tr><td class="mono">mojeLieky.v1</td><td>zoznam vašich liekov a dávkovanie</td><td>keď uložíte liek do Mojich liekov</td></tr>
+        <tr><td class="mono">mojeLieky.karta.*</td><td>údaje karty liekov pre núdzu (meno, alergie, ochorenia, kontakt)</td><td>keď vyplníte kartu liekov pre núdzu</td></tr>
         <tr><td class="mono">mojeLieky.profily.v1, mojeLieky.v1.*</td><td>mená a zoznamy liekov ďalších členov rodiny</td><td>keď pridáte člena rodiny v Mojich liekoch</td></tr>
         <tr><td class="mono">limitTracker.v1, limitSettings.v1</td><td>váš prehľad doplatkov a nastavenie kalkulačky ochranného limitu</td><td>keď zapíšete nákup</td></tr>
         <tr><td class="mono">zobrazenie.v1</td><td>farebný režim, veľkosť písma a režim pre slabozrakých</td><td>keď zmeníte zobrazenie</td></tr>
@@ -2151,9 +2201,11 @@ def build():
     </table></div>
     <p>Všetko vymažete vymazaním údajov stránky v nastaveniach prehliadača. Jednotlivé položky odstránite aj priamo na webe (odobratím liekov, nákupov alebo tlačidlom Obnoviť pôvodné zobrazenie).</p>
     <h2 id="notifikacie">Upozornenia v telefóne (notifikácie)</h2>
-    <p>Ak si zapnete notifikácie, uložíme technickú adresu vášho zariadenia pre doručovanie notifikácií (poskytuje ju prehliadač, napríklad Google, Apple alebo Mozilla), kódy liekov z Mojich liekov a vypočítané dátumy, kedy vám balenie dôjde. Účel: posielať vám upozornenia na zmeny doplatkov, výpadky, lacnejšie alternatívy a blížiaci sa koniec balenia. Právny základ: váš výslovný súhlas (čl. 6 ods. 1 písm. a) a čl. 9 ods. 2 písm. a) GDPR). Údaje uchovávame, kým notifikácie nevypnete, alebo kým prehliadač adresu nezruší; potom ich vymažeme. Údaje sú uložené u Cloudflare, Inc.; notifikácie doručuje služba výrobcu prehliadača.</p>
+    <p>Ak si zapnete notifikácie, uložíme technickú adresu vášho zariadenia pre doručovanie notifikácií (poskytuje ju prehliadač, napríklad Google, Apple alebo Mozilla), kódy liekov z Mojich liekov, vypočítané dátumy, kedy vám balenie dôjde, a ak si ich nastavíte, časy a dávky užívania, mená členov rodiny z Mojich liekov a časové pásmo zariadenia. Účel: posielať vám upozornenia na zmeny doplatkov, výpadky, lacnejšie alternatívy, blížiaci sa koniec balenia a pripomienky užitia lieku. Pripomienky užitia odosiela skript v službe GitHub Actions (GitHub, Inc., USA), ktorý na to údaje krátkodobo načíta. Právny základ: váš výslovný súhlas (čl. 6 ods. 1 písm. a) a čl. 9 ods. 2 písm. a) GDPR). Údaje uchovávame, kým notifikácie nevypnete, alebo kým prehliadač adresu nezruší; potom ich vymažeme. Údaje sú uložené u Cloudflare, Inc.; notifikácie doručuje služba výrobcu prehliadača.</p>
     <h2 id="asistent">AI asistent</h2>
     <p>Keď položíte otázku AI asistentovi, text otázky, predchádzajúce otázky a odpovede z tej istej konverzácie a prípadne kód lieku, zo stránky ktorého sa pýtate, spracuje jazykový model umelej inteligencie, ktorý vygeneruje odpoveď. Model beží v službe Cloudflare Workers AI (Cloudflare, Inc., USA); ak ho v budúcnosti nahradíme modelom Claude, odpoveď vygeneruje spoločnosť Anthropic PBC (USA). Otázky ani odpovede neukladáme; konverzácia sa uchováva len v tejto karte prehliadača (sessionStorage) a po jej zatvorení zmizne. Poskytovatelia modelov podľa svojich podmienok nepoužívajú tieto údaje na trénovanie modelov. Prenos do USA prebieha na základe primeraných záruk (štandardné zmluvné doložky). <strong>Nezadávajte meno, rodné číslo, adresu ani iné údaje, podľa ktorých by sa dalo zistiť, kto ste.</strong> Právny základ: plnenie vašej žiadosti o odpoveď a náš oprávnený záujem na poskytovaní služby (čl. 6 ods. 1 písm. b) a f) GDPR). Odpovede generuje umelá inteligencia a môžu byť nepresné.</p>
+    <p>Funkcia <strong>AI kontrola mojich liekov</strong> pošle rovnakému modelu kódy liekov z vášho zoznamu a dávkovanie (bez mena a ďalších údajov), aby pripravil prehľad úspor, zmien a otázok pre lekára. Zoznam ani výsledok neukladáme. <strong>Čítanie odpovedí nahlas</strong> robí priamo váš prehliadač alebo operačný systém.</p>
+    <p><strong>Karta liekov pre núdzu</strong>, graf doplatkov a obrázok s úsporou sa vytvárajú len vo vašom prehliadači. Údaje na karte (meno, alergie, ochorenia, kontakt) sa ukladajú len v tomto zariadení (localStorage) a nikam ich neposielame. Obrázok karty je na uzamknutej obrazovke viditeľný pre každého, kto drží váš telefón, preto zvážte, aké údaje naň dáte.</p>
     <p>Ak otázku položíte hlasom, reč prevedie na text priamo váš prehliadač alebo operačný systém (napríklad Google alebo Apple) podľa ich pravidiel; k nám príde len výsledný text otázky. Mikrofón sa zapne až po ťuknutí na tlačidlo a prehliadač si najprv vyžiada vaše povolenie.</p>
     <h2 id="foto">Rozpoznanie lieku z fotky</h2>
     <p>Ak na úvodnej stránke odfotíte balenie lieku alebo recept, prehliadač fotku zmenší a pošle ju jazykovému modelu umelej inteligencie v službe Cloudflare Workers AI (Cloudflare, Inc., USA), ktorý z nej vyčíta názov, silu a veľkosť balenia lieku. Fotku ani výsledok neukladáme; po spracovaní sa zahodí. Model má pokyn ignorovať osobné údaje, no fotka receptu ich môže obsahovať, preto <strong>meno, rodné číslo a adresu na recepte pred fotením zakryte</strong>. Ak by fotka obsahovala údaje o zdraví, spracúvajú sa len na váš výslovný pokyn (odfotenie a odoslanie) na účel, ktorý ste si vyžiadali (čl. 9 ods. 2 písm. a) GDPR). Prenos do USA prebieha na základe štandardných zmluvných doložiek.</p>
