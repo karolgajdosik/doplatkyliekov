@@ -541,3 +541,37 @@ body { overflow-x: clip; }
 .ai-ref:hover { border-color: var(--accent); color: var(--accent); }
 .ai-ref small { color: var(--muted); font-size: 12.5px; }
 .ai-md a { font-weight: 500; }
+
+/* ---------- hlavička: AI asistent a prepínač režimu ---------- */
+.head-btn.ai-btn { background: var(--accent); color: var(--accent-ink); border-color: transparent; box-shadow: 0 0 22px -6px var(--glow); }
+.head-btn.ai-btn:hover { color: var(--accent-ink); filter: brightness(1.08); }
+.head-btn.ai-btn[aria-current="page"] { outline: 2px solid var(--accent); outline-offset: 2px; }
+.head-btn.theme-btn { width: 40px; padding: 0; }
+.theme-btn .to-light, .theme-btn .to-dark { display: none; line-height: 0; }
+:root[data-eff="dark"] .theme-btn .to-light, :root:not([data-eff]) .theme-btn .to-light { display: inline; }
+:root[data-eff="light"] .theme-btn .to-dark { display: inline; }
+.site-head-in { gap: 10px; }
+@media (max-width: 760px) {
+  .site-head-in { gap: 6px; }
+  .head-btn.ai-btn { width: 40px; padding: 0; }
+  .head-btn.ai-btn svg { width: 20px; height: 20px; }
+}
+@media (max-width: 400px) {
+  .site-head .capsule { width: 32px; height: 18px; }
+  .site-head .brand-name { font-size: 15px; }
+  .site-head .brand-link { gap: 8px; }
+  .head-btn { height: 38px; min-width: 38px; }
+  .head-btn.ai-btn, .head-btn.theme-btn { width: 38px; }
+}
+@media (max-width: 380px) {
+  .site-head .brand-name { font-size: 13.5px; }
+  .site-head .capsule { width: 28px; height: 16px; }
+  .site-head .brand-link { gap: 6px; }
+  .site-head-in { gap: 4px; }
+  .head-btn { height: 36px; min-width: 36px; }
+  .head-btn.ai-btn, .head-btn.theme-btn { width: 36px; }
+  .head-btn .aa { font-size: 15px; }
+}
+@media (max-width: 340px) { .site-head .capsule { display: none; } .site-head .brand-name { font-size: 13px; } }
+@media (max-width: 380px) { .top-nav { gap: 4px; } .top-nav a.m { font-size: 12.5px; padding: 7px 2px; } }
+@media (max-width: 760px) { .top-nav { display: flex; } .top-nav a.m { flex: 1 1 auto; overflow: visible; text-overflow: clip; } }

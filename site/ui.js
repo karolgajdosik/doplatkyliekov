@@ -15,15 +15,17 @@
   function apply() {
     var p = cur();
     root.dataset.theme = p.t;
+    root.dataset.eff = (p.t === 'light' || (p.t === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches)) ? 'light' : 'dark';
     root.dataset.fs = String(p.f);
     if (p.c) root.dataset.contrast = 'high'; else delete root.dataset.contrast;
-    var light = p.t === 'light' || (p.t === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches);
+    var light = root.dataset.eff === 'light';
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', p.c ? (light ? '#ffffff' : '#000000') : (light ? '#f3f7f5' : '#05090b'));
     paint();
   }
   function paint() {
     var p = cur();
+    document.querySelectorAll('[data-theme-toggle]').forEach(function (b) { b.setAttribute('aria-label', root.dataset.eff === 'light' ? 'Prepnúť na tmavý režim' : 'Prepnúť na svetlý režim'); b.setAttribute('aria-pressed', root.dataset.eff === 'light' ? 'true' : 'false'); });
     document.querySelectorAll('input[name="theme"]').forEach(function (r) { r.checked = r.value === p.t; });
     var out = document.getElementById('fs-out');
     if (out) out.textContent = FS[p.f] + ' %';
@@ -79,6 +81,12 @@
     var fs = t.closest('button[data-fs]');
     if (fs) { var p = cur(); set('f', Math.max(0, Math.min(FS.length - 1, p.f + +fs.getAttribute('data-fs')))); return; }
     if (t.closest('#set-reset')) { prefs = {}; save(prefs); apply(); }
+    if (t.closest('[data-theme-toggle]')) {
+      var next = root.dataset.eff === 'light' ? 'dark' : 'light';
+      set('t', next);
+      var b = t.closest('[data-theme-toggle]');
+      b.setAttribute('aria-label', next === 'light' ? 'Prepnúť na tmavý režim' : 'Prepnúť na svetlý režim');
+    }
   });
   document.addEventListener('change', function (e) {
     if (e.target.name === 'theme') set('t', e.target.value);

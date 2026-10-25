@@ -274,10 +274,11 @@ IC = {
 # skript v <head>: použije uloženú voľbu zobrazenia ešte pred vykreslením (bez bliknutia)
 PREFS_HEAD = ("<script>(function(){var d=document.documentElement;d.dataset.theme='dark';d.dataset.fs='1';"
               "try{var s=JSON.parse(localStorage.getItem('zobrazenie.v1')||'{}');if(s.t)d.dataset.theme=s.t;"
-              "if(s.f!=null)d.dataset.fs=s.f;if(s.c)d.dataset.contrast='high';}catch(e){}})();</script>")
+              "if(s.f!=null)d.dataset.fs=s.f;if(s.c)d.dataset.contrast='high';}catch(e){}var t=d.dataset.theme;"
+              "d.dataset.eff=(t==='light'||(t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches))?'light':'dark';})();</script>")
 
 # (adresa, názov, krátky názov na mobil, triedy: m = aj na mobile, x-960 / x-1100 = skryť pod danou šírkou)
-NAV_TOP = [("/", "Vyhľadať", "", ""), ("/asistent/", "AI asistent", "", ""), ("/choroby/", "Ochorenia", "", ""),
+NAV_TOP = [("/", "Vyhľadať", "", ""), ("/choroby/", "Ochorenia", "", ""),
            ("/zmeny/", "Zmeny", "Zmeny", "m"), ("/vypadky/", "Výpadky", "Výpadky", "m"),
            ("/bez-doplatku/", "Bez doplatku", "Bez doplatku", "m x-960"), ("/ochranny-limit/", "Ochranný limit", "Limit", "m x-960"),
            ("/statistiky/", "Štatistiky", "", "x-1100")]
@@ -311,6 +312,8 @@ def site_header(path):
     <a class="brand-link" href="/" aria-label="doplatkyliekov.sk – úvod">{CAPSULE}<span class="brand-name">doplatky<b>liekov</b>.sk</span></a>
     <nav class="top-nav" aria-label="Hlavná navigácia">{links}</nav>
     <a class="head-btn mine" href="/moje-lieky/"{_cur("/moje-lieky/", path)}>{IC["mine"]}<span class="lbl">Moje lieky</span><span data-mine-count hidden></span></a>
+    <a class="head-btn ai-btn" href="/asistent/"{_cur("/asistent/", path)} aria-label="AI asistent" title="AI asistent – opýtajte sa na lieky a doplatky">{IC["spark"]}<span class="lbl">AI asistent</span></a>
+    <button type="button" class="head-btn theme-btn" data-theme-toggle aria-label="Prepnúť svetlý alebo tmavý režim" title="Svetlý / tmavý režim"><span class="to-light">{IC["sun"]}</span><span class="to-dark">{IC["moon"]}</span></button>
     <button type="button" class="head-btn disp" data-open="zobrazenie" aria-haspopup="dialog" aria-controls="zobrazenie" aria-label="Zobrazenie: farebný režim, veľkosť písma, režim pre slabozrakých" title="Zobrazenie: farebný režim, veľkosť písma, režim pre slabozrakých"><span class="aa" aria-hidden="true">Aa</span><span class="lbl">Zobrazenie</span></button>
     <button type="button" class="head-btn menu-btn" data-open="menu" aria-haspopup="dialog" aria-controls="menu">{IC["menu"]}<span class="lbl">Menu</span></button>
   </div>
