@@ -2,7 +2,8 @@
 //   { img: 'data:image/jpeg;base64,…' } → { found: [{ nazov, sila, kusov }], items: [{ kod, name, pack, dop, slug, best }] }
 // Fotku neukladáme; po rozpoznaní sa zahodí. Model dostane pokyn ignorovať osobné údaje.
 
-const MODELS = ['@cf/meta/llama-4-scout-17b-16e-instruct', '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/google/gemma-3-12b-it', '@cf/meta/llama-3.2-11b-vision-instruct'];
+// test 25. 10. 2026: Mistral Small 3.1 a Llama 3.2 Vision fotku prečítali správne, Llama 4 Scout a Gemma 3 vrátili chybu
+const MODELS = ['@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-3.2-11b-vision-instruct', '@cf/meta/llama-4-scout-17b-16e-instruct'];
 const TIMEOUT = 30000;
 function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
 const PROMPT = `Na fotke je balenie lieku, príbalový leták alebo lekársky recept zo Slovenska.
@@ -84,7 +85,7 @@ async function match(env, request, found) {
       if (num && new RegExp('(^|[^0-9.])' + num.replace('.', '\\.') + '([^0-9]|$)').test(n + ' ' + norm(idx.groups[it[2]][1]))) sc += 2;
       scored.push([sc, i]);
     });
-    scored.sort((a, b) => b[0] - a[0]);
+    scored.sort((a, b) => b[0] - a[0] || idx.items[a[1]][1].length - idx.items[b[1]][1].length);
     const best = scored.length ? scored[0][0] : 0;
     for (const [sc, i] of scored) {
       if (sc < best || items.length >= 8) break;

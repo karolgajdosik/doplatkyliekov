@@ -193,6 +193,7 @@ function fixLinks(answer, refs, lang) {
   const dp = DRUG_PATH[lang], pages = PAGE_PATH[lang] || {};
   const byName = new Map();
   for (const [u, r] of refs) byName.set(norm(r.n), u);
+  answer = answer.replace(/(^\s*(?:[-*•]\s*)?|[-*•]\s*)([^\[\]\n:*•-][^\[\]\n:]{1,59}?)\s*\[\]\((\/[^)\s]+)\)/gm, '$1[$2]($3)').replace(/\[\]\((\/[^)\s]+)\)/g, '');
   return answer.replace(/\[([^\]]{1,120})\]\((\/[^)\s]*)\)/g, (all, text, url) => {
     let u = url;
     if (dp && u.startsWith(dp)) u = '/liek/' + u.slice(dp.length);
