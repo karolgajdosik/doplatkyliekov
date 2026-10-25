@@ -28,6 +28,9 @@ from pathlib import Path
 
 import openpyxl
 
+sys.path.insert(0, str(Path(__file__).parent))
+from build_pages import lean_groups  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 SITE_DATA = ROOT / "site" / "data.json"
 DATA = ROOT / "data"
@@ -331,9 +334,7 @@ def main():
     print(f"  indikačné obmedzenia: {len(ref['io'])} textov, {len(ref['io_kod'])} liekov")
 
     # výstupy pre aktuálny mesiac
-    lean = [{"a": g["a"], "s": g["s"], "f": g["f"],
-             "i": [[it["kod"], it["name"], it["pack"], it["konc"], it["uzp"], it["dop"], it["typ"]] for it in g["i"]]}
-            for g in groups]
+    lean = lean_groups(groups)
     write_json(SITE_DATA, {"platnost": label(y, m), "platnostIso": iso, "groups": lean})
     write_json(DATA / "full.json", {"platnost": label(y, m), "platnostIso": iso, "groups": groups})
     write_json(DATA / "ref.json", ref)

@@ -14,6 +14,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap">
 <meta name="theme-color" content="#05090b">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Doplatky">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -50,6 +55,15 @@
     <ul class="top" id="top"></ul>
   </section>
 
+  <section class="section conds">
+    <div>
+      <p class="eyebrow">Prehľady</p>
+      <h2>Lieky podľa ochorenia</h2>
+    </div>
+    <nav class="cond-chips" aria-label="Lieky podľa ochorenia"><a href="/choroby/vysoky-krvny-tlak/">Vysoký krvný tlak</a><a href="/choroby/cholesterol/">Vysoký cholesterol</a><a href="/choroby/cukrovka/">Cukrovka</a><a href="/choroby/stitna-zlaza/">Štítna žľaza</a><a href="/choroby/riedenie-krvi/">Riedenie krvi</a><a href="/choroby/srdce/">Choroby srdca</a><a href="/choroby/astma-chochp/">Astma a CHOCHP</a><a href="/choroby/alergia/">Alergia</a><a href="/choroby/zaludok-reflux/">Žalúdok a pálenie záhy</a><a href="/choroby/bolest-zapal/">Bolesť a zápal</a><a href="/choroby/migrena/">Migréna</a><a href="/choroby/depresia-uzkost/">Depresia a úzkosť</a><a class="all" href="/choroby/">Všetky ochorenia →</a></nav>
+    <p class="cond-more"><a href="/bez-doplatku/">Lieky bez doplatku</a> · <a href="/statistiky/">Doplatky v číslach</a></p>
+  </section>
+
   <section class="facts" id="facts"></section>
 
   <section class="notes">
@@ -72,7 +86,7 @@
   </section>
 
   <footer>
-    <nav aria-label="Ďalšie stránky"><a href="/moje-lieky/">Moje lieky</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky liekov</a><a href="/ochranny-limit/">Ochranný limit</a><a href="/clanky/">Články</a></nav>
+    <nav aria-label="Ďalšie stránky"><a href="/moje-lieky/">Moje lieky</a><a href="/choroby/">Lieky podľa ochorenia</a><a href="/bez-doplatku/">Lieky bez doplatku</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky liekov</a><a href="/ochranny-limit/">Ochranný limit</a><a href="/statistiky/">Štatistiky</a><a href="/clanky/">Články</a></nav>
     <nav aria-label="O webe"><a href="/o-nas/">O nás</a><a href="/kontakt/">Kontakt</a><a href="/ochrana-sukromia/">Ochrana súkromia</a></nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od <span id="platnost">…</span>. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>

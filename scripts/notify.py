@@ -3,6 +3,7 @@
 Beží denne v GitHub Actions po aktualizácii dát. Pre každého potvrdeného odberateľa nájde jeho lieky, pri ktorých
 - sa od budúceho mesiaca zmení doplatok alebo liek vypadne zo zoznamu,
 - výrobca nahlásil ŠÚKL prerušenie alebo ukončenie dodávok,
+- v novom mesačnom zozname pribudol liek s rovnakou látkou, silou a balením s nižším doplatkom (generikum),
 a o ktorých ešte nedostal e-mail. Pošle jeden súhrnný e-mail a zapamätá si, čo už oznámil.
 
 Potrebné premenné prostredia (GitHub → Settings → Secrets and variables → Actions):
@@ -113,6 +114,15 @@ def main():
     vyp_all = json.loads((DATA / "vypadky.json").read_text(encoding="utf-8")) if (DATA / "vypadky.json").exists() else {}
     cutoff = (dt.date.today() - dt.timedelta(days=730)).isoformat()
     vyp = {k: v for k, v in vyp_all.get("lieky", {}).items() if v.get("od", "") >= cutoff and v.get("stav") in ("R", "Z", "PR", "PZ")}
+    # lieky, ktoré pribudli v aktuálnom zozname oproti predošlému mesiacu
+    cur_iso = full.get("platnostIso") or ""
+    prev_keys = None
+    if cur_iso:
+        y, m = int(cur_iso[:4]), int(cur_iso[5:7])
+        py, pm = (y, m - 1) if m > 1 else (y - 1, 12)
+        pf = DATA / "history" / f"{py}-{pm:02d}.json"
+        if pf.exists():
+            prev_keys = set(json.loads(pf.read_text(encoding="utf-8")))
     products = {}
     for g in full["groups"]:
         cheapest = min((x for x in g["i"] if x["dop"] is not None), key=lambda x: x["dop"], default=None)
@@ -127,6 +137,8 @@ def main():
         notified = rec.setdefault("notified", {})
         n_next = notified.setdefault("next", {})
         n_vyp = notified.setdefault("vyp", {})
+        n_gen = notified.setdefault("gen", {})
+        since = (rec.get("confirmedAt") or rec.get("created") or "")[:10]
         items = []
         for kod in rec.get("kody", []):
             hit = products.get(kod)
@@ -144,6 +156,16 @@ def main():
                     word = "stúpne" if np_[2] > p["dop"] else "klesne"
                     items.append((url, p["name"], f"Od {nd} doplatok {word} z {eur(p['dop'])} na {eur(np_[2])}."))
                     n_next[kod] = nxt["platnostIso"]
+            if prev_keys is not None and cur_iso > since and p["dop"] is not None:
+                seen = set(n_gen.get(kod, []))
+                fresh = [x for x in g["i"] if x["kod"] != kod and x["kod"] not in prev_keys and x["kod"] not in seen
+                         and x["dop"] is not None and p["dop"] - x["dop"] >= 0.5]
+                if fresh:
+                    best = min(fresh, key=lambda x: x["dop"])
+                    items.append((url, p["name"],
+                                  f"Pribudla lacnejšia alternatíva s rovnakou látkou, silou a balením: {best['name']} "
+                                  f"s doplatkom {eur(best['dop'])} (teraz doplácate {eur(p['dop'])}). Opýtajte sa lekára alebo lekárnika."))
+                    n_gen[kod] = sorted(seen | {x["kod"] for x in fresh})
             st = vyp.get(kod)
             if st and n_vyp.get(kod) != st["od"]:
                 txt = {"R": "Výrobca prerušil dodávky", "Z": "Výrobca ukončil dodávky",
