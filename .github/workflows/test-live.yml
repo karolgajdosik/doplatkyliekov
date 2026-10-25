@@ -5,12 +5,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Test
+      - name: Asistent
         run: |
           B=https://doplatkyliekov.sk
           ask() { curl -s -X POST $B/api/asistent -H 'content-type: application/json' --data "$1" | python3 -c "import sys,json;j=json.load(sys.stdin);print((j.get('model','')+' | '+(j.get('answer') or j.get('error',''))).replace('\n',' ')[:900])"; }
-          echo "::notice title=UK2::$(ask '{"lang":"uk","q":"Скільки поверне страхова компанія, якщо я пенсіонер з пенсією 700 євро на місяць?"}')"
           echo "::notice title=UK3::$(ask '{"lang":"uk","q":"Які ліки від тиску без доплати?"}')"
+          echo "::notice title=UK2::$(ask '{"lang":"uk","q":"Скільки поверне страхова компанія, якщо я пенсіонер з пенсією 700 євро на місяць?"}')"
+          echo "::notice title=SK::$(ask '{"q":"Ktoré lieky na tlak sú bez doplatku?"}')"
+      - name: Foto
+        run: |
+          B=https://doplatkyliekov.sk
           IMG=$(base64 -w0 .github/test/box.jpg)
-          echo "{\"img\":\"data:image/jpeg;base64,$IMG\"}" > body.json
-          echo "::notice title=FOTO::$(curl -s -X POST $B/api/foto -H 'content-type: application/json' --data @body.json | head -c 900)"
+          for m in "@cf/meta/llama-4-scout-17b-16e-instruct" "@cf/mistralai/mistral-small-3.1-24b-instruct" "@cf/google/gemma-3-12b-it" "@cf/meta/llama-3.2-11b-vision-instruct"; do
+            echo "{\"img\":\"data:image/jpeg;base64,$IMG\",\"m\":\"$m\"}" > body.json
+            echo "::notice title=FOTO $m::$(curl -s -m 95 -X POST $B/api/foto -H 'content-type: application/json' --data @body.json | head -c 700)"
+          done

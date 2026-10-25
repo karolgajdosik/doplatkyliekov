@@ -2,7 +2,9 @@
 //   { img: 'data:image/jpeg;base64,…' } → { found: [{ nazov, sila, kusov }], items: [{ kod, name, pack, dop, slug, best }] }
 // Fotku neukladáme; po rozpoznaní sa zahodí. Model dostane pokyn ignorovať osobné údaje.
 
-const MODELS = ['@cf/meta/llama-4-scout-17b-16e-instruct', '@cf/mistralai/mistral-small-3.1-24b-instruct'];
+const MODELS = ['@cf/meta/llama-4-scout-17b-16e-instruct', '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/google/gemma-3-12b-it', '@cf/meta/llama-3.2-11b-vision-instruct'];
+const TIMEOUT = 30000;
+function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
 const PROMPT = `Na fotke je balenie lieku, príbalový leták alebo lekársky recept zo Slovenska.
 Nájdi na nej názvy liekov. Pre každý liek vypíš obchodný názov (napr. Concor, Controloc, Xarelto), silu (napr. 10 mg) a počet kusov v balení, ak je uvedený.
 Ignoruj meno pacienta, rodné číslo, adresu, lekára, poisťovňu a iné osobné údaje – nikdy ich nevypisuj.
@@ -47,14 +49,15 @@ function parseJson(text) {
   } catch { return []; }
 }
 
-async function recognize(env, img) {
+async function recognize(env, img, only) {
   let lastErr;
-  for (const model of MODELS) {
+  for (const model of (only ? [only] : MODELS.slice(0, 2))) {
     try {
-      const res = await env.AI.run(model, {
+      if (model.includes('llama-3.2-11b-vision')) { try { await env.AI.run(model, { prompt: 'agree' }); } catch { /* licencia už prijatá */ } }
+      const res = await withTimeout(env.AI.run(model, {
         messages: [{ role: 'user', content: [{ type: 'text', text: PROMPT }, { type: 'image_url', image_url: { url: img } }] }],
         max_tokens: 300, temperature: 0,
-      });
+      }), TIMEOUT);
       const text = res && (res.response ?? res.result?.response ?? res.choices?.[0]?.message?.content);
       const out = parseJson(typeof text === 'string' ? text : JSON.stringify(text));
       if (out.length || text) return { found: out, model };
@@ -112,10 +115,12 @@ export async function onRequestPost({ request, env }) {
   const img = String(body.img || '');
   if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(img) || img.length > 2_800_000) return json({ error: 'Neplatná fotka.' }, 400);
   try {
-    const { found, model } = await recognize(env, img);
+    const t0 = Date.now();
+    const only = MODELS.includes(body.m) ? body.m : null;
+    const { found, model } = await recognize(env, img, only);
     const items = found.length ? await match(env, request, found) : [];
-    return json({ found, items, model });
+    return json({ found, items, model, ms: Date.now() - t0 });
   } catch (e) {
-    return json({ error: 'Fotku sa teraz nepodarilo spracovať. Skúste to prosím o chvíľu alebo napíšte názov lieku.' }, 502);
+    return json({ error: 'Fotku sa teraz nepodarilo spracovať. Skúste to prosím o chvíľu alebo napíšte názov lieku.', detail: body.m ? String(e && e.message || e).slice(0, 300) : undefined }, 502);
   }
 }

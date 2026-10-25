@@ -186,10 +186,32 @@ Pravidlá:
 
 // odkazy na stránky, ktoré boli v podkladoch; prehliadač z nich spraví klikateľné odkazy v odpovedi
 const DRUG_PATH = { hu: '/hu/gyogyszer/', uk: '/uk/liky/' };
+const PAGE_PATH = { hu: { '/': '/hu/', '/asistent/': '/hu/asszisztens/', '/ochranny-limit/': '/hu/vedelmi-limit/' },
+  uk: { '/': '/uk/', '/asistent/': '/uk/asystent/', '/ochranny-limit/': '/uk/zakhysnyi-limit/' } };
+// opraví odkazy v odpovedi: lieky na jazykovú verziu, vymyslené adresy látok na skutočné, neznáme odkazy zruší
+function fixLinks(answer, refs, lang) {
+  const dp = DRUG_PATH[lang], pages = PAGE_PATH[lang] || {};
+  const byName = new Map();
+  for (const [u, r] of refs) byName.set(norm(r.n), u);
+  return answer.replace(/\[([^\]]{1,120})\]\((\/[^)\s]*)\)/g, (all, text, url) => {
+    let u = url;
+    if (dp && u.startsWith(dp)) u = '/liek/' + u.slice(dp.length);
+    if (!u.endsWith('/') && !u.includes('#') && !u.includes('?')) u += '/';
+    let ok = refs.has(u) || /^\/(choroby|latka|zmeny|vypadky|bez-doplatku|ochranny-limit|vyhody-poistovni|moje-lieky|clanky|asistent|statistiky|upozornenia|skupina|skupiny|lieky|o-nas|kontakt|ochrana-sukromia|pristupnost|na-vytlacenie)\//.test(u) || u === '/';
+    if (u.startsWith('/liek/') && !refs.has(u)) {
+      const alt = byName.get(norm(text)) || byName.get(norm(text.split(' (')[0]));
+      if (alt) { u = alt; ok = true; } else ok = false;
+    }
+    if (!ok) return text;
+    if (dp && u.startsWith('/liek/')) u = dp + u.slice(6);
+    else if (pages[u]) u = pages[u];
+    return `[${text}](${u})`;
+  });
+}
 function withRefs(out, refs, lang) {
   const dp = DRUG_PATH[lang];
   out.refs = [...refs.entries()].slice(0, 120).map(([u, r]) => [dp ? u.replace(/^\/liek\//, dp) : u, r.n, r.p || '', r.t, r.m ? 1 : 0]);
-  if (dp && out.answer) out.answer = out.answer.replace(/\(\/liek\//g, '(' + dp);
+  if (out.answer) out.answer = fixLinks(out.answer, refs, lang);
   return out;
 }
 
