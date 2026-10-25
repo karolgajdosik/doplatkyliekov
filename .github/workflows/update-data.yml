@@ -61,4 +61,4 @@ jobs:
             echo "::error title=notify::$(tail -n 25 notify.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
             exit 1
           }
-          echo "::notice title=notify::$(tail -n 1 notify.log)"
+          echo "::notice title=notify::$(grep -E '^(Odoslané|Notifikácie|E-maily|Upozornenia)' notify.log | tr '\n' ' ')"
