@@ -6,7 +6,8 @@ Beží denne v GitHub Actions po aktualizácii dát. Pre každého potvrdeného 
 a o ktorých ešte nedostal e-mail. Pošle jeden súhrnný e-mail a zapamätá si, čo už oznámil.
 
 Potrebné premenné prostredia (GitHub → Settings → Secrets and variables → Actions):
-  CF_ACCOUNT_ID, CF_API_TOKEN (oprávnenie Workers KV Storage: Edit), CF_KV_NAMESPACE_ID, RESEND_API_KEY
+  CF_ACCOUNT_ID, CF_API_TOKEN (oprávnenie Workers KV Storage: Edit), CF_KV_NAMESPACE_ID,
+  BREVO_API_KEY (alebo RESEND_API_KEY)
   voliteľne MAIL_FROM
 Bez nich skript nič neurobí.
 """
@@ -14,6 +15,7 @@ import datetime as dt
 import html
 import json
 import os
+import re
 import sys
 import urllib.parse
 import urllib.request
@@ -25,7 +27,9 @@ from build_pages import product_slug, eur, sk_date_long, sk_date  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 SITE = "https://doplatkyliekov.sk"
-ENV = {k: os.environ.get(k, "") for k in ("CF_ACCOUNT_ID", "CF_API_TOKEN", "CF_KV_NAMESPACE_ID", "RESEND_API_KEY")}
+ENV = {k: os.environ.get(k, "") for k in ("CF_ACCOUNT_ID", "CF_API_TOKEN", "CF_KV_NAMESPACE_ID")}
+BREVO_KEY = os.environ.get("BREVO_API_KEY", "")
+RESEND_KEY = os.environ.get("RESEND_API_KEY", "")
 MAIL_FROM = os.environ.get("MAIL_FROM") or "doplatkyliekov.sk <upozornenia@doplatkyliekov.sk>"
 DRY = "--dry-run" in sys.argv
 
@@ -62,11 +66,23 @@ def put_value(key, obj):
     cf("values/" + urllib.parse.quote(key, safe=""), method="PUT", data=json.dumps(obj).encode("utf-8"))
 
 
+def parse_from(sender):
+    m = re.match(r"^\s*(.*?)\s*<([^>]+)>\s*$", sender)
+    return {"name": m.group(1), "email": m.group(2)} if m else {"email": sender.strip()}
+
+
 def send(to, subject, body_html, unsub):
-    payload = {"from": MAIL_FROM, "to": [to], "subject": subject, "html": body_html,
-               "headers": {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}}
-    req = urllib.request.Request("https://api.resend.com/emails", method="POST", data=json.dumps(payload).encode(),
-                                 headers={"Authorization": f"Bearer {ENV['RESEND_API_KEY']}", "Content-Type": "application/json"})
+    headers = {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
+    if BREVO_KEY:
+        url = "https://api.brevo.com/v3/smtp/email"
+        payload = {"sender": parse_from(MAIL_FROM), "to": [{"email": to}], "subject": subject,
+                   "htmlContent": body_html, "headers": headers}
+        hdrs = {"api-key": BREVO_KEY, "Content-Type": "application/json", "Accept": "application/json"}
+    else:
+        url = "https://api.resend.com/emails"
+        payload = {"from": MAIL_FROM, "to": [to], "subject": subject, "html": body_html, "headers": headers}
+        hdrs = {"Authorization": f"Bearer {RESEND_KEY}", "Content-Type": "application/json"}
+    req = urllib.request.Request(url, method="POST", data=json.dumps(payload).encode(), headers=hdrs)
     with urllib.request.urlopen(req, timeout=30) as r:
         return 200 <= r.status < 300
 
@@ -89,7 +105,7 @@ Majú informačný charakter a nenahrádzajú radu lekára ani lekárnika.</p>
 
 
 def main():
-    if not all(ENV.values()):
+    if not all(ENV.values()) or not (BREVO_KEY or RESEND_KEY):
         print("Upozornenia nie sú nastavené (chýbajú tajné premenné), preskakujem.")
         return
     full = json.loads((DATA / "full.json").read_text(encoding="utf-8"))
