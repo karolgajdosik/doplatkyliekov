@@ -22,7 +22,13 @@ jobs:
       - run: pip install openpyxl==3.1.5
 
       - name: Stiahnuť a spracovať zoznam
-        run: python scripts/build_data.py
+        id: data
+        run: |
+          set -o pipefail
+          python scripts/build_data.py 2>&1 | tee build.log || {
+            tail -n 20 build.log | sed 's/%/%25/g; s/^/::error title=build_data::/'
+            exit 1
+          }
 
       - name: Overiť generovanie podstránok
         run: python scripts/build_pages.py
@@ -40,10 +46,18 @@ jobs:
           git push
 
       - name: Rozoslať e-mailové upozornenia
+        # beží aj keď sťahovanie zlyhá – použijú sa posledné uložené dáta
+        if: ${{ !cancelled() }}
         env:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-        run: python scripts/notify.py
+        run: |
+          set -o pipefail
+          python scripts/notify.py 2>&1 | tee notify.log || {
+            tail -n 20 notify.log | sed 's/%/%25/g; s/^/::error title=notify::/'
+            exit 1
+          }
+          echo "::notice title=notify::$(tail -n 1 notify.log)"
