@@ -135,6 +135,10 @@ def rows_of(xlsx_bytes, sheet=0):
     return ws.iter_rows(values_only=True)
 
 
+class BadFile(Exception):
+    pass
+
+
 def parse_part_a(xlsx_bytes, full=True):
     rows = rows_of(xlsx_bytes)
     h1, h2 = next(rows), next(rows)
@@ -174,7 +178,7 @@ def parse_part_a(xlsx_bytes, full=True):
     groups = [g for g in groups if g["i"]]
     n = sum(len(g["i"]) for g in groups)
     if n < MIN_ITEMS:
-        sys.exit(f"Príliš málo liekov ({n}), súbor je asi poškodený.")
+        raise BadFile(f"Príliš málo liekov ({n}), súbor je asi poškodený.")
     return groups, n
 
 
@@ -338,28 +342,48 @@ def main():
     # budúci mesiac
     ny, nm = shift(y, m, 1)
     nb = part_a(ny, nm)
-    if nb:
-        ng, _ = parse_part_a(nb, full=False)
+    try:
+        ng = parse_part_a(nb, full=False)[0] if nb else None
+    except BadFile as e:
+        print(f"Budúci zoznam {nm}/{ny} sa nedá spracovať ({e}), ponechávam predošlý")
+        nb = ng = None
+        if (DATA / "next.json").exists():
+            nb = True
+    if ng:
         write_json(DATA / "next.json", {"platnost": label(ny, nm), "platnostIso": f"{ny}-{nm:02d}-01",
                                         "prices": prices_map(ng)})
         print(f"Budúci zoznam od {label(ny, nm)} spracovaný")
-    else:
+    elif not nb:
         (DATA / "next.json").unlink(missing_ok=True)
         print("Budúci zoznam ešte nie je zverejnený")
 
     # história: doplní chýbajúce mesiace, staršie odstráni
+    # mesiace, ktorých súbor na webe MZ SR je poškodený, sa zapíšu do history_skip.json a viac sa nesťahujú
+    skip_path = DATA / "history_skip.json"
+    skip = set(json.loads(skip_path.read_text(encoding="utf-8"))) if skip_path.exists() else set()
     keep = set()
     for d in range(0, HISTORY_MONTHS):
         hy, hm = shift(y, m, -d)
-        keep.add(f"{hy}-{hm:02d}.json")
-        p = HISTORY / f"{hy}-{hm:02d}.json"
-        if p.exists():
+        key = f"{hy}-{hm:02d}"
+        keep.add(f"{key}.json")
+        p = HISTORY / f"{key}.json"
+        if p.exists() or key in skip:
             continue
-        hb = part_a(hy, hm)
-        if hb:
-            hg, _ = parse_part_a(hb, full=False)
-            write_json(p, prices_map(hg))
-            print(f"  história {hm}/{hy} doplnená")
+        try:
+            hb = part_a(hy, hm)
+            if hb:
+                hg, _ = parse_part_a(hb, full=False)
+                write_json(p, prices_map(hg))
+                print(f"  história {hm}/{hy} doplnená")
+        except Exception as e:  # noqa: BLE001 – história nie je kritická
+            print(f"  história {hm}/{hy} preskočená: {e}")
+            skip.add(key)
+    oldest = "{}-{:02d}".format(*shift(y, m, -(HISTORY_MONTHS - 1)))
+    skip = sorted(k for k in skip if k >= oldest)
+    if skip:
+        write_json(skip_path, skip)
+    else:
+        skip_path.unlink(missing_ok=True)
     for p in HISTORY.glob("*.json"):
         if p.name not in keep:
             p.unlink()
