@@ -1,0 +1,24 @@
+name: Strážca webu
+
+on:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Kontrola webu
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/monitor.py
