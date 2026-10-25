@@ -6,20 +6,17 @@ jobs:
     steps:
       - name: Obsah
         run: |
-          pip -q install xlrd >/dev/null 2>&1
+          pip -q install openpyxl >/dev/null 2>&1
           curl -sL https://www.sukl.sk/verejne/Zoznam_liekov/zoznam_liekov_aktualny.zip -o f.zip
-          echo "::notice title=FILES::$(unzip -l f.zip | tail -n +4 | head -20 | tr -s ' ' | tr '\n' '|')"
-          mkdir z && unzip -q f.zip -d z
-          cat > h.py <<'PY'
-          import sys, xlrd, glob, json
-          out = []
-          for f in sorted(glob.glob('z/**/*.xls', recursive=True)):
-              wb = xlrd.open_workbook(f)
-              ws = wb.sheet_by_index(0)
-              head = ws.row_values(0)
-              row = ws.row_values(1) if ws.nrows > 1 else []
-              out.append(f"{f} ({ws.nrows} r): " + json.dumps(list(zip(head, row))[:45], ensure_ascii=False))
-          print("\n".join(out))
+          unzip -q f.zip zoznam_liekov.xlsx
+          python3 - > out.txt 2>/dev/null <<'PY'
+          import openpyxl, json
+          wb = openpyxl.load_workbook('zoznam_liekov.xlsx', read_only=True)
+          for ws in wb.worksheets[:2]:
+              rows = ws.iter_rows(max_row=4, values_only=True)
+              head = next(rows); r1 = next(rows); r2 = next(rows)
+              print(ws.title, json.dumps(list(zip(head, r1))[:70], ensure_ascii=False, default=str))
+              ean = [i for i, h in enumerate(head) if h and any(k in str(h).lower() for k in ('ean', 'gtin', 'kod_', 'čiar'))]
+              print('EAN cols', ean, [head[i] for i in ean], [r1[i] for i in ean], [r2[i] for i in ean])
           PY
-          python3 h.py > out.txt 2>&1
-          i=0; while IFS= read -r line; do i=$((i+1)); echo "::notice title=X$i::$(echo "$line" | head -c 3800)"; done < out.txt
+          i=0; while IFS= read -r line; do i=$((i+1)); echo "::notice title=X$i::$(echo "$line" | head -c 3900)"; done < out.txt
