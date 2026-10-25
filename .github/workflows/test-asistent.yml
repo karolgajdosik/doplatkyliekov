@@ -1,0 +1,26 @@
+name: Test AI asistenta (dočasné)
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Otázky
+        run: |
+          i=0
+          while IFS='|' read -r lang q; do
+            i=$((i+1))
+            body=$(jq -nc --arg q "$q" --arg l "$lang" '{q:$q, lang:$l, history:[]}')
+            out=$(curl -s -m 60 -X POST https://doplatkyliekov.sk/api/asistent -H 'content-type: application/json' -d "$body")
+            ans=$(echo "$out" | jq -r '(.answer // .error // "?") + "  || refs: " + ([.refs[]? | select(.[3]=="liek") | .[0]] | .[0:3] | join(" "))' | head -c 1800 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::notice title=Q$i ${q:0:50}::$ans"
+          done <<'QS'
+          hu|Mennyi a térítési díja a Concor 10 mg-nak?
+          hu|Mennyit térít vissza a biztosító, ha nyugdíjas vagyok 700 eurós nyugdíjjal?
+          hu|Mely vérnyomáscsökkentők térítésmentesek?
+          sk|Ktorá poisťovňa vráti deťom doplatky za lieky?
+          QS
+      - name: Stránky
+        run: |
+          for u in /hu/ /hu/gyogyszer/concor-10-mg-94163/ /hu/asszisztens/ /hu/vedelmi-limit/ /vyhody-poistovni/ /og/latka/bisoprolol.jpg; do
+            echo "::notice title=URL $u::$(curl -s -o /dev/null -w '%{http_code} %{size_download}B' https://doplatkyliekov.sk$u)"
+          done
