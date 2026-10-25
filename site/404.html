@@ -18,11 +18,12 @@
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <header class="topbar">
     <a class="brand-link" href="/">
       <svg class="capsule" viewBox="0 0 40 22" aria-hidden="true"><rect x="1" y="1" width="38" height="20" rx="10" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M11 1h9v20h-9a10 10 0 0 1 0-20z" fill="var(--accent)"/></svg>
       <span class="brand-name">doplatky<b>liekov</b>.sk</span>
     </a>
+    <a class="mine-link" href="/moje-lieky/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>Moje lieky <span data-mine-count hidden></span></a>
   </header>
   <section class="intro">
     <h1 class="page-h1">Stránka sa nenašla</h1>
@@ -30,11 +31,13 @@
     <p><a class="cta" href="/">Vyhľadať liek →</a></p>
   </section>
   <footer>
-    <nav aria-label="Ďalšie stránky"><a href="/">Vyhľadať liek</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky</a><a href="/ochranny-limit/">Ochranný limit</a></nav>
+    <nav aria-label="Ďalšie stránky"><a href="/">Vyhľadať liek</a><a href="/moje-lieky/">Moje lieky</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky</a><a href="/ochranny-limit/">Ochranný limit</a><a href="/clanky/">Články</a></nav>
+    <nav aria-label="O webe"><a href="/o-nas/">O nás</a><a href="/kontakt/">Kontakt</a><a href="/ochrana-sukromia/">Ochrana súkromia</a></nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od 1. 10. 2026, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
   </footer>
 </div>
+<script src="/moje.js" defer></script>
 
 </body>
 </html>

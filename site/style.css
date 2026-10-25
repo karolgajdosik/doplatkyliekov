@@ -233,3 +233,60 @@ footer nav a:hover { border-color: var(--accent); color: var(--accent); }
   .wrap > *:nth-child(2) { animation-delay: .05s; } .wrap > *:nth-child(3) { animation-delay: .1s; } .wrap > *:nth-child(4) { animation-delay: .15s; }
   @keyframes rise { from { transform: translateY(10px); opacity: .001; } to { transform: none; opacity: 1; } }
 }
+
+/* ---------- horná lišta, Moje lieky ---------- */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.mine-link { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-size: 15px; font-weight: 500; border: 1px solid var(--line-strong); border-radius: 999px; padding: 7px 14px; background: var(--surface); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.mine-link:hover { border-color: var(--accent); color: var(--accent); }
+.mine-link svg { width: 16px; height: 16px; color: var(--accent); }
+.mine-link [data-mine-count] { font-family: var(--font-mono); font-size: 12px; font-weight: 600; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); display: inline-grid; place-items: center; }
+.mine-btn { display: inline-flex; align-items: center; gap: 10px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 999px; padding: 11px 18px; justify-self: start; transition: border-color .2s, box-shadow .2s, background-color .2s; }
+.mine-btn svg { width: 18px; height: 18px; color: var(--accent); }
+.mine-btn:hover { border-color: var(--accent); box-shadow: 0 0 22px -6px var(--glow); }
+.mine-btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.mine-btn.on svg { fill: currentColor; }
+.slip-actions { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 6px; }
+
+/* ---------- formulár upozornení ---------- */
+.alert-form { display: grid; gap: 14px; }
+.alert-form .fields { display: flex; flex-wrap: wrap; gap: 10px; }
+.alert-form input[type=email] { flex: 1 1 240px; min-width: 0; font: inherit; font-size: 17px; color: var(--ink); background: var(--raise); border: 1px solid var(--line-strong); border-radius: 999px; padding: 13px 18px; }
+.alert-form input[type=email]:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.alert-form button[type=submit] { font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 999px; padding: 13px 22px; box-shadow: 0 0 26px -6px var(--glow); }
+.alert-form button[type=submit]:disabled { opacity: .6; cursor: wait; }
+.alert-form .consent { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14px; color: var(--muted); line-height: 1.5; }
+.alert-form .consent input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--accent); }
+.alert-form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-msg { font-size: 15px; min-height: 1.5em; }
+.form-msg.ok { color: var(--accent); }
+.form-msg.err { color: var(--save); }
+
+/* ---------- stránka Moje lieky ---------- */
+.mine-summary { display: grid; gap: 8px; }
+.mine-total { font-size: 18px; }
+.mine-total b { font-family: var(--font-mono); color: var(--accent); font-size: 22px; }
+.mine-list li { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px 16px; }
+.mine-list .mine-save { color: var(--accent); }
+.mine-list .mine-warn { color: var(--save); font-weight: 500; }
+.mine-remove { font: inherit; font-size: 14px; color: var(--muted); background: transparent; border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.mine-remove:hover { color: var(--save); border-color: var(--save); }
+.empty-state { justify-items: start; }
+
+/* ---------- články ---------- */
+.article { display: grid; gap: 16px; max-width: 68ch; font-size: 18px; line-height: 1.7; }
+.article h2 { font-size: 24px; margin-top: 18px; line-height: 1.25; }
+.article ul, .article ol { margin: 0; padding-left: 24px; display: grid; gap: 8px; }
+.article li::marker { color: var(--accent); }
+.article blockquote { margin: 0; padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 var(--r) var(--r) 0; color: var(--ink); }
+.article-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.article-list a { display: grid; gap: 6px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; }
+.article-list a:hover { border-color: var(--accent); }
+.article-list strong { font-family: var(--font-display); font-weight: 600; font-size: 18px; letter-spacing: -0.01em; line-height: 1.3; }
+.article-list span { color: var(--muted); font-size: 15px; }
+#moje-root { display: grid; gap: 18px; }
+@media (max-width: 420px) {
+  .topbar { flex-wrap: nowrap; }
+  .brand-name { font-size: 15px; }
+  .capsule { width: 34px; height: 19px; }
+  .mine-link { padding: 6px 11px; font-size: 14px; gap: 6px; white-space: nowrap; }
+}

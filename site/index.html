@@ -21,10 +21,13 @@
 
 <div class="wrap">
   <header>
+    <div class="topbar">
     <a class="brand" href="/">
       <svg class="capsule" viewBox="0 0 40 22" aria-hidden="true"><rect x="1" y="1" width="38" height="20" rx="10" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M11 1h9v20h-9a10 10 0 0 1 0-20z" fill="var(--accent)"/></svg>
       <span class="brand-name">doplatky<b>liekov</b>.sk</span>
     </a>
+    <a class="mine-link" href="/moje-lieky/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>Moje lieky <span data-mine-count hidden></span></a>
+    </div>
     <h1>Rovnaká účinná látka, <em>nižší doplatok.</em></h1>
     <p class="lede">Zadajte názov lieku, ktorý užívate. Ukážeme vám lieky s rovnakou látkou, silou a balením, ktoré poisťovňa hradí rovnako, a koľko by ste za ne doplácali v lekárni.</p>
   </header>
@@ -69,7 +72,8 @@
   </section>
 
   <footer>
-    <nav aria-label="Ďalšie stránky"><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky liekov</a><a href="/ochranny-limit/">Ochranný limit</a></nav>
+    <nav aria-label="Ďalšie stránky"><a href="/moje-lieky/">Moje lieky</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky liekov</a><a href="/ochranny-limit/">Ochranný limit</a><a href="/clanky/">Články</a></nav>
+    <nav aria-label="O webe"><a href="/o-nas/">O nás</a><a href="/kontakt/">Kontakt</a><a href="/ochrana-sukromia/">Ochrana súkromia</a></nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od <span id="platnost">…</span>. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
   </footer>
@@ -113,9 +117,15 @@ function render(item) {
   meta.append(el('span', 'mono', 'ATC ' + g.a));
   meta.append(el('span', null, list.length + (list.length === 1 ? ' liek v skupine' : list.length < 5 ? ' lieky v skupine' : ' liekov v skupine')));
   head.append(meta);
+  const actions = el('div', 'slip-actions');
   const link = el('a', 'detail-link', 'Stránka lieku ' + item.name + ' →');
   link.href = '/liek/' + productSlug(item.name, item.kod) + '/';
-  head.append(link);
+  const mine = el('button', 'mine-btn'); mine.type = 'button';
+  mine.setAttribute('data-kod', item.kod); mine.setAttribute('data-name', item.name); mine.setAttribute('data-slug', productSlug(item.name, item.kod));
+  mine.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span class="mine-label"></span>';
+  actions.append(mine, link);
+  head.append(actions);
+  if (window.Moje) setTimeout(() => document.dispatchEvent(new Event('moje:refresh')), 0);
   slip.append(head);
 
   const v = el('div', 'verdict' + (saving > 0.005 ? '' : ' none'));
@@ -254,5 +264,6 @@ fetch('data.json', { cache: 'no-cache' })
   .then(init)
   .catch(() => { document.getElementById('slip').innerHTML = '<p class="slip-foot">Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.</p>'; });
 </script>
+<script src="/moje.js" defer></script>
 </body>
 </html>

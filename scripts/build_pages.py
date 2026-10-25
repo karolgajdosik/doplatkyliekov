@@ -27,7 +27,10 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets"]
+GENERATED = ["liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
+OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
+CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
            "vyhladavanie-liekov-zdravotnickych-pomocok-a-zmien-v-liekovej-databaze?page_id=235")
 SUKL_VYPADKY = "https://portal.sukl.sk/PreruseniePublic/?act=PrerusenieOznList"
@@ -240,6 +243,33 @@ details.io .code { display: block; margin-top: 8px; font-family: var(--font-mono
 """
 
 
+BOOKMARK = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">'
+            '<path d="M6 3h12v18l-6-4.5L6 21z"/></svg>')
+
+
+def mine_button(p):
+    return (f'<button type="button" class="mine-btn" data-kod="{esc(p["kod"])}" data-name="{esc(p["name"])}" '
+            f'data-slug="{esc(p["slug"])}" aria-pressed="false">{BOOKMARK}<span class="mine-label">Pridať do Mojich liekov</span></button>')
+
+
+def alert_form(kod=None, heading="Upozorníme vás na zmenu"):
+    data_kod = f' data-kod="{esc(kod)}"' if kod else ""
+    return f"""
+  <section class="card">
+    <h2>{esc(heading)}</h2>
+    <p class="page-sub">Pošleme vám e-mail, len keď sa zmení doplatok vašich liekov alebo keď výrobca ohlási výpadok. Bez reklamy, odhlásiť sa dá jedným kliknutím.</p>
+    <form class="alert-form"{data_kod} novalidate>
+      <div class="fields">
+        <label class="hp" aria-hidden="true">Web <input name="web" tabindex="-1" autocomplete="off"></label>
+        <input type="email" name="email" id="alert-email" autocomplete="email" placeholder="vas@email.sk" aria-label="E-mailová adresa" required>
+        <button type="submit">Chcem upozornenia</button>
+      </div>
+      <label class="consent"><input type="checkbox" name="consent" id="alert-consent"> <span>Súhlasím so spracovaním e-mailu a zoznamu mojich liekov na zasielanie upozornení podľa <a href="/ochrana-sukromia/">zásad ochrany súkromia</a>.</span></label>
+      <p class="form-msg" aria-live="polite"></p>
+    </form>
+  </section>"""
+
+
 def extract_css():
     return EXTRA_CSS
 
@@ -270,19 +300,22 @@ def page(title, description, path, body, jsonld=None, script=""):
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <header class="topbar">
     <a class="brand-link" href="/">
       {CAPSULE}
       <span class="brand-name">doplatky<b>liekov</b>.sk</span>
     </a>
+    <a class="mine-link" href="/moje-lieky/">{BOOKMARK}Moje lieky <span data-mine-count hidden></span></a>
   </header>
 {body}
   <footer>
-    <nav aria-label="Ďalšie stránky"><a href="/">Vyhľadať liek</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky</a><a href="/ochranny-limit/">Ochranný limit</a></nav>
+    <nav aria-label="Ďalšie stránky"><a href="/">Vyhľadať liek</a><a href="/moje-lieky/">Moje lieky</a><a href="/skupiny/">Lieky podľa skupín</a><a href="/lieky/">Účinné látky</a><a href="/zmeny/">Zmeny doplatkov</a><a href="/vypadky/">Výpadky</a><a href="/ochranny-limit/">Ochranný limit</a><a href="/clanky/">Články</a></nav>
+    <nav aria-label="O webe"><a href="/o-nas/">O nás</a><a href="/kontakt/">Kontakt</a><a href="/ochrana-sukromia/">Ochrana súkromia</a></nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {esc(PLATNOST)}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu a nenahrádza radu lekára ani lekárnika.</p>
   </footer>
 </div>
+<script src="/moje.js" defer></script>
 {script}
 </body>
 </html>
@@ -398,6 +431,9 @@ def build():
     nxt = load("next.json")
     vyp_all = load("vypadky.json", {}) or {}
     vyp = vyp_all.get("lieky", {})
+    # staré hlásenia bez obnovenia dodávok považujeme za neaktuálne (držitelia často obnovenie nenahlásia)
+    cutoff = (dt.date.today() - dt.timedelta(days=730)).isoformat()
+    vyp = {k: v for k, v in vyp.items() if v.get("od", "") >= cutoff}
     PLATNOST = full.get("platnost", "")
     cur_iso = full.get("platnostIso") or ""
     lastmod = cur_iso or None
@@ -677,6 +713,7 @@ def build():
     <h1 class="page-h1">{esc(p['name'])}</h1>
     <p class="page-sub">{esc(p['pack'])}</p>
     {purpose}
+    {mine_button(p)}
   </section>
     {alerts_html}
   <section class="slip">
@@ -697,6 +734,7 @@ def build():
 {hist_html}
 {presc_html}
 {about_html}
+{alert_form(p["kod"])}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
         title = f"{p['name']} ({pk}) – doplatok a lacnejšie alternatívy"
@@ -995,6 +1033,206 @@ def build():
     write("/ochranny-limit/", page("Ochranný limit doplatkov za lieky 2026 – kalkulačka",
                                    "Koľko vám poisťovňa vráti za doplatky za lieky: limity pre dôchodcov, ŤZP a deti na rok 2026, čo sa započítava a kalkulačka preplatku.",
                                    "/ochranny-limit/", body, breadcrumb_ld(crumb_items), script))
+
+    # --- alerts.json pre Moje lieky ---
+    alert_items = {}
+    for g, p in products:
+        a = {}
+        c = next_change(p)
+        if c and (c["gone"] or (c["diff"] is not None and abs(c["diff"]) >= 0.01)):
+            a["n"] = None if c["gone"] else c["dop"]
+        st = vyp.get(p["kod"])
+        if st:
+            a["v"] = [st["stav"], st["od"]]
+        if a:
+            alert_items[p["kod"]] = a
+    (SITE / "alerts.json").write_text(json.dumps({
+        "platnost": cur_iso, "next": nxt["platnostIso"] if nxt else None,
+        "vypadkyDatum": vyp_all.get("datum"), "items": alert_items}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    # --- Moje lieky ---
+    crumb_items = [("Domov", "/"), ("Moje lieky", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Uložené len vo vašom prehliadači</p>
+    <h1 class="page-h1">Moje lieky</h1>
+    <p class="page-sub">Prehľad liekov, ktoré užívate: aktuálny doplatok, lacnejšia alternatíva, zmeny od budúceho mesiaca a výpadky dodávok. Zoznam nikam neposielame, zostáva v tomto zariadení.</p>
+  </section>
+  <section id="moje-root" aria-live="polite"><p class="page-sub">Načítavam…</p></section>
+{alert_form(None, "Upozornenia e-mailom")}"""
+    write("/moje-lieky/", page("Moje lieky – sledovanie doplatkov", "Uložte si lieky, ktoré užívate, a sledujte ich doplatky, zmeny a výpadky na jednom mieste.", "/moje-lieky/", body, breadcrumb_ld(crumb_items)))
+
+    # --- čísla do textov ---
+    gap_groups = 0
+    for g in groups:
+        it = sorted_items(g)
+        if len(it) > 1 and it[-1]["dop"] - it[0]["dop"] >= 1:
+            gap_groups += 1
+    zero_cnt = sum(1 for _, p in products if p["dop"] == 0)
+
+    # --- O nás ---
+    crumb_items = [("Domov", "/"), ("O nás", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">O projekte</p>
+    <h1 class="page-h1">Prečo vznikol doplatkyliekov.sk</h1>
+  </section>
+  <section class="article">
+    <p>Za rovnaký liek môžete v lekárni doplácať veľmi rozdielne sumy. Rozhoduje to, ktorú značku si vyberiete. Údaje o doplatkoch síce zverejňuje Ministerstvo zdravotníctva SR, ale ako rozsiahle tabuľky, v ktorých sa bežný človek ťažko vyzná. Tento web ich prekladá do zrozumiteľnej podoby.</p>
+    <p>V aktuálnom zozname je {plural_lieky(len(products))} hradených poisťovňou. Pri {gap_groups} skupinách liekov s rovnakou látkou, silou a balením ušetríte výberom lacnejšej verzie aspoň 1&nbsp;€ na balení a {zero_cnt} balení je úplne bez doplatku.</p>
+    <h2>Odkiaľ sú údaje</h2>
+    <ul>
+      <li><strong>Zoznam kategorizovaných liekov</strong> Ministerstva zdravotníctva SR: ceny, úhrady poisťovní, doplatky, preskripčné a indikačné obmedzenia. Ministerstvo ho vydáva každý mesiac a my ho sťahujeme automaticky, vrátane zoznamu na budúci mesiac, keď je zverejnený.</li>
+      <li><strong>Hlásenia o dodávkach liekov</strong> Štátneho ústavu pre kontrolu liečiv (ŠÚKL): prerušenia, ukončenia a obnovenia dodávok. Kontrolujeme ich každý deň.</li>
+    </ul>
+    <h2>Nezávislosť</h2>
+    <p>Web nie je prepojený so žiadnym výrobcom liekov, lekárňou ani zdravotnou poisťovňou. Poradie liekov určuje výlučne výška doplatku. Ak niekedy na webe pribudnú odkazy na internetové lekárne, budú zreteľne označené a na poradie liekov nebudú mať vplyv.</p>
+    <h2>Dôležité upozornenie</h2>
+    <p>Údaje majú informačný charakter. Doplatok v zozname je maximálny a lekáreň môže dať zľavu. O zmene lieku sa vždy poraďte s lekárom alebo lekárnikom. Ak nájdete chybu, napíšte nám na <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
+    <p>Prevádzkovateľ: {esc(OPERATOR)}.</p>
+  </section>"""
+    write("/o-nas/", page("O nás – doplatkyliekov.sk", "Kto prevádzkuje doplatkyliekov.sk, odkiaľ sú údaje o doplatkoch za lieky a ako často ich aktualizujeme.", "/o-nas/", body, breadcrumb_ld(crumb_items)))
+
+    # --- Kontakt ---
+    crumb_items = [("Domov", "/"), ("Kontakt", None)]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Kontakt</p>
+    <h1 class="page-h1">Napíšte nám</h1>
+    <p class="page-sub">Našli ste chybu v údajoch, máte nápad na zlepšenie alebo otázku k webu? Ozvite sa.</p>
+  </section>
+  <section class="card">
+    <dl class="facts-dl">
+      <dt>E-mail</dt><dd><span class="mono" style="user-select:all">{CONTACT}</span><small>Odpovedáme spravidla do niekoľkých pracovných dní.</small></dd>
+      <dt>Prevádzkovateľ</dt><dd>{esc(OPERATOR)}</dd>
+    </dl>
+    <p class="hint">Na otázky o vašej liečbe, dávkovaní či vhodnosti lieku nevieme odpovedať. S tými sa obráťte na svojho lekára alebo lekárnika.</p>
+  </section>"""
+    write("/kontakt/", page("Kontakt – doplatkyliekov.sk", "Kontakt na prevádzkovateľa webu doplatkyliekov.sk.", "/kontakt/", body, breadcrumb_ld(crumb_items)))
+
+    # --- Ochrana súkromia ---
+    crumb_items = [("Domov", "/"), ("Ochrana súkromia", None)]
+    today_sk = sk_date(dt.date.today().isoformat())
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Zásady ochrany osobných údajov</p>
+    <h1 class="page-h1">Ochrana súkromia</h1>
+    <p class="page-sub">Platné od {today_sk}. Stručne: nepoužívame reklamné ani sledovacie cookies a osobné údaje spracúvame len vtedy, ak sa sami prihlásite na upozornenia e-mailom.</p>
+  </section>
+  <section class="article">
+    <h2>Kto spracúva údaje</h2>
+    <p>Prevádzkovateľom webu doplatkyliekov.sk a prevádzkovateľom osobných údajov je {esc(OPERATOR)}, kontakt: <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
+    <h2>Prehliadanie webu</h2>
+    <p>Web nepoužíva cookies na sledovanie ani reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
+    <h2>Moje lieky</h2>
+    <p>Zoznam liekov, ktorý si uložíte v sekcii Moje lieky, sa ukladá iba vo vašom prehliadači (localStorage). Nikam ho neodosielame a nemáme k nemu prístup. Vymažete ho odobratím liekov alebo vymazaním údajov prehliadača.</p>
+    <h2>Upozornenia e-mailom</h2>
+    <p>Ak sa prihlásite na upozornenia, spracúvame:</p>
+    <ul>
+      <li>vašu e-mailovú adresu,</li>
+      <li>zoznam liekov, o ktorých vás máme informovať (kódy ŠÚKL),</li>
+      <li>dátum prihlásenia a potvrdenia a údaj o tom, aké upozornenia sme vám už poslali.</li>
+    </ul>
+    <p><strong>Účel:</strong> zasielanie upozornení na zmeny doplatkov a výpadky dodávok vašich liekov. <strong>Právny základ:</strong> váš výslovný súhlas (čl. 6 ods. 1 písm. a) a čl. 9 ods. 2 písm. a) GDPR). Zoznam liekov môže nepriamo vypovedať o vašom zdraví, preto ho spracúvame len s vaším výslovným súhlasom a nepoužívame ho na žiadny iný účel.</p>
+    <p><strong>Doba uchovávania:</strong> do odvolania súhlasu. Súhlas odvoláte kedykoľvek odkazom v každom e-maile alebo e-mailom na {CONTACT}; údaje potom bez zbytočného odkladu vymažeme. Nepotvrdené prihlásenia mažeme po 7 dňoch.</p>
+    <p><strong>Sprostredkovatelia:</strong> Cloudflare, Inc. (uloženie údajov) a Resend, Inc. (odosielanie e-mailov). Ide o spoločnosti so sídlom v USA. Prenos údajov sa riadi rámcom ochrany údajov EÚ – USA (EU-U.S. Data Privacy Framework), resp. štandardnými zmluvnými doložkami. Údaje nepredávame ani neposkytujeme tretím stranám na marketing.</p>
+    <h2>Vaše práva</h2>
+    <p>Máte právo na prístup k údajom, ich opravu, vymazanie, obmedzenie spracúvania, prenosnosť a právo kedykoľvek odvolať súhlas. Žiadosti posielajte na {CONTACT}. Máte tiež právo podať sťažnosť Úradu na ochranu osobných údajov Slovenskej republiky (dataprotection.gov.sk).</p>
+  </section>"""
+    write("/ochrana-sukromia/", page("Ochrana súkromia – doplatkyliekov.sk", "Ako doplatkyliekov.sk spracúva osobné údaje: bez sledovacích cookies, Moje lieky len v prehliadači, upozornenia e-mailom so súhlasom.", "/ochrana-sukromia/", body, breadcrumb_ld(crumb_items)))
+
+    # --- články ---
+    articles = [
+        ("ako-usetrit-na-liekoch", "Ako ušetriť na liekoch na predpis: 6 praktických krokov",
+         "Šesť spôsobov, ako zaplatiť v lekárni menej za lieky na predpis: generiká, predpis názvom liečiva, ochranný limit a benefity poisťovní.",
+         f"""<p>Doplatky za lieky sa pri dlhodobej liečbe sčítavajú. Pri lieku na tlak alebo cholesterol, ktorý užívate roky, môže rozdiel medzi najdrahšou a najlacnejšou verziou predstavovať desiatky eur ročne. V aktuálnom zozname je {gap_groups} skupín liekov, v ktorých lacnejšia verzia ušetrí aspoň 1&nbsp;€ na balení.</p>
+    <h2>1. Zistite, koľko doplácate a koľko by ste mohli</h2>
+    <p>Do <a href="/">vyhľadávania</a> zadajte názov lieku z balenia alebo receptu. Uvidíte všetky lieky s rovnakou účinnou látkou, silou a veľkosťou balenia, ktoré poisťovňa hradí rovnako, zoradené podľa doplatku.</p>
+    <h2>2. Opýtajte sa lekárnika na lacnejšiu alternatívu</h2>
+    <p>Lekárnik vám môže vydať liek s rovnakou účinnou látkou od iného výrobcu, ak lekár na recepte nevyznačil, že liek sa nesmie zamieňať. Stačí sa opýtať, či existuje verzia s nižším doplatkom.</p>
+    <h2>3. Využite predpis názvom účinnej látky</h2>
+    <p>Pri mnohých liekoch lekár predpisuje názov účinnej látky, nie konkrétnu značku. Vtedy si v lekárni môžete vybrať ktorýkoľvek liek s touto látkou. Na stránke každého lieku v časti <em>Predpis a úhrada</em> uvidíte, či to platí aj pre váš liek.</p>
+    <h2>4. Skontrolujte, či máte nárok na ochranný limit</h2>
+    <p>Dôchodcom, ľuďom s preukazom ŤZP, invalidným dôchodcom a deťom do 6 rokov vracia poisťovňa doplatky nad štvrťročný limit. Pozor, započítava sa len doplatok za najlacnejší náhradný liek. Viac v našom <a href="/ochranny-limit/">prehľade ochranného limitu</a>.</p>
+    <h2>5. Pozrite si benefity svojej poisťovne</h2>
+    <p>Zdravotné poisťovne majú vlastné programy, napríklad preplácanie doplatkov deťom alebo príspevky na lieky po splnení preventívnych prehliadok. Podmienky sa líšia, preto si ich overte priamo u svojej poisťovne.</p>
+    <h2>6. Sledujte zmeny vopred</h2>
+    <p>Doplatky sa menia každý mesiac. Ministerstvo zverejňuje nový zoznam vopred, takže zmeny vidíte skôr, než nastanú. Pozrite si <a href="/zmeny/">zmeny od budúceho mesiaca</a> alebo si lieky uložte do <a href="/moje-lieky/">Mojich liekov</a> a nechajte si poslať upozornenie.</p>
+    <blockquote>O zmene lieku sa vždy poraďte s lekárom alebo lekárnikom, najmä ak užívate viac liekov naraz.</blockquote>"""),
+        ("co-su-generika", "Čo sú generiká a sú rovnako účinné ako originál?",
+         "Generikum obsahuje rovnakú účinnú látku ako originálny liek. Vysvetľujeme, ako sa schvaľuje, v čom sa líši a kedy byť pri zámene opatrný.",
+         """<p>Generikum je liek, ktorý obsahuje rovnakú účinnú látku v rovnakom množstve a rovnakej liekovej forme ako pôvodný, takzvaný originálny liek. Na trh môže prísť po uplynutí patentovej ochrany originálu.</p>
+    <h2>Ako sa schvaľuje</h2>
+    <p>Výrobca generika musí liekovej agentúre preukázať, že jeho liek je s originálom <strong>bioekvivalentný</strong>: účinná látka sa v tele vstrebáva v rovnakom rozsahu a rovnakou rýchlosťou v rámci prísne stanovených limitov. Generiká podliehajú rovnakým požiadavkám na kvalitu a výrobu ako originály. Na Slovensku ich registruje Štátny ústav pre kontrolu liečiv alebo sú registrované centrálne pre celú Európsku úniu.</p>
+    <h2>V čom sa môže líšiť</h2>
+    <ul>
+      <li>názvom, výrobcom, obalom, tvarom alebo farbou tablety,</li>
+      <li>pomocnými látkami (napríklad farbivá či plnivá), čo je dôležité pri alergiách alebo intoleranciách,</li>
+      <li>cenou a doplatkom, ktorý je často výrazne nižší.</li>
+    </ul>
+    <h2>Prečo je lacnejšie</h2>
+    <p>Výrobca generika nemusí znova financovať vývoj a rozsiahle klinické štúdie účinnej látky, ktoré už absolvoval originál. Preto môže liek ponúknuť lacnejšie.</p>
+    <h2>Kedy byť opatrnejší</h2>
+    <p>Pri niektorých liekoch s úzkym terapeutickým rozpätím, napríklad pri niektorých liekoch na epilepsiu, na štítnu žľazu alebo na riedenie krvi, odporúčajú lekári zbytočne nestriedať výrobcov. Ak užívate takýto liek, zmenu vždy konzultujte s lekárom.</p>
+    <blockquote>Na stránke každého lieku vidíte pri alternatívach označenie Originál alebo Generikum, takže hneď viete, o aký liek ide.</blockquote>"""),
+        ("preco-sa-meni-doplatok", "Prečo sa mení doplatok za liek",
+         "Doplatky za lieky sa menia každý mesiac. Vysvetľujeme, ako vzniká doplatok, čo je kategorizácia a prečo rovnaký liek môže zrazu stáť viac.",
+         """<p>Doplatok je rozdiel medzi cenou lieku v lekárni a sumou, ktorú za liek uhradí zdravotná poisťovňa. Obe čísla určuje Zoznam kategorizovaných liekov, ktorý Ministerstvo zdravotníctva SR vydáva každý mesiac.</p>
+    <h2>Čo je kategorizácia</h2>
+    <p>Kategorizácia je proces, v ktorom ministerstvo rozhoduje, ktoré lieky budú hradené z verejného zdravotného poistenia, za akú najvyššiu cenu a v akej výške ich poisťovňa uhradí. Lieky s rovnakou účinnou látkou, silou a veľkosťou balenia tvoria skupinu, v ktorej poisťovňa hradí rovnakú alebo porovnateľnú sumu.</p>
+    <h2>Prečo sa doplatok mení</h2>
+    <ul>
+      <li><strong>Zmena úhrady:</strong> keď na trh príde lacnejší liek, úhrada poisťovne pre celú skupinu sa môže znížiť. Výrobcovia drahších liekov, ktorí cenu neznížia, majú potom vyšší doplatok.</li>
+      <li><strong>Zmena ceny:</strong> výrobca môže cenu lieku znížiť alebo zvýšiť v rámci povolenej maximálnej ceny.</li>
+      <li><strong>Porovnávanie cien v EÚ:</strong> ministerstvo pravidelne porovnáva ceny liekov s ostatnými krajinami Únie a podľa toho upravuje maximálne ceny.</li>
+      <li><strong>Vyradenie zo zoznamu:</strong> ak liek zo zoznamu vypadne, poisťovňa ho prestane hradiť a pacient platí celú cenu.</li>
+    </ul>
+    <h2>Ako sa dozviete o zmene vopred</h2>
+    <p>Nový zoznam býva zverejnený pred začiatkom mesiaca, v ktorom platí. Na stránke <a href="/zmeny/">Zmeny doplatkov</a> porovnávame nový zoznam s aktuálnym. Pri každom lieku zároveň uvidíte graf vývoja doplatku za posledné mesiace.</p>"""),
+    ]
+    crumb_items = [("Domov", "/"), ("Články", None)]
+    lis = "".join(f'<li><a href="/clanky/{sl}/"><strong>{esc(t)}</strong><span>{esc(d)}</span></a></li>' for sl, t, d, _ in articles)
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Návody a vysvetlenia</p>
+    <h1 class="page-h1">Články</h1>
+  </section>
+  <ul class="article-list">{lis}</ul>"""
+    write("/clanky/", page("Články o liekoch a doplatkoch", "Návody, ako ušetriť na liekoch na predpis, čo sú generiká a prečo sa menia doplatky.", "/clanky/", body, breadcrumb_ld(crumb_items)))
+    urls.append(("/clanky/", "0.6"))
+    for sl, t, d, html_body in articles:
+        path = f"/clanky/{sl}/"
+        crumb_items = [("Domov", "/"), ("Články", "/clanky/"), (t, None)]
+        ld = [breadcrumb_ld(crumb_items), {"@context": "https://schema.org", "@type": "Article", "headline": t,
+              "description": d, "inLanguage": "sk", "author": {"@type": "Person", "name": OPERATOR},
+              "publisher": {"@type": "Organization", "name": "doplatkyliekov.sk"}, "mainEntityOfPage": BASE + path}]
+        body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Článok</p>
+    <h1 class="page-h1">{esc(t)}</h1>
+  </section>
+  <section class="article">
+    {html_body}
+  </section>
+  <p><a class="cta" href="/">Vyhľadať liek →</a></p>"""
+        write(path, page(t, d, path, body, ld))
+        urls.append((path, "0.6"))
+    urls += [("/moje-lieky/", "0.5"), ("/o-nas/", "0.3"), ("/kontakt/", "0.3"), ("/ochrana-sukromia/", "0.2")]
+
+    # --- výsledky prihlásenia na upozornenia ---
+    for sl, title, text in [
+        ("potvrdene", "Prihlásenie je potvrdené", "Ďakujeme. Keď sa zmení doplatok niektorého z vašich liekov alebo výrobca ohlási výpadok, pošleme vám e-mail. Odhlásiť sa môžete odkazom v každom e-maile."),
+        ("odhlasene", "Boli ste odhlásený", "Upozornenia vám už posielať nebudeme a vaše údaje sme vymazali. Zoznam Moje lieky vo vašom prehliadači zostáva."),
+        ("chyba", "Odkaz je neplatný alebo vypršal", "Odkaz na potvrdenie platí 7 dní. Prihláste sa prosím znova na stránke Moje lieky."),
+    ]:
+        body = f"""  <section class="intro">
+    <p class="eyebrow">Upozornenia e-mailom</p>
+    <h1 class="page-h1">{esc(title)}</h1>
+    <p class="page-sub">{esc(text)}</p>
+    <p><a class="cta" href="/moje-lieky/">Moje lieky →</a></p>
+  </section>"""
+        html_page = page(title, text, f"/upozornenia/{sl}/", body).replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">')
+        write(f"/upozornenia/{sl}/", html_page)
 
     # --- 404 ---
     body404 = """  <section class="intro">
