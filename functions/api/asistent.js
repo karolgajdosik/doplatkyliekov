@@ -131,7 +131,7 @@ async function toolCondition(env, request, q, refs) {
   if (!hits.length) return 'Ochorenie: ' + q + ' nemáme spracované. Dostupné: ' + Object.values(conds).map((c) => c.kluc).join(', ') + '.';
   if (refs) hits.slice(0, 2).forEach(([, c]) => { refs.set(c.url, { n: c.nazov, t: 'stranka' }); c.latky.slice(0, 25).forEach((l) => refs.set(l[4], { n: l[0], t: 'latka' })); });
   return hits.slice(0, 2).map(([, c]) => `${c.nazov} (${c.url}): ${c.popis}\nÚčinné látky (najnižší doplatok, počet balení, najväčší rozdiel v skupine, odkaz):\n` +
-    c.latky.slice(0, 25).map((l) => `  - ${l[0]}: od ${eur(l[1])}, ${l[2]} balení, rozdiel až ${eur(l[3])}, ${l[4]}`).join('\n')).join('\n\n');
+    c.latky.slice(0, 25).map((l) => `  - ${l[0]}: ${l[1] === 0 ? 'AJ BEZ DOPLATKU (najnižší doplatok 0,00 €)' : 'najnižší doplatok ' + eur(l[1])}, ${l[2]} balení, rozdiel až ${eur(l[3])}, ${l[4]}`).join('\n')).join('\n\n');
 }
 async function toolDocs(env, request, q, refs) {
   const docs = await asset(env, request, '/ai/docs.json');
