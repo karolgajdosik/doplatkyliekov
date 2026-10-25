@@ -4,17 +4,25 @@ jobs:
   t:
     runs-on: ubuntu-latest
     steps:
-      - name: Zoznam súborov ŠÚKL
+      - name: Zoznam
         run: |
-          curl -sL https://www.sukl.sk/verejne/ -o v.html; echo "::notice title=LEN::$(wc -c < v.html)"
-          grep -oiE 'href="[^"]+"' v.html | sort -u | head -60 | tr '\n' ' ' > links.txt
-          echo "::notice title=LINKS::$(head -c 3500 links.txt)"
-      - name: Hlavicky
+          B=https://www.sukl.sk/verejne/Zoznam_liekov/
+          curl -sL $B -o v.html
+          echo "::notice title=LINKS::$(grep -oiE 'href="[^"?]+"' v.html | sort -u | tr '\n' ' ' | head -c 3000)"
+          echo "::notice title=SIZES::$(sed 's/<[^>]*>/ /g' v.html | grep -iE 'zip|csv|xls|xml|txt' | tr -s ' ' | head -20 | tr '\n' '|' | head -c 2500)"
+      - name: Obsah
         run: |
-          curl -sL https://www.sukl.sk/verejne/ -o v.html
-          for u in $(grep -oiE 'href="[^"]+\.(zip|csv|xlsx?|xml|txt)"' v.html | sed 's/href="//;s/"$//' | head -8); do
-            case "$u" in http*) U="$u";; /*) U="https://www.sukl.sk$u";; *) U="https://www.sukl.sk/verejne/$u";; esac
-            curl -sL "$U" -o f.bin; T=$(file -b f.bin | head -c 60)
-            if echo "$T" | grep -qi zip; then unzip -o -q f.bin -d z 2>/dev/null; H=$(for x in z/*; do echo "$x: $(head -c 400 "$x" | iconv -f cp1250 -t utf-8 2>/dev/null | head -2 | tr '\n' '|')"; done | head -c 1500); rm -rf z; else H=$(head -c 600 f.bin | iconv -f cp1250 -t utf-8 2>/dev/null | head -3 | tr '\n' '|'); fi
-            echo "::notice title=$u::$T :: $H"
+          B=https://www.sukl.sk/verejne/Zoznam_liekov/
+          curl -sL $B -o v.html
+          n=0
+          for f in $(grep -oiE 'href="[^"?/]+\.(zip|csv|xlsx?|xml|txt)"' v.html | sed 's/href="//;s/"$//' | head -6); do
+            curl -sL "$B$f" -o f.bin; T=$(file -b f.bin | head -c 50); S=$(stat -c %s f.bin)
+            rm -rf z; mkdir z
+            if echo "$T" | grep -qi zip; then unzip -o -q f.bin -d z; else cp f.bin z/$f; fi
+            H=""
+            for x in z/*; do
+              if echo "$x" | grep -qiE 'xlsx?$'; then pip -q install openpyxl xlrd >/dev/null 2>&1; H="$H $x: $(python3 -c "import sys,openpyxl;wb=openpyxl.load_workbook(sys.argv[1],read_only=True);ws=wb.active;print([c for r in ws.iter_rows(max_row=2,values_only=True) for c in r][:60])" "$x" 2>&1 | head -c 1500)";
+              else H="$H $x: $(head -c 700 "$x" | iconv -f cp1250 -t utf-8 2>/dev/null | head -3 | tr '\n' '|')"; fi
+            done
+            echo "::notice title=$f ($S B)::$T :: $(echo $H | head -c 3000)"
           done
