@@ -27,8 +27,8 @@ export async function onRequestPost({ request, env }) {
 
   const token = prev?.token || crypto.randomUUID().replace(/-/g, '');
   const rec = prev?.confirmed
-    ? { ...prev, pendingKody: kody, mails: [...recent, now] }                 // úpravu zoznamu treba potvrdiť
-    : { email, kody, token, confirmed: false, created: now, notified: {}, mails: [...recent, now] };
+    ? { ...prev, pendingKody: kody, pendingDigest: body.digest === true, mails: [...recent, now] }   // úpravu zoznamu treba potvrdiť
+    : { email, kody, token, confirmed: false, created: now, notified: {}, mails: [...recent, now], digest: body.digest === true };
   rec.consentAt = now;
 
   const ttl = rec.confirmed ? undefined : { expirationTtl: WEEK };

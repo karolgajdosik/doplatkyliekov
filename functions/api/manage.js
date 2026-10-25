@@ -30,7 +30,7 @@ export async function onRequestGet({ request, env }) {
   const t = new URL(request.url).searchParams.get('t');
   const hit = await load(env, t);
   if (!hit) return json({ error: 'Odkaz je neplatný alebo upozornenia už boli zrušené.' }, 404);
-  return json({ email: mask(hit.email), confirmed: !!hit.rec.confirmed, kody: hit.rec.kody || [], pending: hit.rec.pendingKody || [] });
+  return json({ email: mask(hit.email), confirmed: !!hit.rec.confirmed, kody: hit.rec.kody || [], pending: hit.rec.pendingKody || [], digest: !!hit.rec.digest });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -43,6 +43,11 @@ export async function onRequestPost({ request, env }) {
   if (body.deleteAll === true) {
     await wipe(env, email, body.t);
     return json({ deleted: true });
+  }
+  if (typeof body.digest === 'boolean') {
+    rec.digest = body.digest;
+    await env.SUBS.put(`sub:${email}`, JSON.stringify(rec));
+    return json({ kody: rec.kody || [], digest: rec.digest });
   }
   const clean = (a) => (Array.isArray(a) ? a : []).map(String).filter((k) => KOD.test(k));
   let kody = rec.kody || [];

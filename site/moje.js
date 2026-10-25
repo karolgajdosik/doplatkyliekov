@@ -106,7 +106,7 @@
       btn.disabled = true;
       fetch('/api/subscribe', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, kody: kody, consent: true, web: hp })
+        body: JSON.stringify({ email: email, kody: kody, consent: true, web: hp, digest: !!(form.querySelector('[name=digest]') || {}).checked })
       }).then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (j) { return { status: r.status, j: j }; });
       }).then(function (res) {
@@ -148,6 +148,110 @@
   function loadSlugs() {
     if (!slugCache) slugCache = fetch('/slugs.json').then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; });
     return slugCache;
+  }
+
+  /* kedy mi dôjde liek */
+  var RUNOUT = {};
+  function todayIso() { var t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
+  function addDays(iso, n) { var p = iso.split('-'); var t = new Date(+p[0], +p[1] - 1, +p[2] + n); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
+  function daysTo(iso) { var p = iso.split('-'); var a = new Date(+p[0], +p[1] - 1, +p[2]); var b = new Date(); b.setHours(0, 0, 0, 0); return Math.round((a - b) / 864e5); }
+  function refillBox(m, ks, d, name) {
+    var box = el('div', 'mine-refill');
+    if (!m.s || !/^\d{4}-\d{2}-\d{2}$/.test(m.s)) {
+      delete RUNOUT[m.kod];
+      box.append(el('span', null, 'Kedy vám liek dôjde? '));
+      var now = el('button', 'linkish', 'Začal som nové balenie dnes'); now.type = 'button';
+      now.addEventListener('click', function () { Moje.update(m.kod, { s: todayIso() }); window.renderMoje(); });
+      var lab = el('label', 'mine-start', 'alebo dňa ');
+      var di = el('input'); di.type = 'date'; di.max = todayIso(); di.setAttribute('aria-label', 'Dátum začatia balenia: ' + name);
+      di.addEventListener('change', function () { if (di.value) { Moje.update(m.kod, { s: di.value }); window.renderMoje(); } });
+      lab.append(di); box.append(now, ' ', lab);
+      return box;
+    }
+    var out = addDays(m.s, Math.floor(ks / d));
+    RUNOUT[m.kod] = out;
+    var left = daysTo(out);
+    var txt = left < 0 ? 'Balenie už malo dôjsť ' + skDate(out) + '.' : left === 0 ? 'Balenie dôjde dnes.' : 'Balenie dôjde približne ' + skDate(out) + ' (o ' + left + (left === 1 ? ' deň' : left < 5 ? ' dni' : ' dní') + ').';
+    var info = el('span', left <= 7 ? 'mine-warn' : null, txt);
+    if (left <= 7) info.append(' Myslite na nový recept.');
+    var again = el('button', 'linkish', 'Mám nové balenie'); again.type = 'button';
+    again.addEventListener('click', function () { Moje.update(m.kod, { s: todayIso() }); window.renderMoje(); });
+    box.append(info, ' ', again);
+    return box;
+  }
+  function icsFor(list) {
+    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//doplatkyliekov.sk//Moje lieky//SK', 'CALSCALE:GREGORIAN'];
+    var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+    list.forEach(function (m) {
+      var out = RUNOUT[m.kod]; if (!out) return;
+      var remind = addDays(out, -3); if (daysTo(remind) < 0) remind = todayIso();
+      var d = remind.replace(/-/g, ''), d2 = addDays(remind, 1).replace(/-/g, '');
+      lines.push('BEGIN:VEVENT', 'UID:' + m.kod + '-' + out + '@doplatkyliekov.sk', 'DTSTAMP:' + stamp,
+        'DTSTART;VALUE=DATE:' + d, 'DTEND;VALUE=DATE:' + d2,
+        'SUMMARY:Kúpiť liek: ' + (m.name || m.kod).replace(/[,;\\]/g, ' '),
+        'DESCRIPTION:Balenie dôjde približne ' + skDate(out) + '. Ak treba\\, vyžiadajte si recept. doplatkyliekov.sk/moje-lieky/',
+        'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Kúpiť liek', 'TRIGGER:PT9H', 'END:VALARM', 'END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    return lines.join('\r\n');
+  }
+
+  /* notifikácie v telefóne (Web Push) */
+  var VAPID = 'BIMBi6qoRml0DsWvgoUVItYTsgvdaAaOOjiFtsdlcd04L4qFCw7frmMeUYVVzuk3iirtULNrZH-STHGsN0RUCSw';
+  var PKEY = 'push.v1';
+  function pushState() { try { return JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) { return null; } }
+  function pushSave(v) { try { if (v) localStorage.setItem(PKEY, JSON.stringify(v)); else localStorage.removeItem(PKEY); } catch (e) { /* nič */ } }
+  function b64u(s) { var p = '='.repeat((4 - s.length % 4) % 4); var b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); var a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+  function pushPayload() {
+    var kody = read().map(function (x) { return x.kod; });
+    var refills = {}; kody.forEach(function (k) { if (RUNOUT[k]) refills[k] = RUNOUT[k]; });
+    return { kody: kody, refills: refills };
+  }
+  function pushSync() {
+    var st = pushState(); if (!st) return;
+    var p = pushPayload(), sig = JSON.stringify(p);
+    if (sig === st.sig) return;
+    fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', id: st.id, endpoint: st.endpoint, kody: p.kody, refills: p.refills }) })
+      .then(function (r) { if (r.ok) { st.sig = sig; pushSave(st); } else if (r.status === 404) pushSave(null); }).catch(function () {});
+  }
+  function pushUI() {
+    var card = document.getElementById('push-card'); if (!card) return;
+    var msg = card.querySelector('.form-msg'), on = document.getElementById('push-on'), off = document.getElementById('push-off'), cons = card.querySelector('.consent');
+    var st = pushState();
+    var supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    card.hidden = false;
+    function say(t, ok) { msg.textContent = t; msg.className = 'form-msg ' + (ok ? 'ok' : 'err'); }
+    if (!supported) {
+      on.hidden = true; off.hidden = true; cons.hidden = true;
+      say(ios && !standalone() ? 'Na iPhone fungujú notifikácie len vtedy, keď si web pridáte na plochu (Safari → Zdieľať → Pridať na plochu) a otvoríte ho odtiaľ.' : 'Tento prehliadač notifikácie nepodporuje. Môžete si nastaviť upozornenia e-mailom alebo pripomienky do kalendára.');
+      return;
+    }
+    on.hidden = !!st; cons.hidden = !!st; off.hidden = !st;
+    if (st) say('Notifikácie sú zapnuté na tomto zariadení.', true);
+    on.onclick = function () {
+      if (!card.querySelector('#push-consent').checked) return say('Na zasielanie notifikácií potrebujeme váš súhlas.');
+      if (!read().length) return say('Najprv si uložte aspoň jeden liek.');
+      on.disabled = true;
+      Notification.requestPermission().then(function (perm) {
+        if (perm !== 'granted') throw new Error('perm');
+        return navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; });
+      }).then(function (reg) {
+        return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) });
+      }).then(function (sub) {
+        var p = pushPayload(), j = sub.toJSON();
+        return fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'subscribe', sub: j, kody: p.kody, refills: p.refills, consent: true }) })
+          .then(function (r) { return r.json().then(function (x) { if (!r.ok) throw new Error(x.error || 'server'); pushSave({ id: x.id, endpoint: j.endpoint, sig: JSON.stringify(p) }); }); });
+      }).then(function () { pushUI(); say('Hotovo. Notifikácie sú zapnuté na tomto zariadení.', true); })
+        .catch(function (e) { say(e.message === 'perm' ? 'Notifikácie ste v prehliadači nepovolili. Povoľte ich v nastaveniach.' : 'Notifikácie sa nepodarilo zapnúť. ' + (e.message && e.message.length < 80 ? e.message : '')); })
+        .then(function () { on.disabled = false; });
+    };
+    off.onclick = function () {
+      var s0 = pushState();
+      navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) { if (sub) return sub.unsubscribe(); }).catch(function () {});
+      if (s0) fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: s0.id, endpoint: s0.endpoint }) }).catch(function () {});
+      pushSave(null); pushUI(); say('Notifikácie sú vypnuté a údaje o zariadení sme vymazali.', true);
+    };
   }
 
   window.renderMoje = function () {
@@ -215,6 +319,7 @@
             yr.append(lab, el('span', null, 'ročne ' + eur(packs * it[5]) + (diff > 0.005 ? ', s alternatívou ' + eur(packs * (it[5] - diff)) : '')));
             line.append(yr);
             prow.dose = d.toLocaleString('sk-SK', { maximumFractionDigits: 2 }) + ' denne';
+            if (!shared) line.append(refillBox(m, ks, d, name));
           }
           var al = alerts.items && alerts.items[m.kod];
           if (al && al.n !== undefined && alerts.next) {
@@ -283,6 +388,16 @@
       var note = el('p', 'print-only print-note', 'Pán doktor / pani doktorka, prosím o posúdenie, či je možné predpísať liek s nižším doplatkom alebo predpisovať názvom účinnej látky. Alternatívy majú rovnakú účinnú látku, silu a veľkosť balenia.');
       root.append(tbl, note);
 
+      if (!shared) pushSync();
+      var cal = document.getElementById('mine-ics');
+      if (cal) {
+        cal.hidden = shared || !Object.keys(RUNOUT).length;
+        cal.onclick = function () {
+          var blob = new Blob([icsFor(list)], { type: 'text/calendar;charset=utf-8' });
+          var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'pripomienky-lieky.ics';
+          document.body.append(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        };
+      }
       if (tools) {
         tools.hidden = false;
         var shareBtn = document.getElementById('mine-share');
@@ -341,6 +456,7 @@
     document.querySelectorAll('.year-calc').forEach(bindYearCalc);
     bindTools();
     showInstall();
+    pushUI();
     window.renderMoje();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

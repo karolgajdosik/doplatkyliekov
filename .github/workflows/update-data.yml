@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - run: pip install openpyxl==3.1.5
+      - run: pip install openpyxl==3.1.5 pywebpush==2.5.0
 
       - name: Stiahnuť a spracovať zoznam
         id: data
@@ -54,6 +54,7 @@ jobs:
           CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
         run: |
           set -o pipefail
           python scripts/notify.py 2>&1 | tee notify.log || {

@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2305090b'/%3E%3Crect x='4' y='10' width='24' height='12' rx='6' fill='none' stroke='%2345f0c0' stroke-width='2'/%3E%3Cpath d='M10 10h6v12h-6a6 6 0 0 1 0-12z' fill='%2345f0c0'/%3E%3C/svg%3E">
 <script>(function(){var d=document.documentElement;d.dataset.theme='dark';d.dataset.fs='1';try{var s=JSON.parse(localStorage.getItem('zobrazenie.v1')||'{}');if(s.t)d.dataset.theme=s.t;if(s.f!=null)d.dataset.fs=s.f;if(s.c)d.dataset.contrast='high';}catch(e){}var t=d.dataset.theme;d.dataset.eff=(t==='light'||(t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches))?'light':'dark';})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap"><meta name="theme-color" content="#05090b"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Doplatky">
-<link rel="stylesheet" href="/style.css?v=82335cb387">
+<link rel="stylesheet" href="/style.css?v=e63241e831">
 <link rel="stylesheet" href="/assets/pages.css?v=152bc93b9b">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Domov", "item": "https://doplatkyliekov.sk/"}, {"@type": "ListItem", "position": 2, "name": "AI asistent"}]}</script>
 </head>
@@ -47,6 +47,7 @@
     <form class="ai-form" id="ai-form" autocomplete="off">
       <label for="ai-q" class="sr-only">Vaša otázka</label>
       <textarea id="ai-q" rows="1" maxlength="600" placeholder="Napíšte otázku…"></textarea>
+      <button type="button" id="ai-mic" class="ai-mic" aria-label="Položiť otázku hlasom" title="Položiť otázku hlasom" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
       <button type="submit" id="ai-send" aria-label="Odoslať otázku"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
     <div class="ai-sugg" id="ai-sugg"><p class="eyebrow">Skúste sa opýtať</p><button type="button">Koľko doplatím za Concor 10 mg?</button><button type="button">Je lacnejšia náhrada za Xarelto 20 mg?</button><button type="button">Ktoré lieky na tlak sú bez doplatku?</button><button type="button">Koľko mi vráti poisťovňa, ak som dôchodca?</button><button type="button">Čo sa mení od 1. 11. 2026?</button><button type="button">Ktoré lieky na cukrovku majú výpadok?</button></div>
@@ -93,7 +94,7 @@
   <p class="set-note">Voľba sa uloží len v tomto prehliadači.</p>
 </div>
 <script src="/ui.js?v=4bbc0393ee" defer></script>
-<script src="/moje.js?v=ef38b6bdab" defer></script>
-<script src="/asistent.js?v=76cee6ed7a" defer></script>
+<script src="/moje.js?v=29d3fb6f75" defer></script>
+<script src="/asistent.js?v=591d61dadc" defer></script>
 </body>
 </html>

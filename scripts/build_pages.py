@@ -611,6 +611,7 @@ def alert_form(kod=None, heading="Upozorníme vás na zmenu"):
         <button type="submit">Chcem upozornenia</button>
       </div>
       <label class="consent"><input type="checkbox" name="consent" id="alert-consent"> <span>Súhlasím so spracovaním e-mailu a zoznamu mojich liekov na zasielanie upozornení podľa <a href="/ochrana-sukromia/">zásad ochrany súkromia</a>.</span></label>
+      <label class="consent"><input type="checkbox" name="digest"> <span>Raz mesačne mi pošlite aj krátky prehľad, čo zlacnie, zdražie a má výpadok (nepovinné).</span></label>
       <p class="form-msg" aria-live="polite"></p>
     </form>
     <p class="hint">Už dostávate upozornenia? <a href="/upozornenia/sprava/">Upraviť alebo zrušiť upozornenia</a></p>
@@ -1722,10 +1723,18 @@ def build():
   <div class="mine-tools" id="mine-tools" hidden>
     <button type="button" id="mine-print">Vytlačiť pre lekára</button>
     <button type="button" id="mine-share">Zdieľať zoznam</button>
+    <button type="button" id="mine-ics" hidden>Pripomienky do kalendára</button>
     <a href="/ochranny-limit/#tracker">Prehľad doplatkov pre ochranný limit</a>
     <p class="form-msg" id="mine-tools-msg" aria-live="polite"></p>
   </div>
 {alert_form(None, "Upozornenia e-mailom")}
+  <section class="card" id="push-card" hidden>
+    <h2>Upozornenia v telefóne</h2>
+    <p class="page-sub">Notifikácia príde, keď sa zmení doplatok vašich liekov, výrobca ohlási výpadok, pribudne lacnejšia alternatíva alebo keď vám o pár dní dôjde balenie. Funguje bez e-mailu, len na tomto zariadení.</p>
+    <label class="consent"><input type="checkbox" id="push-consent"> <span>Súhlasím, aby sa zoznam mojich liekov a dátumy, kedy mi dôjdu, uložili na zasielanie notifikácií podľa <a href="/ochrana-sukromia/#notifikacie">zásad ochrany súkromia</a>.</span></label>
+    <div class="mine-tools"><button type="button" id="push-on">Zapnúť notifikácie</button><button type="button" id="push-off" hidden>Vypnúť notifikácie</button></div>
+    <p class="form-msg" aria-live="polite"></p>
+  </section>
   <section class="card install-card" id="install-card" hidden>
     <h2>Doplatky ako aplikácia v mobile</h2>
     <p class="page-sub" id="install-text">Pridajte si web na plochu telefónu. Otvorí sa ako aplikácia a Moje lieky budete mať vždy po ruke, aj bez internetu.</p>
@@ -1805,13 +1814,17 @@ def build():
         <tr><td class="mono">mojeLieky.v1</td><td>zoznam vašich liekov a dávkovanie</td><td>keď uložíte liek do Mojich liekov</td></tr>
         <tr><td class="mono">limitTracker.v1, limitSettings.v1</td><td>váš prehľad doplatkov a nastavenie kalkulačky ochranného limitu</td><td>keď zapíšete nákup</td></tr>
         <tr><td class="mono">zobrazenie.v1</td><td>farebný režim, veľkosť písma a režim pre slabozrakých</td><td>keď zmeníte zobrazenie</td></tr>
+        <tr><td class="mono">push.v1</td><td>identifikátor zariadenia pre notifikácie</td><td>keď zapnete notifikácie</td></tr>
         <tr><td class="mono">upozornenia.t</td><td>tajný odkaz na správu vašich e-mailových upozornení</td><td>keď potvrdíte prihlásenie alebo otvoríte odkaz na správu</td></tr>
         <tr><td>vyrovnávacia pamäť aplikácie</td><td>uložené stránky a údaje o liekoch, aby web fungoval aj bez internetu</td><td>pri návšteve webu</td></tr>
       </tbody>
     </table></div>
     <p>Všetko vymažete vymazaním údajov stránky v nastaveniach prehliadača. Jednotlivé položky odstránite aj priamo na webe (odobratím liekov, nákupov alebo tlačidlom Obnoviť pôvodné zobrazenie).</p>
+    <h2 id="notifikacie">Upozornenia v telefóne (notifikácie)</h2>
+    <p>Ak si zapnete notifikácie, uložíme technickú adresu vášho zariadenia pre doručovanie notifikácií (poskytuje ju prehliadač, napríklad Google, Apple alebo Mozilla), kódy liekov z Mojich liekov a vypočítané dátumy, kedy vám balenie dôjde. Účel: posielať vám upozornenia na zmeny doplatkov, výpadky, lacnejšie alternatívy a blížiaci sa koniec balenia. Právny základ: váš výslovný súhlas (čl. 6 ods. 1 písm. a) a čl. 9 ods. 2 písm. a) GDPR). Údaje uchovávame, kým notifikácie nevypnete, alebo kým prehliadač adresu nezruší; potom ich vymažeme. Údaje sú uložené u Cloudflare, Inc.; notifikácie doručuje služba výrobcu prehliadača.</p>
     <h2 id="asistent">AI asistent</h2>
     <p>Keď položíte otázku AI asistentovi, text otázky, predchádzajúce otázky a odpovede z tej istej konverzácie a prípadne kód lieku, zo stránky ktorého sa pýtate, spracuje jazykový model umelej inteligencie, ktorý vygeneruje odpoveď. Model beží v službe Cloudflare Workers AI (Cloudflare, Inc., USA); ak ho v budúcnosti nahradíme modelom Claude, odpoveď vygeneruje spoločnosť Anthropic PBC (USA). Otázky ani odpovede neukladáme; konverzácia sa uchováva len v tejto karte prehliadača (sessionStorage) a po jej zatvorení zmizne. Poskytovatelia modelov podľa svojich podmienok nepoužívajú tieto údaje na trénovanie modelov. Prenos do USA prebieha na základe primeraných záruk (štandardné zmluvné doložky). <strong>Nezadávajte meno, rodné číslo, adresu ani iné údaje, podľa ktorých by sa dalo zistiť, kto ste.</strong> Právny základ: plnenie vašej žiadosti o odpoveď a náš oprávnený záujem na poskytovaní služby (čl. 6 ods. 1 písm. b) a f) GDPR). Odpovede generuje umelá inteligencia a môžu byť nepresné.</p>
+    <p>Ak otázku položíte hlasom, reč prevedie na text priamo váš prehliadač alebo operačný systém (napríklad Google alebo Apple) podľa ich pravidiel; k nám príde len výsledný text otázky. Mikrofón sa zapne až po ťuknutí na tlačidlo a prehliadač si najprv vyžiada vaše povolenie.</p>
     <h2>Moje lieky</h2>
     <p>Zoznam Moje lieky a prehľad doplatkov pre ochranný limit sa ukladajú len vo vašom prehliadači (pozri vyššie). Ak zoznam liekov zdieľate odkazom, kódy liekov sú súčasťou odkazu a vidí ich každý, komu ho pošlete.</p>
     <h2>Upozornenia e-mailom</h2>
@@ -1819,7 +1832,8 @@ def build():
     <ul>
       <li>vašu e-mailovú adresu,</li>
       <li>zoznam liekov, o ktorých vás máme informovať (kódy ŠÚKL),</li>
-      <li>dátum prihlásenia a potvrdenia a údaj o tom, aké upozornenia sme vám už poslali.</li>
+      <li>dátum prihlásenia a potvrdenia a údaj o tom, aké upozornenia sme vám už poslali,</li>
+      <li>či chcete dostávať mesačný prehľad zmien (len ak ste ho zvolili).</li>
     </ul>
     <p><strong>Účel:</strong> zasielanie upozornení na zmeny doplatkov, výpadky dodávok a nové lacnejšie alternatívy vašich liekov. <strong>Právny základ:</strong> váš výslovný súhlas (čl. 6 ods. 1 písm. a) a čl. 9 ods. 2 písm. a) GDPR). Zoznam liekov môže nepriamo vypovedať o vašom zdraví, preto ho spracúvame len s vaším výslovným súhlasom a nepoužívame ho na žiadny iný účel.</p>
     <p><strong>Doba uchovávania:</strong> do odvolania súhlasu. Súhlas odvoláte kedykoľvek odkazom v každom e-maile, na stránke <a href="/upozornenia/sprava/">Správa upozornení</a> alebo e-mailom na {CONTACT}; údaje potom hneď vymažeme. Nepotvrdené prihlásenia mažeme po 7 dňoch.</p>
@@ -1927,6 +1941,7 @@ def build():
     <form class="ai-form" id="ai-form" autocomplete="off">
       <label for="ai-q" class="sr-only">Vaša otázka</label>
       <textarea id="ai-q" rows="1" maxlength="600" placeholder="Napíšte otázku…"></textarea>
+      <button type="button" id="ai-mic" class="ai-mic" aria-label="Položiť otázku hlasom" title="Položiť otázku hlasom" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
       <button type="submit" id="ai-send" aria-label="Odoslať otázku"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
     <div class="ai-sugg" id="ai-sugg"><p class="eyebrow">Skúste sa opýtať</p>{"".join(f'<button type="button">{esc(x)}</button>' for x in sugg)}</div>

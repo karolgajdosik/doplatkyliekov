@@ -14,6 +14,7 @@ export async function onRequestGet({ request, env }) {
     rec.kody = [...new Set([...(rec.kody || []), ...rec.pendingKody])].slice(0, 80);
     delete rec.pendingKody;
   }
+  if ('pendingDigest' in rec) { rec.digest = rec.digest || rec.pendingDigest; delete rec.pendingDigest; }
   rec.confirmed = true;
   rec.confirmedAt = rec.confirmedAt || new Date().toISOString();
   await env.SUBS.put(`sub:${email}`, JSON.stringify(rec));   // bez expirácie

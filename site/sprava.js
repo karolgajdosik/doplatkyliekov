@@ -86,6 +86,14 @@
     if (!data.kody.length) ul.append(el('li', 'tr-empty', 'Nesledujete žiadny liek.'));
     root.append(ul);
 
+    var dg = el('label', 'switch');
+    var dgIn = el('input'); dgIn.type = 'checkbox'; dgIn.setAttribute('role', 'switch'); dgIn.checked = !!data.digest;
+    dg.append(el('strong', null, 'Mesačný prehľad zmien'), dgIn, el('small', null, 'Raz mesačne krátky e-mail: čo zlacnie, čo zdražie a čo má výpadok.'));
+    dgIn.addEventListener('change', function () {
+      dgIn.disabled = true;
+      call({ digest: dgIn.checked }).then(function (res) { if (res.s === 200) data.digest = res.j.digest; else dgIn.checked = !dgIn.checked; dgIn.disabled = false; });
+    });
+    if (data.confirmed) root.append(dg);
     var mine = window.Moje ? window.Moje.list().map(function (m) { return m.kod; }) : [];
     var missing = mine.filter(function (k) { return data.kody.indexOf(k) < 0; });
     var tools = el('div', 'mine-tools');

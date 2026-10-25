@@ -168,6 +168,38 @@
   function autosize() { inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 180) + 'px'; }
 
   form.addEventListener('submit', function (e) { e.preventDefault(); ask(inp.value); });
+
+  /* hlasové otázky (rozpoznávanie reči priamo v prehliadači) */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition, mic = document.getElementById('ai-mic');
+  if (SR && mic) {
+    mic.hidden = false;
+    form.classList.add('has-mic');
+    var rec = null, listening = false;
+    mic.addEventListener('click', function () {
+      if (listening && rec) { rec.stop(); return; }
+      rec = new SR();
+      rec.lang = document.documentElement.lang === 'hu' ? 'hu-HU' : 'sk-SK';
+      rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
+      var finalText = '';
+      rec.onstart = function () { listening = true; mic.classList.add('on'); mic.setAttribute('aria-label', 'Zastaviť nahrávanie'); inp.placeholder = 'Počúvam… hovorte'; };
+      rec.onresult = function (ev) {
+        var interim = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          if (ev.results[i].isFinal) finalText += ev.results[i][0].transcript; else interim += ev.results[i][0].transcript;
+        }
+        inp.value = (finalText + interim).trim(); autosize();
+      };
+      rec.onerror = function (ev) {
+        if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') inp.placeholder = 'Mikrofón nie je povolený. Povoľte ho v nastaveniach prehliadača.';
+      };
+      rec.onend = function () {
+        listening = false; mic.classList.remove('on'); mic.setAttribute('aria-label', 'Položiť otázku hlasom');
+        inp.placeholder = 'Napíšte otázku…';
+        if (finalText.trim().length > 2) ask(finalText.trim());
+      };
+      try { rec.start(); } catch (e) { /* už beží */ }
+    });
+  }
   inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(inp.value); } });
   inp.addEventListener('input', autosize);
   sugg.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) ask(b.textContent); });
