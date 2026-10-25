@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+GENERATED = ["ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
@@ -267,6 +267,7 @@ IC = {
     "sun": _svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
     "moon": _svg('<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>'),
     "auto": _svg('<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'),
+    "spark": _svg('<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>'),
     "bell": _svg('<path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
 }
 
@@ -275,11 +276,12 @@ PREFS_HEAD = ("<script>(function(){var d=document.documentElement;d.dataset.them
               "try{var s=JSON.parse(localStorage.getItem('zobrazenie.v1')||'{}');if(s.t)d.dataset.theme=s.t;"
               "if(s.f!=null)d.dataset.fs=s.f;if(s.c)d.dataset.contrast='high';}catch(e){}})();</script>")
 
-NAV_TOP = [("/", "Vyhľadať liek"), ("/choroby/", "Podľa ochorenia"), ("/zmeny/", "Zmeny doplatkov"),
-           ("/vypadky/", "Výpadky"), ("/ochranny-limit/", "Ochranný limit")]
+NAV_TOP = [("/", "Vyhľadať"), ("/asistent/", "AI asistent"), ("/choroby/", "Ochorenia"), ("/zmeny/", "Zmeny"),
+           ("/vypadky/", "Výpadky"), ("/bez-doplatku/", "Bez doplatku"), ("/ochranny-limit/", "Ochranný limit"),
+           ("/statistiky/", "Štatistiky")]
 
 MENU = [
-    ("Lieky", [("/", "Vyhľadať liek"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
+    ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
@@ -296,7 +298,7 @@ def _cur(href, path):
 
 
 def site_header(path):
-    links = "".join(f'<a href="{h}"{_cur(h, path)}>{esc(t)}</a>' for h, t in NAV_TOP)
+    links = "".join(f'<a href="{h}"{_cur(h, path)}{' class="ai-link"' if h == "/asistent/" else ""}>{IC["spark"] if h == "/asistent/" else ""}{esc(t)}</a>' for h, t in NAV_TOP)
     return f"""<a class="skip" href="#obsah">Preskočiť na obsah</a>
 <header class="site-head">
   <div class="site-head-in">
@@ -348,8 +350,8 @@ def site_panels(path):
 
 
 def bottom_nav(path):
-    items = [("/", "Hľadať", "search"), ("/moje-lieky/", "Moje lieky", "mine"), ("/choroby/", "Ochorenia", "heart"),
-             ("/ochranny-limit/", "Limit", "shield")]
+    items = [("/", "Hľadať", "search"), ("/moje-lieky/", "Moje lieky", "mine"), ("/asistent/", "Asistent", "spark"),
+             ("/choroby/", "Ochorenia", "heart")]
     out = []
     for h, t, ic in items:
         badge = '<span data-mine-count hidden></span>' if ic == "mine" else ""
@@ -606,6 +608,18 @@ def alert_form(kod=None, heading="Upozorníme vás na zmenu"):
   </section>"""
 
 
+def ai_card(p):
+    from urllib.parse import quote
+    qs = ["Je k tomuto lieku lacnejšia alternatíva?", "Koľko sa mi započíta do ochranného limitu?", "Kto mi ho môže predpísať?"]
+    links = "".join(f'<a href="/asistent/?kod={esc(p["kod"])}&amp;q={quote(q)}">{esc(q)}</a>' for q in qs)
+    return f"""
+  <section class="card ai-card">
+    <h2>{IC["spark"]}Opýtajte sa AI asistenta</h2>
+    <nav class="cond-chips" aria-label="Otázky pre asistenta">{links}</nav>
+    <p class="hint">Odpovedá umelá inteligencia z údajov tohto webu. Nenahrádza lekára ani lekárnika.</p>
+  </section>"""
+
+
 def extract_css():
     return EXTRA_CSS
 
@@ -691,7 +705,7 @@ ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani 
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js"):
+    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -1097,6 +1111,7 @@ def build():
 {hist_html}
 {presc_html}
 {about_html}
+{ai_card(p)}
 {alert_form(p["kod"])}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
@@ -1784,6 +1799,8 @@ def build():
       </tbody>
     </table></div>
     <p>Všetko vymažete vymazaním údajov stránky v nastaveniach prehliadača. Jednotlivé položky odstránite aj priamo na webe (odobratím liekov, nákupov alebo tlačidlom Obnoviť pôvodné zobrazenie).</p>
+    <h2 id="asistent">AI asistent</h2>
+    <p>Keď položíte otázku AI asistentovi, text otázky, predchádzajúce otázky a odpovede z tej istej konverzácie a prípadne kód lieku, zo stránky ktorého sa pýtate, odošleme spoločnosti Anthropic PBC (USA), ktorá prevádzkuje jazykový model Claude, aby vygenerovala odpoveď. Otázky ani odpovede neukladáme; konverzácia sa uchováva len v tejto karte prehliadača (sessionStorage) a po jej zatvorení zmizne. Anthropic podľa svojich podmienok pre službu API nepoužíva tieto údaje na trénovanie modelov a uchováva ich len obmedzený čas. Prenos do USA prebieha na základe primeraných záruk (štandardné zmluvné doložky). <strong>Nezadávajte meno, rodné číslo, adresu ani iné údaje, podľa ktorých by sa dalo zistiť, kto ste.</strong> Právny základ: plnenie vašej žiadosti o odpoveď a náš oprávnený záujem na poskytovaní služby (čl. 6 ods. 1 písm. b) a f) GDPR). Odpovede generuje umelá inteligencia a môžu byť nepresné.</p>
     <h2>Moje lieky</h2>
     <p>Zoznam Moje lieky a prehľad doplatkov pre ochranný limit sa ukladajú len vo vašom prehliadači (pozri vyššie). Ak zoznam liekov zdieľate odkazom, kódy liekov sú súčasťou odkazu a vidí ich každý, komu ho pošlete.</p>
     <h2>Upozornenia e-mailom</h2>
@@ -1795,7 +1812,7 @@ def build():
     </ul>
     <p><strong>Účel:</strong> zasielanie upozornení na zmeny doplatkov, výpadky dodávok a nové lacnejšie alternatívy vašich liekov. <strong>Právny základ:</strong> váš výslovný súhlas (čl. 6 ods. 1 písm. a) a čl. 9 ods. 2 písm. a) GDPR). Zoznam liekov môže nepriamo vypovedať o vašom zdraví, preto ho spracúvame len s vaším výslovným súhlasom a nepoužívame ho na žiadny iný účel.</p>
     <p><strong>Doba uchovávania:</strong> do odvolania súhlasu. Súhlas odvoláte kedykoľvek odkazom v každom e-maile, na stránke <a href="/upozornenia/sprava/">Správa upozornení</a> alebo e-mailom na {CONTACT}; údaje potom hneď vymažeme. Nepotvrdené prihlásenia mažeme po 7 dňoch.</p>
-    <p><strong>Sprostredkovatelia:</strong> Cloudflare, Inc., USA (uloženie údajov) a Sendinblue SAS (Brevo), Francúzsko (odosielanie e-mailov). Prenos údajov do USA sa riadi rámcom ochrany údajov EÚ – USA (EU-U.S. Data Privacy Framework), resp. štandardnými zmluvnými doložkami. Údaje nepredávame ani neposkytujeme tretím stranám na marketing.</p>
+    <p><strong>Sprostredkovatelia:</strong> Cloudflare, Inc., USA (uloženie údajov) a Sendinblue SAS (Brevo), Francúzsko (odosielanie e-mailov); pre AI asistenta Anthropic PBC, USA. Prenos údajov do USA sa riadi rámcom ochrany údajov EÚ – USA (EU-U.S. Data Privacy Framework), resp. štandardnými zmluvnými doložkami. Údaje nepredávame ani neposkytujeme tretím stranám na marketing.</p>
     <h2>Vaše práva</h2>
     <p>Máte právo na prístup k údajom, ich opravu, vymazanie, obmedzenie spracúvania, prenosnosť a právo kedykoľvek odvolať súhlas. Žiadosti posielajte na {CONTACT}. Máte tiež právo podať sťažnosť Úradu na ochranu osobných údajov Slovenskej republiky (dataprotection.gov.sk).</p>
   </section>"""
@@ -1879,6 +1896,36 @@ def build():
         urls.append((path, "0.6"))
     urls += [("/moje-lieky/", "0.5"), ("/o-nas/", "0.3"), ("/kontakt/", "0.3"), ("/ochrana-sukromia/", "0.2")]
 
+    # --- AI asistent ---
+    crumb_items = [("Domov", "/"), ("AI asistent", None)]
+    nd_q = f"Čo sa mení od {zm_counts[3]}?" if zm_counts else "Čo sa mení od budúceho mesiaca?"
+    sugg = ["Koľko doplatím za Concor 10 mg?", "Je lacnejšia náhrada za Xarelto 20 mg?", "Ktoré lieky na tlak sú bez doplatku?",
+            "Koľko mi vráti poisťovňa, ak som dôchodca?", nd_q, "Ktoré lieky na cukrovku majú výpadok?"]
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">{IC["spark"]} AI asistent · beta</p>
+    <h1 class="page-h1">Opýtajte sa na lieky a doplatky</h1>
+    <p class="page-sub">Asistent hľadá v celom obsahu webu: doplatky a lacnejšie alternatívy, zmeny od budúceho mesiaca, výpadky, lieky podľa ochorenia, ochranný limit aj návody.</p>
+  </section>
+  <div class="ai-notice" role="note">
+    <strong>Odpovedá umelá inteligencia.</strong> Model Claude od spoločnosti Anthropic odpovedá z údajov tohto webu a môže sa mýliť, preto si údaje overte na stránke lieku. Nenahrádza lekára ani lekárnika. Nezadávajte meno, rodné číslo ani iné osobné údaje. <a href="/ochrana-sukromia/#asistent">Ako spracúvame otázky</a>
+  </div>
+  <p class="ai-ctx" id="ai-ctx" hidden>Pýtate sa na liek <b>…</b></p>
+  <section class="ai-chat" aria-label="Konverzácia s asistentom">
+    <div class="ai-log" id="ai-log" aria-live="polite"></div>
+    <form class="ai-form" id="ai-form" autocomplete="off">
+      <label for="ai-q" class="sr-only">Vaša otázka</label>
+      <textarea id="ai-q" rows="1" maxlength="600" placeholder="Napíšte otázku…"></textarea>
+      <button type="submit" id="ai-send" aria-label="Odoslať otázku"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+    <div class="ai-sugg" id="ai-sugg"><p class="eyebrow">Skúste sa opýtať</p>{"".join(f'<button type="button">{esc(x)}</button>' for x in sugg)}</div>
+    <button type="button" class="linkish ai-new" id="ai-new" hidden>Začať novú konverzáciu</button>
+  </section>"""
+    write("/asistent/", page("AI asistent – otázky o liekoch a doplatkoch",
+                             "Opýtajte sa AI asistenta na doplatky, lacnejšie alternatívy, zmeny, výpadky liekov a ochranný limit. Odpovedá z údajov MZ SR a ŠÚKL.",
+                             "/asistent/", body, breadcrumb_ld(crumb_items), '<script src="/asistent.js" defer></script>'))
+    urls.append(("/asistent/", "0.7"))
+
     # --- správa upozornení (zrušenie, odobratie liekov) ---
     body = f"""{crumbs([("Domov", "/"), ("Upozornenia e-mailom", None)])}
   <section class="intro">
@@ -1922,6 +1969,7 @@ def build():
       <li>Grafy majú textový popis a najdôležitejšie hodnoty sú uvedené aj v texte pod nimi.</li>
       <li>Rozloženie sa prispôsobí mobilu aj zväčšeniu v prehliadači bez vodorovného posúvania.</li>
       <li>Rešpektujeme nastavenie zariadenia „obmedziť pohyb“.</li>
+      <li>AI asistent umožňuje klásť otázky vlastnými slovami namiesto prehľadávania tabuliek; odpovede sa čítačke obrazovky oznamujú automaticky.</li>
     </ul>
     <h2>Stav súladu</h2>
     <p>Web sa snaží spĺňať úroveň AA pravidiel WCAG 2.2 a harmonizovanej normy EN 301 549. Je čiastočne v súlade: prístupnosť sme kontrolovali vlastným testovaním, nie nezávislým auditom.</p>
@@ -1986,6 +2034,117 @@ def build():
     <p><a class="cta" href="/">Vyhľadať liek →</a></p>
   </section>"""
     (SITE / "404.html").write_text(versioned(page("Stránka sa nenašla", "Stránka sa nenašla.", "/404", body404)), encoding="utf-8")
+
+    # --- údaje pre AI asistenta (/ai/…) ---
+    def strip_html(t):
+        t = re.sub(r"<(br|/p|/li|/h2|/h3|/tr)[^>]*>", "\n", t)
+        t = re.sub(r"<[^>]+>", "", t)
+        t = html.unescape(t)
+        return re.sub(r"[ \t]+", " ", re.sub(r"\n\s*\n+", "\n", t)).strip()
+
+    ai_dir = SITE / "ai"
+    shutil.rmtree(ai_dir, ignore_errors=True)
+    (ai_dir / "g").mkdir(parents=True)
+    gi_of = {}
+    for gi, g in enumerate(groups):
+        gi_of[id(g)] = gi
+    search_items = [[p["kod"], p["name"], gi_of[id(g)]] for g, p in products]
+    group_meta = [[g["s"], g["f"], g["a"]] for g in groups]
+    (ai_dir / "search.json").write_text(json.dumps({"platnost": PLATNOST, "next": nxt["platnostIso"] if nxt else None,
+                                                    "items": search_items, "groups": group_meta},
+                                                   ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    shards = defaultdict(dict)
+    for gi, g in enumerate(groups):
+        rows = []
+        for x in sorted(g["i"], key=lambda x: (x["dop"] is None, x["dop"] or 0)):
+            flags = []
+            if x.get("po"):
+                flags.append("predpisuje len: " + ", ".join(odb.get(c, c) for c in x["po"]))
+            if x.get("io"):
+                flags.append("indikačné obmedzenie" + (" so súhlasom poisťovne" if "ZP" in x["io"] else ""))
+            if x.get("gp"):
+                flags.append("predpis názvom látky")
+            if x.get("olpl"):
+                flags.append("recept s modrým pruhom")
+            c = next_change(x)
+            nx = None if not c else ("vypadne" if c["gone"] else c["dop"])
+            st = vyp.get(x["kod"])
+            rows.append([x["kod"], x["name"], x["pack"], x["dop"], x["konc"], x["uzp"], x.get("pdop"), type_label(x.get("typ")),
+                         x["slug"], "; ".join(flags), nx, [st["stav"], st["od"]] if st else None])
+        shards[gi // 100][str(gi)] = {"s": g["s"], "f": g["f"], "a": g["a"], "atc": (atc_chain(g["a"])[-1][1] if atc_chain(g["a"]) else ""),
+                                      "latka": f"/latka/{subst_slug[g['s']]}/",
+                                      "cond": [c[2] for c in conditions_for(g["a"])], "i": rows}
+    for n, d in shards.items():
+        (ai_dir / "g" / f"{n}.json").write_text(json.dumps(d, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    conds_ai = {}
+    for slug, short, title, prefixes, intro in CONDITIONS:
+        gs_all = [g for g in groups if any(g["a"].startswith(x) for x in prefixes)]
+        by_s = defaultdict(list)
+        for g in gs_all:
+            by_s[g["s"]].append(g)
+        subs = []
+        for s_, gs in by_s.items():
+            its = [x for g in gs for x in g["i"] if x["dop"] is not None]
+            if its:
+                gaps = [sorted_items(g) for g in gs]
+                gap = max([it[-1]["dop"] - it[0]["dop"] for it in gaps if len(it) > 1] + [0])
+                subs.append([s_, min(x["dop"] for x in its), len(its), round(gap, 2), f"/latka/{subst_slug[s_]}/"])
+        subs.sort(key=lambda r: -r[2])
+        conds_ai[slug] = {"nazov": title, "kluc": short, "url": f"/choroby/{slug}/", "popis": intro, "latky": subs[:40]}
+    (ai_dir / "conds.json").write_text(json.dumps(conds_ai, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    docs = []
+    for sl, t, d, html_body in articles:
+        for part in re.split(r"(?=<h2>)", html_body):
+            txt = strip_html(part)
+            if txt:
+                docs.append({"t": t, "u": f"/clanky/{sl}/", "x": txt[:1800]})
+    docs += [
+        {"t": "Ochranný limit 2026", "u": "/ochranny-limit/", "x": (
+            "Ochranný limit (limit spoluúčasti) na štvrťrok v roku 2026: dieťa do 6 rokov 0 € bez ohľadu na príjem; "
+            "držiteľ preukazu ŤZP alebo invalidný dôchodca a starobný alebo predčasný starobný dôchodca 0 € ak má dôchodok do 914,40 € mesačne "
+            "a celkový príjem do 2 743,20 € za štvrťrok; pri vyššom príjme ŤZP a invalidní dôchodcovia 12 €, starobní dôchodcovia 30 €. "
+            "Do limitu sa počíta len doplatok za najlacnejší náhradný liek (započítateľný doplatok), nie celý zaplatený doplatok. "
+            "Poisťovňa sčíta doplatky sama z údajov lekární, netreba posielať bločky. Sumu nad limit vráti do 90 dní po skončení štvrťroka, "
+            "preplatok pod 3 € sa prenáša do ďalšieho štvrťroka. Ľudia s nulovým limitom a deti do 6 rokov doplatok za najlacnejší náhradný liek "
+            "v lekárni vôbec neplatia. Započítavajú sa lieky, pomôcky a dietetické potraviny na predpis čiastočne hradené poisťovňou, voľnopredajné nie. "
+            "Na stránke Ochranný limit je kalkulačka a prehľad, kam si môžete zapisovať nákupy.")},
+        {"t": "Ako vymeniť liek za lacnejší", "u": "/clanky/ako-usetrit-na-liekoch/", "x": (
+            "Lekárnik môže vydať liek s rovnakou účinnou látkou, silou a veľkosťou balenia od iného výrobcu, ak lekár na recepte nevyznačil, "
+            "že liek sa nesmie zamieňať. Ak lekár predpisuje názvom účinnej látky, môžete si vybrať ktorýkoľvek liek s touto látkou. "
+            "O zmene sa poraďte s lekárom alebo lekárnikom, najmä pri liekoch na epilepsiu, štítnu žľazu alebo riedenie krvi.")},
+        {"t": "Čo je doplatok", "u": "/", "x": (
+            "Doplatok je maximálna suma, ktorú pacient zaplatí v lekárni za liek na predpis. Zvyšok konečnej ceny hradí zdravotná poisťovňa (úhrada). "
+            "Lekáreň môže dať zľavu. Lieky s rovnakou látkou, silou a balením poisťovňa hradí rovnako, líšia sa doplatkom. "
+            "Údaje sú zo Zoznamu kategorizovaných liekov Ministerstva zdravotníctva SR, ktorý sa mení každý mesiac. Voľnopredajné lieky v ňom nie sú.")},
+        {"t": "Moje lieky", "u": "/moje-lieky/", "x": (
+            "Na stránke lieku kliknite na Pridať do Mojich liekov. Zoznam sa uloží len v prehliadači. Ukáže doplatky, lacnejšie alternatívy, "
+            "ročný doplatok podľa dávkovania, zmeny od budúceho mesiaca a výpadky. Dá sa vytlačiť pre lekára alebo zdieľať odkazom.")},
+        {"t": "Upozornenia e-mailom", "u": "/upozornenia/sprava/", "x": (
+            "Na stránke lieku alebo v Mojich liekoch zadajte e-mail a súhlas. Po potvrdení e-mailom vám pošleme upozornenie, keď sa zmení doplatok, "
+            "výrobca ohlási výpadok alebo pribudne lacnejšia alternatíva. Upozornenia upravíte alebo zrušíte na stránke Správa upozornení "
+            "alebo odkazom v každom e-maile.")},
+        {"t": "Aplikácia a zobrazenie", "u": "/pristupnost/", "x": (
+            "Web sa dá pridať na plochu telefónu ako aplikácia (Safari: Zdieľať, Pridať na plochu). Tlačidlo Aa v hornej lište mení farebný režim "
+            "(tmavý, svetlý, podľa zariadenia), veľkosť písma a zapína režim pre slabozrakých s vysokým kontrastom.")},
+        {"t": "O webe a zdroje údajov", "u": "/o-nas/", "x": (
+            f"Web doplatkyliekov.sk prevádzkuje {OPERATOR}. Nie je prepojený s výrobcami, lekárňami ani poisťovňami a nie je reklamou na lieky. "
+            f"Zdroje: Zoznam kategorizovaných liekov MZ SR (platný od {PLATNOST}) a hlásenia ŠÚKL o prerušení dodávok. Kontakt: {CONTACT}.")},
+    ]
+    if zm_counts:
+        n_up, n_down, n_gone, nd_txt = zm_counts
+        docs.append({"t": f"Zmeny doplatkov od {nd_txt}", "u": "/zmeny/", "x": (
+            f"Podľa nového zoznamu ministerstva od {nd_txt}: doplatok stúpne pri {n_up} liekoch, klesne pri {n_down}, "
+            f"zo zoznamu hradených liekov vypadne {n_gone}. Zoznam všetkých zmien je na stránke Zmeny doplatkov.")})
+    docs.append({"t": "Výpadky liekov", "u": "/vypadky/", "x": (
+        f"Podľa hlásení ŠÚKL má prerušené alebo ukončené dodávky {plural_lieky(n_vyp)} hradených poisťovňou. "
+        "Pri každom je uvedená dostupná alternatíva s rovnakou látkou. Dostupnosť v konkrétnej lekárni sa líši.")})
+    docs.append({"t": "Doplatky v číslach", "u": "/statistiky/", "x": (
+        f"V zozname je {plural_lieky(len(products))}, bez doplatku {zero_total}. "
+        + (f"Jednoduchý priemer doplatku za balenie bol {eur(months[0][1])} v {MESIACE[int(months[0][0][5:7]) - 1]} {months[0][0][:4]} "
+           f"a {eur(months[-1][1])} v {MESIACE[int(months[-1][0][5:7]) - 1]} {months[-1][0][:4]}." if len(months) >= 2 else ""))})
+    (ai_dir / "docs.json").write_text(json.dumps(docs, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     # --- sitemap ---
     lm = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
