@@ -1,8 +1,8 @@
-name: Pripomienky užívania liekov
+name: Pripomienky užívania liekov (ručná záloha)
 
+# Pripomienky posiela Worker workers/pripomienky každú minútu (plánovač Cloudflare).
+# Tento workflow je len ručná záloha, ak by Worker nebežal; plánované spúšťanie na GitHube meškalo až 2 hodiny.
 on:
-  schedule:
-    - cron: "*/10 * * * *"
   workflow_dispatch: {}
 
 permissions:

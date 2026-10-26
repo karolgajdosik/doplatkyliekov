@@ -1,6 +1,7 @@
 """Pripomienky užívania liekov (Web Push) v čase, ktorý si používateľ nastavil v Moje lieky.
 
-Beží každých 10 minút (GitHub Actions, .github/workflows/reminders.yml). Číta index časov `doses:index`
+Ručná záloha – pripomienky bežne posiela Cloudflare Worker workers/pripomienky každú minútu.
+Spúšťa sa len ručne (.github/workflows/reminders.yml). Číta index časov `doses:index`
 a pošle notifikáciu pre časy za posledných 35 minút, ktoré ešte neboli odoslané (GitHub občas spúšťa s oneskorením).
   python3 scripts/reminders.py [--dry-run] [--now 2026-10-26T08:05]
 """
