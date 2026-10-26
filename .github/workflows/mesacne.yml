@@ -1,0 +1,41 @@
+name: Mesačné dáta (letáky, lekárne)
+
+on:
+  schedule:
+    - cron: "23 4 3 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mesacne
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Lekárne z OpenStreetMap
+        continue-on-error: true
+        run: python scripts/build_lekarne.py
+      - name: Príbalové letáky zo ŠÚKL
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y -qq catdoc poppler-utils >/dev/null
+          curl -sSL --retry 3 --retry-delay 30 -o /tmp/pil.zip https://www.sukl.sk/verejne/Zoznam_SPC_PIL/spc_pil_aktualny.zip
+          ls -la /tmp/pil.zip
+          python scripts/build_pil.py /tmp/pil.zip | tee pil.log
+          echo "::notice title=pil::$(tail -n 1 pil.log)"
+          rm -f /tmp/pil.zip
+      - name: Uložiť zmeny
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898237+github-actions[bot]@users.noreply.github.com"
+          git add data/lekarne.json data/pil data/pil_map.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Bez zmien."; else git commit -m "Mesačné dáta: letáky a lekárne" && git pull --rebase -q && git push; fi
