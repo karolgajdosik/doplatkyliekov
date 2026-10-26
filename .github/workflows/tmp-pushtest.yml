@@ -1,0 +1,10 @@
+name: tmp pushtest
+on: { workflow_dispatch: {} }
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - run: npm i --no-save playwright@1.56.1 && npx playwright install firefox
+      - run: xvfb-run -a node tools/pushtest/test.mjs
