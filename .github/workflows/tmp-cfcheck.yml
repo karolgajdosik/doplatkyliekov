@@ -12,7 +12,7 @@ jobs:
           set +e
           h="Authorization: Bearer $T"
           echo "::notice::verify $(curl -s -H "$h" https://api.cloudflare.com/client/v4/user/tokens/verify | head -c 300)"
-          echo "::notice::scripts $(curl -s -H "$h" https://api.cloudflare.com/client/v4/accounts/$A/workers/scripts | head -c 400)"
+          echo "::notice::scripts $(curl -s -H "$h" https://api.cloudflare.com/client/v4/accounts/$A/workers/scripts | jq -c "{s:.success,e:.errors,n:[.result[]?.id]}" | head -c 400)"
           echo "::notice::subdomain $(curl -s -H "$h" https://api.cloudflare.com/client/v4/accounts/$A/workers/subdomain | head -c 300)"
           echo "::notice::pages $(curl -s -H "$h" https://api.cloudflare.com/client/v4/accounts/$A/pages/projects | head -c 300)"
           echo "::notice::vapidfmt len=${#V} pem=$(echo "$V" | grep -c BEGIN)"
