@@ -1,6 +1,6 @@
 // Dočasný test: skutočné prihlásenie v prehliadači (Chrome/Firefox) → odoslanie cez workers/pripomienky → prijatie v service workeri.
 import fs from 'fs'; import http from 'http'; import crypto from 'crypto';
-import { chromium, firefox } from 'playwright';
+import { chromium, firefox } from '/tmp/pw/node_modules/playwright/index.mjs';
 const v = crypto.createECDH('prime256v1'); v.generateKeys();
 const pub = v.getPublicKey('base64url'), priv = v.getPrivateKey().toString('base64');
 const src = fs.readFileSync('workers/pripomienky/index.js', 'utf8').replace(/const VAPID_PUBLIC = '[^']+'/, `const VAPID_PUBLIC = '${pub}'`);
