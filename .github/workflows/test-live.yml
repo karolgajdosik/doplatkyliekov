@@ -9,7 +9,5 @@ jobs:
         run: |
           B=https://doplatkyliekov.sk
           echo "::notice title=URL::$(for u in /sync.js /qr.js /manifest.webmanifest /vyhody-poistovni/ /zdielane/; do echo -n "$u $(curl -s -o /dev/null -w '%{http_code}' $B$u) "; done)"
-          IMG=$(base64 -w0 .github/test/blocek.jpg); echo "{\"img\":\"data:image/jpeg;base64,$IMG\"}" > body.json
-          echo "::notice title=BLOCEK::$(curl -s -m 95 -X POST $B/api/blocek -H 'content-type: application/json' --data @body.json | head -c 2500)"
-          ID=$(openssl rand -hex 16)
-          echo "::notice title=SYNC::$(curl -s -X PUT $B/api/sync -H 'content-type: application/json' --data "{\"id\":\"$ID\",\"data\":\"abc_DEF-123\",\"v\":0}") $(curl -s "$B/api/sync?id=$ID") $(curl -s -X PUT $B/api/sync -H 'content-type: application/json' --data "{\"id\":\"$ID\",\"data\":\"x\",\"v\":0}") $(curl -s -X DELETE $B/api/sync -H 'content-type: application/json' --data "{\"id\":\"$ID\"}")"
+          echo "::notice title=LETAK::$(curl -s -m 95 "$B/api/letak?kod=94163" | head -c 2500)"
+          echo "::notice title=LEK::$(curl -s -o /dev/null -w '%{http_code}' $B/lekarne/) $(curl -s $B/lekarne.json | head -c 300)"
