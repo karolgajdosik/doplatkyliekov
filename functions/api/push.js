@@ -2,7 +2,7 @@
 //   { action: 'subscribe', sub, kody, refills, consent: true } → { id }
 //   { action: 'update', id, endpoint, kody, refills }          → { ok }
 //   { action: 'delete', id, endpoint }                          → { ok }
-// Notifikácie posiela denný skript scripts/notify.py (GitHub Actions) s privátnym kľúčom VAPID.
+// Denné notifikácie posiela scripts/notify.py (GitHub Actions), pripomienky užívania Worker workers/pripomienky.
 import { json } from '../../lib/mail.js';
 
 const HOSTS = /^(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9.-]+\.notify\.windows\.com|[a-z0-9.-]+\.push\.apple\.com)$/;
@@ -20,11 +20,11 @@ function cleanDoses(a, kody) {
   return out;
 }
 function cleanTz(t) { return /^[A-Za-z_]+\/[A-Za-z_]+$/.test(String(t || '')) ? String(t) : 'Europe/Bratislava'; }
-// index časov pripomienok (aby skript každých 10 minút nečítal všetky záznamy)
-async function setIndex(env, id, doses) {
+// index časov pripomienok (Worker workers/pripomienky ho číta každú minútu, aby nečítal všetky záznamy)
+async function setIndex(env, id, doses, tz) {
   const idx = (await env.SUBS.get('doses:index', 'json')) || {};
-  const times = [...new Set(doses.map((x) => x.t))];
-  if (times.length) idx[id] = times; else delete idx[id];
+  const times = [...new Set(doses.map((x) => x.t))].sort();
+  if (times.length) idx[id] = { t: times, z: tz || 'Europe/Bratislava' }; else delete idx[id];
   await env.SUBS.put('doses:index', JSON.stringify(idx));
 }
 
@@ -58,7 +58,7 @@ export async function onRequestPost({ request, env }) {
       created: prev?.created || new Date().toISOString(),
       consentAt: new Date().toISOString(), notified: prev?.notified || {} };
     await env.SUBS.put(`push:${id}`, JSON.stringify(rec));
-    await setIndex(env, id, rec.doses);
+    await setIndex(env, id, rec.doses, rec.tz);
     return json({ id });
   }
 
@@ -77,10 +77,10 @@ export async function onRequestPost({ request, env }) {
     const doses = cleanDoses(b.doses, kody), tz = cleanTz(b.tz);
     if (JSON.stringify(kody) === JSON.stringify(rec.kody) && JSON.stringify(refills) === JSON.stringify(rec.refills) &&
       JSON.stringify(doses) === JSON.stringify(rec.doses || []) && tz === rec.tz) return json({ ok: true, same: true });
-    const dosesChanged = JSON.stringify(doses) !== JSON.stringify(rec.doses || []);
+    const dosesChanged = JSON.stringify(doses) !== JSON.stringify(rec.doses || []) || tz !== rec.tz;
     rec.kody = kody; rec.refills = refills; rec.doses = doses; rec.tz = tz;
     await env.SUBS.put(`push:${b.id}`, JSON.stringify(rec));
-    if (dosesChanged) await setIndex(env, b.id, doses);
+    if (dosesChanged) await setIndex(env, b.id, doses, tz);
     return json({ ok: true });
   }
   return json({ error: 'Neznáma akcia.' }, 400);

@@ -1,0 +1,39 @@
+name: Nasadenie Workera pripomienok
+
+# Worker workers/pripomienky posiela pripomienky užívania liekov každú minútu (plánovač Cloudflare).
+on:
+  push:
+    branches: [main]
+    paths: ["workers/pripomienky/**", ".github/workflows/worker.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: workers
+      - name: Nahrať Worker a nastaviť plánovač
+        env:
+          A: ${{ secrets.CF_ACCOUNT_ID }}
+          T: ${{ secrets.CF_API_TOKEN }}
+          NS: ${{ secrets.CF_KV_NAMESPACE_ID }}
+          VAPID: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          set +e
+          api="https://api.cloudflare.com/client/v4/accounts/$A/workers/scripts/doplatky-pripomienky"
+          jq -n --arg ns "$NS" --arg v "$VAPID" '{main_module:"index.js",compatibility_date:"2026-10-01",
+            bindings:[{type:"kv_namespace",name:"SUBS",namespace_id:$ns},{type:"secret_text",name:"VAPID_PRIVATE_KEY",text:$v}]}' > meta.json
+          r=$(curl -s -X PUT "$api" -H "Authorization: Bearer $T" \
+            -F "metadata=@meta.json;type=application/json" \
+            -F "index.js=@workers/pripomienky/index.js;type=application/javascript+module")
+          rm meta.json
+          echo "$r" | jq -e .success >/dev/null || { echo "::error::Nahratie zlyhalo: $(echo "$r" | jq -c .errors)"; exit 1; }
+          s=$(curl -s -X PUT "$api/schedules" -H "Authorization: Bearer $T" -H "Content-Type: application/json" --data '[{"cron":"* * * * *"}]')
+          echo "$s" | jq -e .success >/dev/null || { echo "::error::Plánovač zlyhal: $(echo "$s" | jq -c .errors)"; exit 1; }
+          echo "::notice::Worker nasadený, plánovač: $(echo "$s" | jq -c '[.result.schedules[].cron]')"
