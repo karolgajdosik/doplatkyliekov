@@ -4,14 +4,19 @@ jobs:
   t:
     runs-on: ubuntu-latest
     steps:
-      - name: SPC PIL
-        run: |
-          curl -sL https://www.sukl.sk/verejne/Zoznam_SPC_PIL/ -o v.html
-          echo "::notice title=PIL::$(sed 's/<[^>]*>/ /g' v.html | tr -s ' \n' ' ' | head -c 3000)"
-      - name: Ine priecinky
-        run: |
-          for d in InternetovyVydaj Archiv Hlasenia; do curl -sL https://www.sukl.sk/verejne/$d/ -o v.html; echo "::notice title=$d::$(sed 's/<[^>]*>/ /g' v.html | tr -s ' \n' ' ' | head -c 1500)"; done
       - name: Lekarne
         run: |
-          curl -sL "https://www.sukl.sk/hlavna-stranka/slovenska-verzia/inspekcia/lekarenska-starostlivost" -o l.html; echo "::notice title=SUKL lekarne::$(wc -c < l.html) $(grep -oiE 'href="[^"]*(lekar|xls|csv)[^"]*"' l.html | head -20 | tr '\n' ' ' | head -c 1500)"
-          curl -sL "https://data.slovensko.sk/api/action/package_search?q=lek%C3%A1rne&rows=10" -o c.json; echo "::notice title=CKAN::$(head -c 300 c.json) $(python3 -c "import json;d=json.load(open('c.json'));print([ (r['title'], [x.get('url') for x in r.get('resources',[])][:3]) for r in d['result']['results']])" 2>&1 | head -c 2500)"
+          curl -sL "https://www.sukl.sk/pre-odbornikov-a-firmy/lekarne-a-vydajne-zdravotnickych-pomocok" -o l.html
+          echo "::notice title=LEK links::$(grep -oiE 'href="[^"]+"' l.html | grep -viE 'facebook|twitter|#|javascript' | sort -u | grep -iE 'lekar|xls|csv|zoznam|pdf|verejne' | head -30 | tr '\n' ' ' | head -c 3500)"
+          echo "::notice title=LEK text::$(sed 's/<[^>]*>/ /g' l.html | tr -s ' \n' ' ' | grep -oiE '.{0,200}(zoznam|register)[^.]{0,200}' | head -5 | tr '\n' '|' | head -c 3000)"
+      - name: PIL zip
+        run: |
+          df -h . | tail -1
+          curl -sL https://www.sukl.sk/verejne/Zoznam_SPC_PIL/spc_pil_aktualny.zip -o p.zip
+          ls -la p.zip
+          unzip -l p.zip > list.txt; wc -l list.txt
+          echo "::notice title=COUNT::$(wc -l < list.txt)"
+          echo "::notice title=HEAD::$(head -30 list.txt | tr -s ' ' | tr '\n' '|' | head -c 3000)"
+          echo "::notice title=CONCOR::$(grep -iE 'concor|bisopro' list.txt | head -10 | tr -s ' ' | tr '\n' '|')"
+          echo "::notice title=EXT::$(awk '{print $4}' list.txt | grep -oE '\.[A-Za-z]+$' | sort | uniq -c | sort -rn | head -8 | tr '\n' '|')"
+          echo "::notice title=DIRS::$(awk '{print $4}' list.txt | awk -F/ 'NF>1{print $1}' | sort | uniq -c | sort -rn | head -8 | tr '\n' '|')"
