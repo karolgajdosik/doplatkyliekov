@@ -3,7 +3,12 @@ name: Mesačné dáta (letáky, lekárne)
 on:
   schedule:
     - cron: "23 4 3 * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      bez_letakov:
+        description: "Preskočiť príbalové letáky (len lekárne)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -29,6 +34,7 @@ jobs:
           echo "::notice title=lekarne::$(tail -n 4 lek.log | tr '\n' ' ' | head -c 900)"
           exit $code
       - name: Príbalové letáky zo ŠÚKL
+        if: ${{ !inputs.bez_letakov }}
         continue-on-error: true
         run: |
           sudo apt-get update -qq >/dev/null && sudo apt-get install -y -qq catdoc poppler-utils >/dev/null
