@@ -152,6 +152,27 @@
     showPharm({ name: b.dataset.name, kod: b.dataset.kod, pack: b.dataset.pack, dop: b.dataset.dop, orig: b.dataset.orig, origdop: b.dataset.origdop });
   });
 
+  /* príbalový leták zrozumiteľne (stránka lieku) */
+  function mdBox(md) {
+    var box = el('div', 'ai-md'), ul = null;
+    md.replace(/\r/g, '').split('\n').forEach(function (line) {
+      var t = line.trim(), li = /^([-*•]|\d+[.)])\s+(.*)$/.exec(t);
+      if (li) { if (!ul) { ul = el('ul'); box.append(ul); } ul.append(el('li', null, li[2].replace(/\*\*/g, ''))); return; }
+      ul = null; if (!t) return;
+      var h = /^#{1,4}\s+(.*)$/.exec(t); box.append(el(h ? 'h3' : 'p', null, (h ? h[1] : t).replace(/\*\*/g, '')));
+    });
+    return box;
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-letak]');
+    if (!b) return;
+    var card = b.closest('.letak-card'), out = card.querySelector('.letak-out');
+    b.disabled = true; out.hidden = false; out.replaceChildren(el('p', 'foto-busy', 'Pripravujem zhrnutie letáka…'));
+    fetch('/api/letak?kod=' + encodeURIComponent(b.dataset.letak)).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || ''); return j; }); })
+      .then(function (j) { out.replaceChildren(el('p', 'eyebrow', 'Zhrnutie letáka: ' + j.title), mdBox(j.summary)); b.closest('.mine-tools').hidden = true; })
+      .catch(function (e) { out.replaceChildren(el('p', 'form-msg err', e.message && e.message.length > 3 ? e.message : 'Zhrnutie sa nepodarilo. Skúste to znova.')); b.disabled = false; });
+  });
+
   /* kalkulačka ročného doplatku na stránke lieku */
   function bindYearCalc(box) {
     var ks = +box.getAttribute('data-ks'), dop = +box.getAttribute('data-dop');

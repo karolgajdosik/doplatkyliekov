@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
-GENERATED = ["hu", "uk", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
+GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
@@ -316,7 +316,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
     ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
@@ -939,6 +939,17 @@ def alert_form(kod=None, heading="Upozorníme vás na zmenu"):
   </section>"""
 
 
+def letak_card(p):
+    return f"""
+  <section class="card letak-card">
+    <h2>{IC["spark"]}Príbalový leták zrozumiteľne</h2>
+    <p class="page-sub">Na čo sa liek používa, ako ho užívať, kedy nie a na aké vedľajšie účinky si dať pozor. Zhrnutie z oficiálneho letáka pripraví umelá inteligencia.</p>
+    <div class="mine-tools"><button type="button" data-letak="{esc(p['kod'])}">Zhrnúť príbalový leták</button></div>
+    <div class="letak-out" aria-live="polite" hidden></div>
+    <p class="hint">Zhrnutie môže byť nepresné a nenahrádza leták ani radu lekára či lekárnika. Celé znenie nájdete v balení lieku a v <a href="{SUKL_DB}" rel="nofollow">databáze ŠÚKL</a>.</p>
+  </section>"""
+
+
 def ai_card(p):
     from urllib.parse import quote
     qs = ["Je k tomuto lieku lacnejšia alternatíva?", "Koľko sa mi započíta do ochranného limitu?", "Kto mi ho môže predpísať?"]
@@ -1044,7 +1055,7 @@ ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani 
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js"):
+    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -1136,6 +1147,7 @@ def build():
                 {"kod": i[0], "name": i[1], "pack": i[2], "konc": i[3], "uzp": i[4], "dop": i[5], "typ": i[6]}
                 for i in g["i"]]} for g in lean["groups"]]}
     ref = load("ref.json", {}) or {}
+    pil_map = load("pil_map.json", {}) or {}
     nxt = load("next.json")
     vyp_all = load("vypadky.json", {}) or {}
     vyp = vyp_all.get("lieky", {})
@@ -1452,6 +1464,7 @@ def build():
 {hist_html}
 {presc_html}
 {about_html}
+{letak_card(p) if p["kod"] in pil_map else ""}
 {ai_card(p)}
 {alert_form(p["kod"])}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
@@ -2062,6 +2075,15 @@ def build():
         for n in range(32):
             (hdir / f"{n}.json").write_text(json.dumps({"m": hist_months, "k": shards.get(n, {})}, separators=(",", ":")), encoding="utf-8")
 
+    # --- príbalové letáky (scripts/build_pil.py) → /pil/<n>.json, /pil/map.json ---
+    import gzip as _gz
+    pil_dir = DATA / "pil"
+    if (DATA / "pil_map.json").exists() and pil_dir.exists():
+        (SITE / "pil").mkdir(parents=True, exist_ok=True)
+        for f in pil_dir.glob("*.json.gz"):
+            (SITE / "pil" / f.name[:-3]).write_bytes(_gz.decompress(f.read_bytes()))
+        shutil.copyfile(DATA / "pil_map.json", SITE / "pil" / "map.json")
+
     # --- alerts.json pre Moje lieky ---
     alert_items = {}
     for g, p in products:
@@ -2236,6 +2258,8 @@ def build():
     <h2 id="foto">Rozpoznanie lieku z fotky</h2>
     <p>Ak na úvodnej stránke odfotíte balenie lieku alebo recept, prehliadač fotku zmenší a pošle ju jazykovému modelu umelej inteligencie v službe Cloudflare Workers AI (Cloudflare, Inc., USA), ktorý z nej vyčíta názov, silu a veľkosť balenia lieku. Fotku ani výsledok neukladáme; po spracovaní sa zahodí. Model má pokyn ignorovať osobné údaje, no fotka receptu ich môže obsahovať, preto <strong>meno, rodné číslo a adresu na recepte pred fotením zakryte</strong>. Ak by fotka obsahovala údaje o zdraví, spracúvajú sa len na váš výslovný pokyn (odfotenie a odoslanie) na účel, ktorý ste si vyžiadali (čl. 9 ods. 2 písm. a) GDPR). Prenos do USA prebieha na základe štandardných zmluvných doložiek.</p>
     <p>Rovnako spracúvame fotku <strong>bločku z lekárne</strong> v prehľade ochranného limitu: model z nej vyčíta dátum, názvy liekov, počty a sumy. Fotku ani výsledok neukladáme; rozpoznané položky sa po vašom potvrdení uložia len vo vašom prehliadači. Meno, číslo karty a ďalšie údaje na bločku model ignoruje, aj tak ich pred fotením odporúčame zakryť.</p>
+    <h2 id="lekarne">Lekárne v okolí</h2>
+    <p>Ak na stránke Lekárne v okolí použijete tlačidlo „Lekárne pri mne“, prehliadač po vašom povolení zistí polohu a vzdialenosti vypočíta priamo vo vašom zariadení; polohu nikam neposielame ani neukladáme. Mapa sa zobrazí až po kliknutí na „Zobraziť na mape“; vtedy sa mapové podklady načítajú zo serverov OpenStreetMap Foundation (Spojené kráľovstvo), ktoré pritom vidia vašu IP adresu.</p>
     <h2 id="prepojenie">Prepojenie zariadení</h2>
     <p>Ak zapnete prepojenie zariadení v Mojich liekoch, vaše údaje uložené v prehliadači (zoznamy liekov, členovia rodiny, karta pre núdzu, pripomienky a prehľad doplatkov) sa <strong>zašifrujú priamo vo vašom zariadení</strong> (AES-256-GCM) a na náš server (Cloudflare KV) sa uloží len zašifrovaný obsah. Kľúč na rozšifrovanie je iba v QR kóde a odkaze, ktorý zobrazí vaše zariadenie; na server sa neposiela, preto údaje nevieme prečítať ani my. Kto má odkaz alebo QR kód, vidí vaše údaje, preto ho zdieľajte len so svojimi zariadeniami alebo blízkymi. Zašifrované údaje sa automaticky vymažú, ak sa 13 mesiacov nepoužijú. Prepojenie zrušíte tlačidlom Zrušiť prepojenie.</p>
     <h2>Moje lieky</h2>
@@ -2753,6 +2777,32 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
                                   "Plagát A4 s najväčšími rozdielmi v doplatkoch za lieky a leták A5 s QR kódom pre ambulancie, lekárne a kluby dôchodcov.",
                                   "/na-vytlacenie/", body, breadcrumb_ld(crumb_items), script_pr))
     urls.append(("/na-vytlacenie/", "0.4"))
+
+    # --- lekárne v okolí (OpenStreetMap) ---
+    lek_src = DATA / "lekarne.json"
+    if lek_src.exists():
+        shutil.copyfile(lek_src, SITE / "lekarne.json")
+        crumb_items = [("Domov", "/"), ("Lekárne v okolí", None)]
+        body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Mapa lekární</p>
+    <h1 class="page-h1">Lekárne v okolí</h1>
+    <p class="page-sub">Nájdite najbližšiu lekáreň podľa svojej polohy alebo obce. Uvidíte adresu, otváracie hodiny, ak sú známe, a navigáciu.</p>
+  </section>
+  <section class="card" id="lek-root">
+    <div class="lek-find">
+      <button type="button" id="lek-geo" class="pharm-btn">{IC["search"]}<span>Lekárne pri mne</span></button>
+      <label class="lek-q">alebo obec či ulica <input type="search" id="lek-q" placeholder="napr. Trnava, Hlavná" autocomplete="off"></label>
+    </div>
+    <p class="form-msg" id="lek-msg" aria-live="polite"></p>
+    <button type="button" class="linkish" id="lek-map-btn">Zobraziť na mape</button>
+    <div id="lek-map" class="lek-map" hidden></div>
+    <ul class="glist lek-list" id="lek-list"></ul>
+    <p class="hint">Údaje o lekárňach pochádzajú z OpenStreetMap (© prispievatelia OpenStreetMap, licencia ODbL) a nemusia byť úplné ani aktuálne. Otváracie hodiny a pohotovostné služby si pred cestou overte telefonicky alebo na stránke vášho samosprávneho kraja. Vaša poloha sa nikam neposiela; mapové podklady sa načítajú zo serverov OpenStreetMap až po kliknutí na „Zobraziť na mape“.</p>
+  </section>"""
+        write("/lekarne/", page("Lekárne v okolí – mapa lekární na Slovensku", "Najbližšie lekárne podľa polohy alebo obce: adresa, otváracie hodiny a navigácia. Údaje z OpenStreetMap.",
+                                "/lekarne/", body, breadcrumb_ld(crumb_items), '<script src="/lekarne.js" defer></script>'))
+        urls.append(("/lekarne/", "0.6"))
 
     # --- vyhlásenie o prístupnosti ---
     crumb_items = [("Domov", "/"), ("Prístupnosť", None)]

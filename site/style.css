@@ -759,3 +759,15 @@ html.pharm-open, html.pharm-open body { overflow: hidden; }
 /* prepojenie zariadení */
 .sync-body { display: grid; gap: 12px; }
 .sync-qr svg { width: 200px; height: 200px; background: #fff; padding: 8px; border-radius: 12px; display: block; }
+/* lekárne v okolí */
+.lek-find { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; }
+.lek-find .pharm-btn svg { width: 20px; height: 20px; }
+.lek-q { display: grid; gap: 6px; font-size: 15px; color: var(--muted); flex: 1 1 240px; }
+.lek-q input { font: inherit; font-size: 17px; color: var(--ink); background: var(--raise); border: 1px solid var(--line-strong); border-radius: 12px; padding: 11px 14px; }
+.lek-map { height: 360px; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line); }
+.lek-list .tag { margin-left: 8px; vertical-align: 2px; }
+.lek-oh { font-family: var(--font-mono); font-size: 12.5px !important; }
+.lek-acts a { font-weight: 600; }
+.letak-out { display: grid; gap: 8px; padding: 16px 18px; border-radius: var(--r); background: var(--raise); border: 1px solid var(--line); }
+.letak-out h3 { font-size: 17px; margin-top: 8px; color: var(--accent); }
+.letak-out ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
