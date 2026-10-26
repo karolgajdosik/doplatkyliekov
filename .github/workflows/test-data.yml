@@ -1,0 +1,17 @@
+name: Dočasný prieskum dát
+on: workflow_dispatch
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SPC PIL
+        run: |
+          curl -sL https://www.sukl.sk/verejne/Zoznam_SPC_PIL/ -o v.html
+          echo "::notice title=PIL::$(sed 's/<[^>]*>/ /g' v.html | tr -s ' \n' ' ' | head -c 3000)"
+      - name: Ine priecinky
+        run: |
+          for d in InternetovyVydaj Archiv Hlasenia; do curl -sL https://www.sukl.sk/verejne/$d/ -o v.html; echo "::notice title=$d::$(sed 's/<[^>]*>/ /g' v.html | tr -s ' \n' ' ' | head -c 1500)"; done
+      - name: Lekarne
+        run: |
+          curl -sL "https://www.sukl.sk/hlavna-stranka/slovenska-verzia/inspekcia/lekarenska-starostlivost" -o l.html; echo "::notice title=SUKL lekarne::$(wc -c < l.html) $(grep -oiE 'href="[^"]*(lekar|xls|csv)[^"]*"' l.html | head -20 | tr '\n' ' ' | head -c 1500)"
+          curl -sL "https://data.slovensko.sk/api/action/package_search?q=lek%C3%A1rne&rows=10" -o c.json; echo "::notice title=CKAN::$(head -c 300 c.json) $(python3 -c "import json;d=json.load(open('c.json'));print([ (r['title'], [x.get('url') for x in r.get('resources',[])][:3]) for r in d['result']['results']])" 2>&1 | head -c 2500)"
