@@ -1,7 +1,7 @@
 /* Service worker doplatkyliekov.sk: stránky a dáta najprv zo siete (aby boli aktuálne),
    bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma z pamäte s obnovou na pozadí. */
 'use strict';
-var V = 'v6';
+var V = 'v7';
 var SHELL = 'shell-' + V, PAGES = 'pages-' + V;
 var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/',
   '/data.json', '/alerts.json', '/manifest.webmanifest', '/icons/icon-192.png'];
@@ -45,6 +45,17 @@ function staleWhileRevalidate(req) {
   });
 }
 
+// zdieľanie fotky do aplikácie (Web Share Target): uložiť a otvoriť úvod, kde ju foto.js rozpozná
+self.addEventListener('fetch', function (e) {
+  var u = new URL(e.request.url);
+  if (e.request.method !== 'POST' || u.origin !== location.origin || u.pathname !== '/zdielane/') return;
+  e.respondWith(e.request.formData().then(function (fd) {
+    var f = fd.get('foto');
+    return caches.open('share').then(function (c) {
+      return f && f.size ? c.put('/zdielane/foto', new Response(f, { headers: { 'Content-Type': f.type || 'image/jpeg' } })) : null;
+    }).then(function () { return Response.redirect(f && f.size ? '/?akcia=zdielane' : '/', 303); });
+  }).catch(function () { return Response.redirect('/', 303); }));
+});
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;

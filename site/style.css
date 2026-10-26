@@ -712,3 +712,50 @@ body { overflow-x: clip; }
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: border-color .2s, transform .2s;
 }
 .top li a:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+/* ---------- Ukázať v lekárni ---------- */
+.verdict .pharm-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 0; }
+.verdict .pharm-row small { color: var(--muted); font-size: 14px; }
+.pharm-btn { display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 700; cursor: pointer; border-radius: 999px; border: 0; padding: 11px 18px; background: var(--save); color: #1a0d00; min-height: 44px; }
+.pharm-btn:hover { filter: brightness(1.08); }
+.pharm-mini { font-size: 14px; margin-left: 4px; }
+html.pharm-open, html.pharm-open body { overflow: hidden; }
+.pharm-ov { position: fixed; inset: 0; z-index: 1000; background: #fff; color: #000; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); overflow: auto; }
+.pharm-card { width: min(560px, 100%); display: grid; gap: 14px; text-align: center; font-family: var(--font-body, Onest, sans-serif); }
+.pharm-card p { margin: 0; color: #000; }
+.pc-ask { font-size: 20px; color: #333 !important; }
+.pc-name { font-family: var(--font-display); font-size: clamp(30px, 9vw, 48px); font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; }
+.pc-pack { font-size: 19px; color: #333 !important; }
+.pc-code { display: grid; gap: 4px; padding: 16px; border: 3px solid #000; border-radius: 18px; }
+.pc-code span { font-size: 16px; text-transform: uppercase; letter-spacing: .1em; }
+.pc-code b { font-family: var(--font-mono); font-size: clamp(44px, 16vw, 72px); letter-spacing: .08em; line-height: 1; }
+.pc-dop { font-size: 24px; } .pc-dop b { font-family: var(--font-mono); }
+.pc-orig { font-size: 17px; color: #444 !important; }
+.pc-note { font-size: 15px; color: #444 !important; }
+.pc-close { font: inherit; font-size: 18px; font-weight: 700; border: 0; border-radius: 999px; padding: 14px 24px; background: #000; color: #fff; cursor: pointer; justify-self: center; min-width: 200px; }
+.pc-src { font-size: 13px; color: #666 !important; }
+@media print { .pharm-btn, .pharm-mini { display: none !important; } }
+.foto-btn.pulse { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft), 0 0 26px -4px var(--glow); }
+/* bloček z lekárne */
+.tr-scan { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.tr-scan .foto-btn svg { width: 22px; height: 22px; }
+.tr-scan-out { display: grid; gap: 10px; }
+.scan-list li { display: grid; gap: 8px; }
+.scan-row { display: flex; gap: 10px; align-items: center; font-weight: 600; }
+.scan-row input { width: 20px; height: 20px; accent-color: var(--accent); }
+.scan-text { font-family: var(--font-mono); font-size: 14px; overflow-wrap: anywhere; }
+.scan-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.scan-ctl select, .scan-ctl input { font: inherit; font-size: 15px; color: var(--ink); background: var(--raise); border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.scan-ctl select { flex: 1 1 220px; max-width: 100%; }
+.scan-ctl input { width: 70px; }
+.tr-scan-out > button { justify-self: start; font: inherit; font-weight: 700; border: 0; border-radius: 999px; padding: 11px 18px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+/* kalkulačka poisťovní */
+.ins-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.ins-grid input { max-width: 100%; }
+.ins-out { display: grid; gap: 12px; }
+.ins-out tr.best td { background: var(--accent-soft); }
+.ins-out tr.best td:first-child strong::after { content: " ✓"; color: var(--accent); }
+@media (max-width: 560px) { .ins-grid { grid-template-columns: 1fr; } }
+/* prepojenie zariadení */
+.sync-body { display: grid; gap: 12px; }
+.sync-qr svg { width: 200px; height: 200px; background: #fff; padding: 8px; border-radius: 12px; display: block; }

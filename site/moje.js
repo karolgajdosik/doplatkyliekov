@@ -124,6 +124,34 @@
     if (window.renderMoje) window.renderMoje();
   });
 
+  /* „Ukázať v lekárni“: lacnejšia náhrada na celej obrazovke, vždy po slovensky (pre lekárnika) */
+  var wake = null;
+  function showPharm(d) {
+    var ov = el('div', 'pharm-ov'); ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Liek pre lekárnika');
+    ov.lang = 'sk';
+    var card = el('div', 'pharm-card');
+    card.append(el('p', 'pc-ask', 'Prosím o liek s nižším doplatkom:'), el('p', 'pc-name', d.name), el('p', 'pc-pack', d.pack));
+    var code = el('p', 'pc-code'); code.append(el('span', null, 'Kód ŠÚKL'), el('b', null, d.kod)); card.append(code);
+    var dp = el('p', 'pc-dop'); dp.append('Doplatok ', el('b', null, d.dop)); card.append(dp);
+    if (d.orig) card.append(el('p', 'pc-orig', 'namiesto: ' + d.orig + (d.origdop ? ' (' + d.origdop + ')' : '')));
+    card.append(el('p', 'pc-note', 'Rovnaká účinná látka, sila a veľkosť balenia. Ak lekár na recepte nevyznačil, že liek sa nesmie zamieňať.'));
+    var close = el('button', 'pc-close', 'Zavrieť'); close.type = 'button';
+    card.append(close, el('p', 'pc-src', 'doplatkyliekov.sk · údaje zo zoznamu MZ SR'));
+    ov.append(card); document.body.append(ov); document.documentElement.classList.add('pharm-open');
+    function done() { ov.remove(); document.documentElement.classList.remove('pharm-open'); if (wake) { wake.release().catch(function () {}); wake = null; } document.removeEventListener('keydown', esc); }
+    function esc(e) { if (e.key === 'Escape') done(); }
+    close.addEventListener('click', done); document.addEventListener('keydown', esc); close.focus();
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (w) { wake = w; }).catch(function () {}); } catch (e) { /* nič */ }
+    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(function () {}); } catch (e) { /* nič */ }
+  }
+  window.showPharm = showPharm;
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-pharm]');
+    if (!b) return;
+    ev.preventDefault();
+    showPharm({ name: b.dataset.name, kod: b.dataset.kod, pack: b.dataset.pack, dop: b.dataset.dop, orig: b.dataset.orig, origdop: b.dataset.origdop });
+  });
+
   /* kalkulačka ročného doplatku na stránke lieku */
   function bindYearCalc(box) {
     var ks = +box.getAttribute('data-ks'), dop = +box.getAttribute('data-dop');
@@ -478,7 +506,10 @@
             totalPack += diff;
             var s = el('small', 'mine-save');
             var alt = el('a', null, cheapest[1]); alt.href = '/liek/' + slugOf(cheapest[1], cheapest[0]) + '/';
-            s.append('Lacnejšia alternatíva: ', alt, ' za ' + eur(cheapest[5]) + ' (ušetríte ' + eur(diff) + ' na balení)');
+            s.append('Lacnejšia alternatíva: ', alt, ' za ' + eur(cheapest[5]) + ' (ušetríte ' + eur(diff) + ' na balení) ');
+            var pb = el('button', 'linkish pharm-mini', 'Ukázať v lekárni'); pb.type = 'button';
+            pb.addEventListener('click', function () { showPharm({ name: cheapest[1], kod: cheapest[0], pack: cheapest[2], dop: eur(cheapest[5]), orig: it[1], origdop: eur(it[5]) }); });
+            s.append(pb);
             line.append(s);
             prow.alt = cheapest[1] + ' (' + eur(cheapest[5]) + ')';
           }

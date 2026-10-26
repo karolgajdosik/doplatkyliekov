@@ -143,6 +143,11 @@ function render(item) {
     const big = el('div', 'big', '−' + eur(saving));
     big.append(el('small', null, 'na jednom balení'));
     v.append(p, big);
+    if (window.showPharm) {
+      const pr = el('p', 'pharm-row'), pb = el('button', 'pharm-btn', 'Ukázať v lekárni'); pb.type = 'button';
+      pb.onclick = () => window.showPharm({ name: cheapest.name, kod: cheapest.kod, pack: cheapest.pack, dop: eur(cheapest.dop), orig: item.name, origdop: eur(item.dop) });
+      pr.append(pb); v.append(pr);
+    }
   } else {
     p.append(Object.assign(el('strong'), { textContent: item.name }), list.length > 1 ? ' už patrí medzi najlacnejšie lieky v tejto skupine. Doplatok ' + eur(item.dop) + '.' : ' nemá v zozname inú verziu s rovnakou látkou, silou a balením.');
     v.append(p);

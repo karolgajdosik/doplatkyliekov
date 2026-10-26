@@ -58,14 +58,23 @@
     out.append(ul);
   }
 
-  inp.addEventListener('change', function () {
-    var f = inp.files && inp.files[0]; if (!f) return;
+  function run(f) {
     say(L.busy, 'foto-busy');
+    out.scrollIntoView({ block: 'center' });
     shrink(f).then(function (img) {
       return fetch('/api/foto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ img: img }) });
     }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || ''); return j; }); })
       .then(show)
       .catch(function (e) { say(e.message && e.message.length > 3 && e.message !== 'img' ? e.message : L.err, 'form-msg err'); })
       .then(function () { inp.value = ''; });
-  });
+  }
+  inp.addEventListener('change', function () { var f = inp.files && inp.files[0]; if (f) run(f); });
+  // rýchle akcie aplikácie a zdieľanie fotky z galérie
+  var akcia = new URLSearchParams(location.search).get('akcia');
+  if (akcia) history.replaceState(null, '', location.pathname);
+  if (akcia === 'foto') { var fb = document.querySelector('.foto-btn'); fb.scrollIntoView({ block: 'center' }); fb.classList.add('pulse'); inp.focus(); }
+  if (akcia === 'hladat') { var q = document.getElementById('q'); if (q) setTimeout(function () { q.focus(); }, 200); }
+  if (akcia === 'zdielane' && 'caches' in window) {
+    caches.open('share').then(function (c) { return c.match('/zdielane/foto').then(function (r) { if (!r) return; c.delete('/zdielane/foto'); return r.blob().then(function (b) { run(b); }); }); }).catch(function () {});
+  }
 })();

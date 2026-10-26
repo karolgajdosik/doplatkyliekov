@@ -51,6 +51,23 @@ function parseJson(text) {
   } catch { return []; }
 }
 
+// spoločné volanie modelu na obrázok (používa aj /api/blocek); vráti text odpovede
+export async function vision(env, prompt, img, maxTokens = 600) {
+  let lastErr;
+  for (const model of MODELS.slice(0, 2)) {
+    try {
+      if (model.includes('llama-3.2-11b-vision')) { try { await env.AI.run(model, { prompt: 'agree' }); } catch { /* licencia už prijatá */ } }
+      const res = await withTimeout(env.AI.run(model, {
+        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: img } }] }],
+        max_tokens: maxTokens, temperature: 0,
+      }), TIMEOUT);
+      const text = res && (res.response ?? res.result?.response ?? res.choices?.[0]?.message?.content);
+      if (text) return { text: typeof text === 'string' ? text : JSON.stringify(text), model };
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('bez odpovede');
+}
+
 async function recognize(env, img, only) {
   let lastErr;
   for (const model of (only ? [only] : MODELS.slice(0, 2))) {
@@ -68,7 +85,7 @@ async function recognize(env, img, only) {
   throw lastErr || new Error('bez odpovede');
 }
 
-async function match(env, request, found) {
+export async function match(env, request, found) {
   const idx = await asset(env, request, '/ai/search.json');
   const items = [];
   const seen = new Set();

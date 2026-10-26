@@ -46,7 +46,7 @@ HU = {
     "bottom_aria": "Gyorslinkek", "foot_aria": "További oldalak",
     "foot_src": "Forrás: a Szlovák Egészségügyi Minisztérium kategorizált gyógyszerlistája (érvényes: {platnost}) és az ŠÚKL szállítási bejelentései. Az árak euróban, áfával értendők.",
     "foot_disc": "Az oldal tájékoztató jellegű, nem gyógyszerreklám, és nem helyettesíti az orvos vagy a gyógyszerész tanácsát. A gyógyszerek sorrendjét kizárólag a térítési díj határozza meg.",
-    "crumbs_aria": "Navigáció", "home_lbl": "Kezdőlap", "illus_note": "Illusztráció",
+    "crumbs_aria": "Navigáció", "home_lbl": "Kezdőlap", "illus_note": "Illusztráció", "pharm_btn": "Megmutatni a gyógyszertárban", "pharm_hint": "A gyógyszerésznek szlovákul jelenik meg, melyik gyógyszert kéri.",
     # --- stránka lieku ---
     "types": {"Originál": "Originális", "Generikum": "Generikum", "Biologický": "Biológiai"}, "type_default": "Gyógyszer",
     "tag_best": "Legalacsonyabb", "tag_zero": "Térítésmentes", "tag_vyp": "Kiesés", "price_row": "ár {}",
@@ -205,6 +205,7 @@ HU = {
             "'A térítési díj a gyógyszertárban fizetendő legmagasabb összeg. A biztosító a csoport minden gyógyszerére azonos vagy hasonló összeget fizet. Kattintson egy gyógyszerre a részletes adatokért.'",
         "'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'": "'Nem találtunk ilyen nevű gyógyszert. Próbálja a hatóanyag nevével.'",
         "el('small', null, 'na balení')": "el('small', null, 'csomagonként')",
+        "'pharm-btn', 'Ukázať v lekárni'": "'pharm-btn', 'Megmutatni a gyógyszertárban'",
         "Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.": "A gyógyszeradatokat nem sikerült betölteni. Frissítse az oldalt.",
         "<span>Odfotiť krabičku alebo recept</span>": "<span>A doboz vagy a recept lefényképezése</span>",
         "Liek rozpozná umelá inteligencia. Fotku neukladáme. Na recepte zakryte meno a rodné číslo.": "A gyógyszert mesterséges intelligencia ismeri fel. A fotót nem tároljuk. A recepten takarja le a nevét és a születési számát.",
@@ -252,7 +253,7 @@ UK = {
     "bottom_aria": "Швидкі посилання", "foot_aria": "Інші сторінки",
     "foot_src": "Джерело: Перелік категоризованих ліків Міністерства охорони здоров'я Словаччини (чинний з {platnost}) та повідомлення ŠÚKL про постачання ліків. Ціни в євро з ПДВ.",
     "foot_disc": "Сайт має інформаційний характер, не є рекламою ліків і не замінює пораду лікаря чи фармацевта. Порядок ліків визначає виключно розмір доплати.",
-    "crumbs_aria": "Навігація", "home_lbl": "Головна", "illus_note": "Ілюстрація",
+    "crumbs_aria": "Навігація", "home_lbl": "Головна", "illus_note": "Ілюстрація", "pharm_btn": "Показати в аптеці", "pharm_hint": "Фармацевт побачить словацькою, які саме ліки ви просите.",
     # --- stránka lieku ---
     "types": {"Originál": "Оригінал", "Generikum": "Генерик", "Biologický": "Біологічний"}, "type_default": "Ліки",
     "tag_best": "Найнижча", "tag_zero": "Без доплати", "tag_vyp": "Перебої", "price_row": "ціна {}",
@@ -411,6 +412,7 @@ UK = {
             "'Доплата – максимальна сума в аптеці. Страхова компанія сплачує за всі ліки в групі однакову або подібну суму. Натисніть на ліки, щоб відкрити їхню сторінку з подробицями.'",
         "'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'": "'Ліків з такою назвою не знайдено. Спробуйте назву діючої речовини латиницею.'",
         "el('small', null, 'na balení')": "el('small', null, 'на упаковці')",
+        "'pharm-btn', 'Ukázať v lekárni'": "'pharm-btn', 'Показати в аптеці'",
         "Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.": "Не вдалося завантажити дані про ліки. Оновіть сторінку.",
         "<span>Odfotiť krabičku alebo recept</span>": "<span>Сфотографувати упаковку або рецепт</span>",
         "Liek rozpozná umelá inteligencia. Fotku neukladáme. Na recepte zakryte meno a rodné číslo.": "Ліки розпізнає штучний інтелект. Фото ми не зберігаємо. На рецепті закрийте ім'я та rodné číslo.",

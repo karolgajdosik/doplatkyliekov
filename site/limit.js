@@ -120,6 +120,73 @@
   });
   function alertMsg(t) { pickedEl.textContent = t; }
 
+  /* bloček z lekárne: fotka → /api/blocek → kontrola a pridanie položiek */
+  var scanIn = document.getElementById('tr-foto'), scanOut = document.getElementById('tr-scan-out');
+  function shrink(file) {
+    return new Promise(function (res, rej) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var max = 1600, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('img')); };
+      img.src = url;
+    });
+  }
+  function scanSay(t, cls) { scanOut.hidden = false; scanOut.replaceChildren(el('p', cls || null, t)); }
+  function review(j, all) {
+    var by = {}; all.forEach(function (x) { by[x.kod] = x; });
+    scanOut.replaceChildren();
+    var items = (j.items || []);
+    if (!items.length) return scanSay('Na fotke sme nenašli lieky. Skúste ostrejšiu fotku celého bločku pri dobrom svetle.', 'form-msg err');
+    var day = j.datum && j.datum <= iso(new Date()) ? j.datum : iso(new Date());
+    scanOut.append(el('p', 'eyebrow', 'Z bločku' + (j.datum ? ' zo dňa ' + skDate(j.datum) + j.datum.slice(0, 4) : '') + ' – skontrolujte a pridajte'));
+    var ul = el('ul', 'glist scan-list'), rows = [];
+    items.forEach(function (x) {
+      var li = el('li'), cb = el('input'); cb.type = 'checkbox'; cb.checked = !!x.liek;
+      var sel = el('select'); sel.setAttribute('aria-label', 'Liek pre položku ' + x.text);
+      [x.liek].concat(x.ine || []).filter(Boolean).forEach(function (c) { var o = el('option', null, c.name + ' · ' + c.pack); o.value = c.kod; sel.append(o); });
+      var none = el('option', null, '— nie je liek na predpis —'); none.value = ''; sel.append(none);
+      if (!x.liek) { sel.value = ''; }
+      var cnt = el('input'); cnt.type = 'number'; cnt.min = 1; cnt.max = 20; cnt.value = x.kusov || 1; cnt.setAttribute('aria-label', 'Počet balení');
+      var info = el('small');
+      function upd() { var it = by[sel.value]; cb.disabled = !it; if (!it) cb.checked = false; info.textContent = (x.suma != null ? 'Na bločku ' + eur(x.suma) + ' · ' : '') + (it ? 'do limitu sa započíta ' + eur((it.pdop || 0) * (parseInt(cnt.value, 10) || 1)) : 'nezapočíta sa'); }
+      sel.addEventListener('change', function () { cb.checked = !!sel.value; upd(); }); cnt.addEventListener('input', upd); upd();
+      var lab = el('label', 'scan-row'); lab.append(cb, el('span', 'scan-text', x.text));
+      var ctl = el('div', 'scan-ctl'); ctl.append(sel, cnt, el('span', null, 'bal.'));
+      li.append(lab, ctl, info); ul.append(li);
+      rows.push({ cb: cb, sel: sel, cnt: cnt });
+    });
+    var add = el('button', null, 'Pridať označené do prehľadu'); add.type = 'button';
+    add.addEventListener('click', function () {
+      var n0 = 0;
+      rows.forEach(function (r, i) {
+        var it = by[r.sel.value]; if (!r.cb.checked || !it) return;
+        entries.push({ id: Date.now().toString(36) + 's' + i, d: day, kod: it.kod, name: it.name, n: Math.max(1, Math.min(20, parseInt(r.cnt.value, 10) || 1)), amt: it.pdop || 0 });
+        n0++;
+      });
+      save(KEY, entries); curQ = quarterOf(day); render();
+      scanSay(n0 ? 'Pridané: ' + n0 + (n0 === 1 ? ' položka.' : n0 < 5 ? ' položky.' : ' položiek.') : 'Nič nebolo označené.', 'form-msg ok');
+      list.scrollIntoView({ block: 'center' });
+    });
+    scanOut.append(ul, add, el('p', 'hint', 'Do limitu počítame doplatok za najlacnejší náhradný liek podľa zoznamu ministerstva, nie celú sumu z bločku.'));
+  }
+  if (scanIn) scanIn.addEventListener('change', function () {
+    var f = scanIn.files && scanIn.files[0]; if (!f) return;
+    scanSay('Čítam bloček…', 'foto-busy');
+    Promise.all([shrink(f).then(function (img) {
+      return fetch('/api/blocek', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ img: img }) })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || ''); return j; }); });
+    }), data()]).then(function (res) { review(res[0], res[1]); })
+      .catch(function (e) { scanSay(e.message && e.message.length > 3 && e.message !== 'img' ? e.message : 'Bloček sa nepodarilo prečítať. Skúste to znova.', 'form-msg err'); })
+      .then(function () { scanIn.value = ''; });
+  });
+  if (new URLSearchParams(location.search).get('akcia') === 'blocek') {
+    history.replaceState(null, '', location.pathname + '#tracker');
+    var fb = document.querySelector('.tr-scan .foto-btn'); if (fb) { fb.classList.add('pulse'); fb.scrollIntoView({ block: 'center' }); }
+  }
+
   box.querySelectorAll('[data-q]').forEach(function (b) {
     b.addEventListener('click', function () { curQ += +b.getAttribute('data-q'); render(); });
   });

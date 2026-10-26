@@ -118,6 +118,9 @@ class Ctx:
         vyp_all = json.loads((DATA / "vypadky.json").read_text(encoding="utf-8")) if (DATA / "vypadky.json").exists() else {}
         cutoff = (dt.date.today() - dt.timedelta(days=730)).isoformat()
         self.vyp = {k: v for k, v in vyp_all.get("lieky", {}).items() if v.get("od", "") >= cutoff and v.get("stav") in ("R", "Z", "PR", "PZ")}
+        # všetky aktuálne hlásenia bez časového obmedzenia (na zistenie, že sa výpadok skončil)
+        self.vyp_raw = {k for k, v in vyp_all.get("lieky", {}).items() if v.get("stav") in ("R", "Z", "PR", "PZ")}
+        self.vyp_ok = bool(vyp_all.get("lieky"))
         self.cur_iso = self.full.get("platnostIso") or ""
         self.prev_keys = None
         if self.cur_iso:
@@ -174,6 +177,10 @@ def changes_for(ctx, kody, notified, since):
                 alt = f" Alternatíva s rovnakou látkou: {cheapest['name']} (doplatok {eur(cheapest['dop'])})."
             items.append((url, p["name"], f"{txt} od {sk_date(st['od'])}.{alt}"))
             n_vyp[kod] = st["od"]
+        elif not st and kod in n_vyp and ctx.vyp_ok and kod not in ctx.vyp_raw:
+            # predtým sme hlásili výpadok a teraz už v hláseniach ŠÚKL nie je → liek je opäť dostupný
+            items.append((url, p["name"], f"Liek je opäť dostupný: výrobca už nehlási prerušenie dodávok. Doplatok je {eur(p['dop'])}."))
+            n_vyp.pop(kod, None)
     return items
 
 

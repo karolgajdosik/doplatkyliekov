@@ -595,7 +595,8 @@ def drug_page_l(L, c):
         desc = L["desc_save"].format(name=p["name"], pk=pk, dop=eur(p["dop"]), cname=cheapest["name"], cdop=eur(cheapest["dop"]), save=eur(saving))
         clink = f'<a href="{D}{esc(cheapest["slug"])}/">{esc(cheapest["name"])}</a>'
         verdict = (f'<div class="verdict"><p>{L["verdict_save"].format(name=esc(p["name"]), dop=eur(p["dop"]), clink=clink, cdop=eur(cheapest["dop"]))}</p>'
-                   f'<div class="big">−{eur(saving)}<small>{L["per_pack"]}</small></div></div>')
+                   f'<div class="big">−{eur(saving)}<small>{L["per_pack"]}</small></div>'
+                   f'<p class="pharm-row">{pharm_button(p, cheapest, L["pharm_btn"])}<small>{L["pharm_hint"]}</small></p></div>')
     elif len(items) > 1:
         desc = L["desc_cheap"].format(name=p["name"], pk=pk, dop=eur(p["dop"]), s=g["s"])
         verdict = f'<div class="verdict none"><p>{L["verdict_cheap"].format(name=esc(p["name"]), dop=eur(p["dop"]))}</p></div>'
@@ -902,6 +903,17 @@ BOOKMARK = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke=
             '<path d="M6 3h12v18l-6-4.5L6 21z"/></svg>')
 
 
+def pharm_button(p, alt, label="Ukázať v lekárni"):
+    """Tlačidlo, ktoré na celej obrazovke ukáže lacnejšiu náhradu lekárnikovi (spracuje moje.js)."""
+    return (f'<button type="button" class="pharm-btn" data-pharm data-name="{esc(alt["name"])}" data-kod="{esc(alt["kod"])}" '
+            f'data-pack="{esc(alt["pack"])}" data-dop="{esc(eur(alt["dop"]))}" data-orig="{esc(p["name"])}" data-origdop="{esc(eur(p["dop"]))}">'
+            f'{PHARM_IC}<span>{esc(label)}</span></button>')
+
+
+PHARM_IC = ('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+            'stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 7v6M9 10h6M10 18h4"/></svg>')
+
+
 def mine_button(p):
     return (f'<button type="button" class="mine-btn" data-kod="{esc(p["kod"])}" data-name="{esc(p["name"])}" '
             f'data-slug="{esc(p["slug"])}" aria-pressed="false">{BOOKMARK}<span class="mine-label">Pridať do Mojich liekov</span></button>')
@@ -1032,7 +1044,7 @@ ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani 
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js"):
+    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -1235,7 +1247,8 @@ def build():
             verdict = (f'<div class="verdict"><p>Za <strong>{esc(p["name"])}</strong> doplácate {eur(p["dop"])}. '
                        f'Najlacnejšia alternatíva s rovnakou látkou, silou a balením je '
                        f'<strong><a href="/liek/{esc(cheapest["slug"])}/">{esc(cheapest["name"])}</a></strong> za {eur(cheapest["dop"])}.</p>'
-                       f'<div class="big">−{eur(saving)}<small>na jednom balení</small></div></div>')
+                       f'<div class="big">−{eur(saving)}<small>na jednom balení</small></div>'
+                       f'<p class="pharm-row">{pharm_button(p, cheapest)}<small>Ukážte lekárnikovi na mobile, o ktorý liek ide.</small></p></div>')
         elif len(items) > 1:
             desc = (f"Doplatok za {p['name']} ({pk}) je {eur(p['dop'])}. Patrí medzi najlacnejšie lieky s látkou "
                     f"{g['s']} v tejto sile a balení. Porovnanie {plural_lieky(len(items))}.")
@@ -1720,6 +1733,11 @@ def build():
       </div>
       <p class="tr-picked" id="tr-picked" aria-live="polite"></p>
     </form>
+    <div class="tr-scan">
+      <label class="foto-btn"><input type="file" id="tr-foto" accept="image/*"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg><span>Odfotiť bloček z lekárne</span></label>
+      <small class="foto-note">Lieky a doplatky z bločku prečíta umelá inteligencia, pred uložením ich skontrolujete. Fotku neukladáme.</small>
+    </div>
+    <div id="tr-scan-out" class="tr-scan-out" aria-live="polite" hidden></div>
     <p class="tr-more"><button type="button" class="linkish" id="tr-mine">Pridať lieky z Mojich liekov</button> · <button type="button" class="linkish" id="tr-manual">Zadať sumu ručne</button></p>
     <ul class="glist tr-list" id="tr-list"></ul>
     <div class="tr-sum" id="tr-sum" aria-live="polite"></div>
@@ -2107,6 +2125,11 @@ def build():
       <p class="hint">Všetky polia sú nepovinné. Údaje aj obrázok zostávajú len v tomto zariadení, nikam ich neposielame. Ako tapetu ho nastavíte v Nastaveniach telefónu (Tapeta → Uzamknutá obrazovka). Po zmene liekov si kartu vytvorte znova.</p>
     </section>
   </div>
+  <section class="card" id="sync-card">
+    <h2>Prepojiť s ďalším zariadením</h2>
+    <div class="sync-body"></div>
+    <p class="form-msg" aria-live="polite"></p>
+  </section>
 {alert_form(None, "Upozornenia e-mailom")}
   <section class="card" id="push-card" hidden>
     <h2>Upozornenia v telefóne</h2>
@@ -2121,7 +2144,7 @@ def build():
     <button type="button" id="install-btn" hidden>Nainštalovať aplikáciu</button>
   </section>"""
     write("/moje-lieky/", page("Moje lieky – sledovanie doplatkov", "Uložte si lieky, ktoré užívate, a sledujte ich doplatky, zmeny a výpadky na jednom mieste.", "/moje-lieky/", body, breadcrumb_ld(crumb_items),
-                               script='<script src="/moje2.js" defer></script>'))
+                               script='<script src="/moje2.js" defer></script><script src="/qr.js" defer></script><script src="/sync.js" defer></script>'))
 
     # --- čísla do textov ---
     gap_groups = 0
@@ -2212,6 +2235,9 @@ def build():
     <p>Ak otázku položíte hlasom, reč prevedie na text priamo váš prehliadač alebo operačný systém (napríklad Google alebo Apple) podľa ich pravidiel; k nám príde len výsledný text otázky. Mikrofón sa zapne až po ťuknutí na tlačidlo a prehliadač si najprv vyžiada vaše povolenie.</p>
     <h2 id="foto">Rozpoznanie lieku z fotky</h2>
     <p>Ak na úvodnej stránke odfotíte balenie lieku alebo recept, prehliadač fotku zmenší a pošle ju jazykovému modelu umelej inteligencie v službe Cloudflare Workers AI (Cloudflare, Inc., USA), ktorý z nej vyčíta názov, silu a veľkosť balenia lieku. Fotku ani výsledok neukladáme; po spracovaní sa zahodí. Model má pokyn ignorovať osobné údaje, no fotka receptu ich môže obsahovať, preto <strong>meno, rodné číslo a adresu na recepte pred fotením zakryte</strong>. Ak by fotka obsahovala údaje o zdraví, spracúvajú sa len na váš výslovný pokyn (odfotenie a odoslanie) na účel, ktorý ste si vyžiadali (čl. 9 ods. 2 písm. a) GDPR). Prenos do USA prebieha na základe štandardných zmluvných doložiek.</p>
+    <p>Rovnako spracúvame fotku <strong>bločku z lekárne</strong> v prehľade ochranného limitu: model z nej vyčíta dátum, názvy liekov, počty a sumy. Fotku ani výsledok neukladáme; rozpoznané položky sa po vašom potvrdení uložia len vo vašom prehliadači. Meno, číslo karty a ďalšie údaje na bločku model ignoruje, aj tak ich pred fotením odporúčame zakryť.</p>
+    <h2 id="prepojenie">Prepojenie zariadení</h2>
+    <p>Ak zapnete prepojenie zariadení v Mojich liekoch, vaše údaje uložené v prehliadači (zoznamy liekov, členovia rodiny, karta pre núdzu, pripomienky a prehľad doplatkov) sa <strong>zašifrujú priamo vo vašom zariadení</strong> (AES-256-GCM) a na náš server (Cloudflare KV) sa uloží len zašifrovaný obsah. Kľúč na rozšifrovanie je iba v QR kóde a odkaze, ktorý zobrazí vaše zariadenie; na server sa neposiela, preto údaje nevieme prečítať ani my. Kto má odkaz alebo QR kód, vidí vaše údaje, preto ho zdieľajte len so svojimi zariadeniami alebo blízkymi. Zašifrované údaje sa automaticky vymažú, ak sa 13 mesiacov nepoužijú. Prepojenie zrušíte tlačidlom Zrušiť prepojenie.</p>
     <h2>Moje lieky</h2>
     <p>Zoznam Moje lieky (aj zoznamy ďalších členov rodiny) a prehľad doplatkov pre ochranný limit sa ukladajú len vo vašom prehliadači (pozri vyššie). Ak zoznam liekov zdieľate odkazom, kódy liekov sú súčasťou odkazu a vidí ich každý, komu ho pošlete.</p>
     <h2>Upozornenia e-mailom</h2>
@@ -2399,6 +2425,20 @@ def build():
     </table></div>
     <p class="hint">Benefity sa vzťahujú na doplatky za lieky (a pri Unione a Dôvere aj dietetické potraviny) na predpis, čiastočne hradené poisťovňou a vydané v slovenskej lekárni. Voľnopredajné lieky ani zdravotnícke pomôcky sa nepreplácajú.</p>
   </section>
+  <section class="card" id="kalkulacka">
+    <h2>Ktorá poisťovňa sa vám oplatí</h2>
+    <p class="page-sub">Zadajte, koľko vás je v rodine a koľko ročne doplácate za lieky. Ročný doplatok za vaše lieky vidíte v <a href="/moje-lieky/">Mojich liekoch</a>.</p>
+    <form class="calc ins-calc" id="ins-form">
+      <div class="ins-grid">
+        <label>Dospelí (rodičia) <input type="number" id="ins-a" min="0" max="6" value="2" inputmode="numeric"></label>
+        <label>Deti do 18 rokov <input type="number" id="ins-c" min="0" max="8" value="1" inputmode="numeric"></label>
+        <label>Doplatky dospelých za rok (€) <input type="number" id="ins-da" min="0" step="1" value="240" inputmode="decimal"></label>
+        <label>Doplatky detí za rok (€) <input type="number" id="ins-dc" min="0" step="1" value="150" inputmode="decimal"></label>
+      </div>
+      <div class="ins-out" id="ins-out" aria-live="polite"></div>
+    </form>
+    <p class="hint">Orientačný odhad podľa podmienok overených {VYHODY_OVERENE}. Predpokladá splnené preventívne prehliadky, rovnomerne rozdelené doplatky medzi členov rodiny a že rodičia aj deti sú v tej istej poisťovni. Union a Dôvera vracajú dospelým sumu raz za celú dobu poistenia, VšZP každý rok. Doplatky nad ochranný limit vracajú všetky poisťovne rovnako.</p>
+  </section>
   <section class="article">
     <h2>Union</h2>
     <ul>
@@ -2428,9 +2468,42 @@ def build():
     <p>Okrem dobrovoľných benefitov vracajú všetky poisťovne podľa zákona doplatky nad <a href="/ochranny-limit/">ochranný limit</a> dôchodcom, ľuďom s preukazom ŤZP a deťom do 6 rokov. A najviac ušetríte, keď si vyberiete liek s nižším doplatkom: <a href="/">vyhľadajte svoj liek</a>.</p>
     <blockquote>Podmienky benefitov si poisťovne menia aj počas roka. Pred žiadosťou si ich overte priamo u svojej poisťovne. Prehľad sme naposledy overili {VYHODY_OVERENE}.</blockquote>
   </section>"""
+    ins_js = """<script>
+(function () {
+  var f = document.getElementById('ins-form'); if (!f) return;
+  var out = document.getElementById('ins-out');
+  function v(id, max) { var x = parseFloat((document.getElementById(id).value || '0').replace(',', '.')); return Math.max(0, Math.min(max, isFinite(x) ? x : 0)); }
+  function eur(n) { return Math.round(n).toLocaleString('sk-SK') + ' €'; }
+  function calc() {
+    var A = Math.round(v('ins-a', 6)), C = Math.round(v('ins-c', 8)), da = v('ins-da', 100000), dc = v('ins-dc', 100000);
+    var res = [];
+    function per(years) {
+      // Union: deti bez limitu (ak je v Unione aj rodič), dospelí spolu 300 € na osobu za celú dobu poistenia
+      var u = (A > 0 ? dc * years : 0) + Math.min(da * years, 300 * A);
+      // Dôvera: 400 € na člena rodiny za celú dobu poistenia (rovnomerné rozdelenie)
+      var dvA = A ? Math.min(da * years, 400 * A) : 0, dvC = C ? Math.min(dc * years, 400 * C) : 0;
+      // VšZP: každý rok MINI (deti 100 €, dospelí 20 €) alebo MAXI (rodina s deťmi spolu 450 €) – berieme výhodnejšie
+      var mini = Math.min(dc, 100 * C) + Math.min(da, 20 * A), maxi = C > 0 && A > 0 ? Math.min(dc + da, 450) : 0;
+      return { u: u, d: dvA + dvC, v: Math.max(mini, maxi) * years };
+    }
+    var y1 = per(1), y3 = per(3), total1 = da + dc;
+    var rows = [['Union', y1.u, y3.u], ['Dôvera', y1.d, y3.d], ['VšZP', y1.v, y3.v]];
+    var best = rows.slice().sort(function (a, b) { return b[2] - a[2]; })[0];
+    var tied = rows.filter(function (r) { return best[2] - r[2] < 1; });
+    var t = '<table class="ltable"><thead><tr><th>Poisťovňa</th><th>Vráti za 1. rok</th><th>Spolu za 3 roky</th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr' + (tied.length === 1 && r === best && r[2] > 0 ? ' class="best"' : '') + '><td><strong>' + r[0] + '</strong></td><td class="num">' + eur(r[1]) + '</td><td class="num">' + eur(r[2]) + '</td></tr>'; }).join('') +
+      '</tbody></table>';
+    var who = tied.length === 1 ? 'najviac vrátila <b>' + best[0] + '</b>' : (tied.length === 3 ? 'všetky tri poisťovne vrátili rovnako' : 'rovnako najviac vrátili <b>' + tied.map(function (r) { return r[0]; }).join(' a ') + '</b>');
+    var note = total1 > 0 ? '<p class="result">Pri doplatkoch ' + eur(total1) + ' ročne by vám za 3 roky ' + who + ', približne <b>' + eur(best[2]) + '</b> z ' + eur(total1 * 3) + '.' +
+      (A === 0 && C > 0 ? ' Pri Unione musí byť poistený aj rodič.' : '') + '</p>' : '<p class="result">Zadajte ročné doplatky.</p>';
+    out.innerHTML = '<div class="scroll">' + t + '</div>' + note;
+  }
+  f.addEventListener('input', calc); f.addEventListener('submit', function (e) { e.preventDefault(); }); calc();
+})();
+</script>"""
     write("/vyhody-poistovni/", page("Ktorá poisťovňa vráti doplatky za lieky – Union, Dôvera, VšZP",
-                                     "Porovnanie benefitov zdravotných poisťovní na doplatky za lieky: Union deťom bez limitu, Dôvera 400 € na člena rodiny, VšZP Peňaženka zdravia. Podmienky a ako požiadať.",
-                                     "/vyhody-poistovni/", body, breadcrumb_ld(crumb_items)))
+                                     "Porovnanie benefitov zdravotných poisťovní na doplatky za lieky: Union deťom bez limitu, Dôvera 400 € na člena rodiny, VšZP Peňaženka zdravia. Kalkulačka, ktorá poisťovňa sa vám oplatí.",
+                                     "/vyhody-poistovni/", body, breadcrumb_ld(crumb_items), ins_js))
     urls.append(("/vyhody-poistovni/", "0.8"))
 
     # --- AI asistent ---
