@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import notify  # noqa: E402
 
-WINDOW = 35  # minút
+WINDOW = 150  # minút (GitHub spúšťa plánované úlohy s veľkým oneskorením, niekedy až 2 hodiny)
 
 
 def dose_txt(d):
