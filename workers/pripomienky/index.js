@@ -147,6 +147,7 @@ export function buildPayloads(rec, now, map) {
 
 // rýchly predvýber podľa indexu: môže niektorá pripomienka byť práve teraz na rade?
 function maybeDue(entry, now) {
+  if (!entry || typeof entry !== 'object') return false;
   if (Array.isArray(entry)) return true; // starý formát bez časového pásma
   const tz = safeTz(entry.z || 'Europe/Bratislava');
   return (entry.t || []).some((t) => isDue(ageOf(t, now, tz).age));
@@ -154,15 +155,23 @@ function maybeDue(entry, now) {
 
 export async function run(env, now = new Date()) {
   const idx = (await env.SUBS.get('doses:index', 'json')) || {};
-  const ids = Object.keys(idx).filter((id) => maybeDue(idx[id], now));
+  const ids = Object.keys(idx).filter((id) => /^[a-z0-9]{32}$/.test(id) && maybeDue(idx[id], now));
   let sent = 0, gone = 0, err = 0;
   if (!ids.length) return { sent, gone, err };
   const map = await nameMap();
   for (const id of ids) {
+    try { ({ sent, gone, err } = await one(env, id, now, map, { sent, gone, err })); } catch (e) { err++; console.log('Chyba pri', id.slice(0, 6), e.message); }
+  }
+  return { sent, gone, err };
+}
+
+async function one(env, id, now, map, c) {
+  let { sent, gone, err } = c;
+  {
     const rec = await env.SUBS.get(`push:${id}`, 'json');
-    if (!rec || !rec.sub) continue;
+    if (!rec || !rec.sub) return c;
     const jobs = buildPayloads(rec, now, map);
-    if (!jobs.length) continue;
+    if (!jobs.length) return c;
     rec.notified = rec.notified || {};
     const done = rec.notified.dose = rec.notified.dose || {};
     let changed = false, isGone = false;

@@ -15,7 +15,7 @@ jobs:
           id=00000000000000000000000000test01
           P=$(python3 -c "import base64;from cryptography.hazmat.primitives.asymmetric import ec;from cryptography.hazmat.primitives import serialization as s;k=ec.generate_private_key(ec.SECP256R1());print(base64.urlsafe_b64encode(k.public_key().public_bytes(s.Encoding.X962,s.PublicFormat.UncompressedPoint)).decode().rstrip('='))")
           t=$(TZ=Europe/Bratislava date -d '+2 min' +%H:%M)
-          idx=$(curl -s -H "$H" "$kv/doses:index"); echo "$idx" | jq -e . >/dev/null 2>&1 || idx='{}'
+          idx=$(curl -s -H "$H" "$kv/doses:index" | jq -c 'if type=="object" and has("success") and has("errors") then {} else . end | with_entries(select(.key|test("^[a-z0-9]{32}$")))')
           echo "::notice::index pred: $(echo "$idx" | head -c 200)"
           curl -s -X PUT -H "$H" "$kv/push:$id" --data "{\"sub\":{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/test-neexistuje\",\"keys\":{\"p256dh\":\"$P\",\"auth\":\"AAAAAAAAAAAAAAAAAAAAAA\"}},\"tz\":\"Europe/Bratislava\",\"doses\":[{\"k\":\"94163\",\"t\":\"$t\",\"d\":1,\"w\":\"\"}],\"notified\":{}}" >/dev/null
           curl -s -X PUT -H "$H" "$kv/doses:index" --data "$(echo "$idx" | jq -c --arg id $id --arg t $t '.[$id]={t:[$t],z:"Europe/Bratislava"}')" >/dev/null
@@ -23,4 +23,6 @@ jobs:
           for i in $(seq 16); do sleep 30; c=$(curl -s -o /dev/null -w '%{http_code}' -H "$H" "$kv/push:$id"); [ "$c" = 404 ] && break; done
           echo "::notice::po $((i*30)) s: záznam $c (404 = Worker ho spracoval a zmazal), index: $(curl -s -H "$H" "$kv/doses:index" | head -c 200)"
           curl -s -X DELETE -H "$H" "$kv/push:$id" >/dev/null
-          curl -s -H "$H" "$kv/doses:index" | jq -c --arg id $id 'del(.[$id])' | curl -s -X PUT -H "$H" "$kv/doses:index" --data @- >/dev/null
+          rest=$(curl -s -H "$H" "$kv/doses:index" | jq -c --arg id $id 'del(.[$id]) | with_entries(select(.key|test("^[a-z0-9]{32}$")))')
+          if [ "$rest" = "{}" ]; then curl -s -X DELETE -H "$H" "$kv/doses:index" >/dev/null; else curl -s -X PUT -H "$H" "$kv/doses:index" --data "$rest" >/dev/null; fi
+          echo "::notice::upratané, index: $(curl -s -H "$H" "$kv/doses:index" | head -c 120)"
