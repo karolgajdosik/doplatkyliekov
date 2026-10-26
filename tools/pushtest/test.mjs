@@ -19,7 +19,8 @@ async function attempt(name, launch) {
   let b;
   try {
     b = await launch();
-    const ctx = await b.newContext({ permissions: name === 'chrome' ? ['notifications'] : [] });
+    const ctx = await b.newContext();
+    if (name === 'chrome') await ctx.grantPermissions(['notifications'], { origin: 'http://localhost:8123' });
     const p = await ctx.newPage(); await p.goto('http://localhost:8123/');
     const sub = await p.evaluate(() => window.go());
     const res = await W.sendPush(sub, { title: 'Čas na liek · 08:00', body: 'Concor 10 mg: ½ ks' }, priv, 60);
