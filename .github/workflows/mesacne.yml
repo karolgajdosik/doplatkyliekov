@@ -24,6 +24,7 @@ jobs:
       - name: Lekárne z OpenStreetMap
         continue-on-error: true
         run: |
+          set +e
           python scripts/build_lekarne.py 2>&1 | tee lek.log; code=${PIPESTATUS[0]}
           echo "::notice title=lekarne::$(tail -n 4 lek.log | tr '\n' ' ' | head -c 900)"
           exit $code
@@ -31,6 +32,7 @@ jobs:
         continue-on-error: true
         run: |
           sudo apt-get update -qq >/dev/null && sudo apt-get install -y -qq catdoc poppler-utils >/dev/null
+          set +e
           curl -sSL --retry 3 --retry-delay 30 -o /tmp/pil.zip https://www.sukl.sk/verejne/Zoznam_SPC_PIL/spc_pil_aktualny.zip
           ls -la /tmp/pil.zip
           python scripts/build_pil.py /tmp/pil.zip 2>&1 | tee pil.log; code=${PIPESTATUS[0]}
