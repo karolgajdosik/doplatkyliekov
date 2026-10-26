@@ -17,12 +17,16 @@ ENDPOINTS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.s
              "https://overpass.private.coffee/api/interpreter"]
 
 
-def fetch():
+PLACES = ('[out:json][timeout:150];area["ISO3166-1"="SK"][admin_level=2]->.a;'
+          'node["place"~"^(city|town|village)$"]["name"](area.a);out;')
+
+
+def fetch(query=QUERY):
     last = None
     for url in ENDPOINTS:
         for attempt in range(2):
             try:
-                req = urllib.request.Request(url, data=urllib.parse.urlencode({"data": QUERY}).encode(),
+                req = urllib.request.Request(url, data=urllib.parse.urlencode({"data": query}).encode(),
                                              headers={"User-Agent": "doplatkyliekov.sk (kontakt@doplatkyliekov.sk)"})
                 with urllib.request.urlopen(req, timeout=200) as r:
                     return json.loads(r.read())
@@ -47,6 +51,27 @@ def main():
         out.append([round(lat, 5), round(lon, 5), (t.get("name") or "Lekáreň").strip()[:80], f"{street} {num}".strip()[:80],
                     (t.get("addr:city") or "").strip()[:50], (t.get("opening_hours") or "")[:120],
                     (t.get("phone") or t.get("contact:phone") or "")[:40]])
+    # obec chýba pri väčšine lekární: doplníme najbližšiu obec (do 8 km) z OpenStreetMap
+    try:
+        import math
+        places = [(e["lat"], e["lon"], e["tags"]["name"], e["tags"].get("place")) for e in fetch(PLACES).get("elements", []) if "lat" in e]
+        filled = 0
+        for x in out:
+            if x[4]:
+                continue
+            best, bd = None, 9e9
+            for la, lo, nm, kind in places:
+                dd = (la - x[0]) ** 2 + ((lo - x[1]) * math.cos(math.radians(x[0]))) ** 2
+                if kind == "village":
+                    dd *= 1.6  # mesto má prednosť pred susednou dedinou
+                if dd < bd:
+                    best, bd = nm, dd
+            if best and math.sqrt(bd) * 111 < 8:
+                x[4] = best
+                filled += 1
+        print(f"Obec doplnená pri {filled} lekárňach")
+    except SystemExit as e:
+        print("Obce sa nepodarilo doplniť:", e)
     if len(out) < 300:
         raise SystemExit(f"Podozrivo málo lekární ({len(out)}), súbor neprepisujem.")
     out.sort()
