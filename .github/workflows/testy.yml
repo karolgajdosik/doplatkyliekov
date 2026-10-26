@@ -1,0 +1,56 @@
+name: Nočný test webu
+
+# Každú noc preklikne hlavné funkcie živého webu a zmeria rýchlosť a prístupnosť.
+# Pri chybe GitHub pošle e-mail (nastavenie Notifications → Actions).
+on:
+  schedule:
+    - cron: "37 1 * * *"
+  workflow_run:
+    workflows: ["Aktualizácia zoznamu liekov"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      lighthouse:
+        description: "Merať aj rýchlosť (Lighthouse)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testy
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: tests
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Počkať na nasadenie nových dát
+        if: github.event_name == 'workflow_run'
+        run: sleep 180
+      - name: Inštalácia
+        working-directory: tests
+        run: npm install --no-audit --no-fund --silent && npx playwright install --with-deps chromium
+      - name: Preklikanie funkcií
+        working-directory: tests
+        run: node e2e.mjs
+      - name: Rýchlosť a prístupnosť
+        if: always() && github.event_name != 'workflow_run' && (github.event_name != 'workflow_dispatch' || inputs.lighthouse)
+        working-directory: tests
+        run: node lighthouse.mjs
+      - name: Snímky chýb
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snimky-chyb
+          path: tests/test-chyba-*.png
+          if-no-files-found: ignore
+          retention-days: 14
