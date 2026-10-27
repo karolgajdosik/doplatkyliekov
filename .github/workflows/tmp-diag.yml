@@ -1,0 +1,10 @@
+name: tmp diag
+on: { workflow_dispatch: {} }
+jobs:
+  d:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with: { sparse-checkout: tests }
+      - working-directory: tests
+        run: npm install --no-audit --no-fund --silent playwright@1.56.1 && npx playwright install --with-deps chromium >/dev/null && node diag.mjs
