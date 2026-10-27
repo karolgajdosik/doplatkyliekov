@@ -175,6 +175,15 @@ if (LIVE) {
   });
 }
 
+await check('Ďalšie stránky sa otvoria bez chýb', async () => {
+  const paths = ['/asistent/', '/hu/', '/uk/', '/upozornenia/sprava/', '/vyhody-poistovni/', '/na-vytlacenie/'];
+  for (const p of paths) { await page.goto(BASE + p); await page.waitForLoadState('load'); }
+  await page.goto(BASE + '/moje-lieky/');
+  await page.waitForSelector('#moje-rest:not([hidden])');
+  await page.waitForSelector('#sync-card .sync-body > *');
+  return `${paths.length + 1} stránok`;
+});
+
 await check('Bez chýb JavaScriptu a chýbajúcich súborov', async () => {
   const uniq = [...new Set(jsErrors)];
   assert(!uniq.length, uniq.slice(0, 5).join(' | '));

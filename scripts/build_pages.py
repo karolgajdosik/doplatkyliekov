@@ -261,6 +261,8 @@ def load(name, default=None):
 # písma sú na vlastnom serveri (site/fonts, @font-face v style.css) – rýchlejšie a bez kontaktu s Google
 FONTS = ('<link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
          '<link rel="preload" href="/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
+         '<link rel="preload" href="/fonts/unbounded-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
+         '<link rel="preload" href="/fonts/onest-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
          '<meta name="theme-color" content="#05090b">'
          '<link rel="manifest" href="/manifest.webmanifest">'
          '<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">'
@@ -1052,6 +1054,52 @@ NOTES = """
 ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani aplikácia nepoužili starú verziu
 
 
+MINIFY = ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js")
+
+
+def minify_assets():
+    """Zmenší štýly a skripty v site/ (len pri nasadení na Cloudflare alebo s --minify, aby sa nemenili zdrojové súbory v gite)."""
+    import os
+    if not (os.environ.get("CF_PAGES") or "--minify" in sys.argv):
+        return
+    try:
+        import rcssmin
+        import rjsmin
+    except ImportError:
+        import subprocess
+        subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--user", "rcssmin==1.2.1", "rjsmin==1.2.4"], timeout=180, check=False)
+        importlib.invalidate_caches()
+        import site as _site
+        sys.path.append(_site.getusersitepackages())
+        try:
+            rcssmin = importlib.import_module("rcssmin")
+            rjsmin = importlib.import_module("rjsmin")
+        except ImportError:
+            print("Minifikácia vynechaná (chýba rcssmin/rjsmin).")
+            return
+    before = after = 0
+    for name in MINIFY:
+        f = SITE / name
+        if not f.exists():
+            continue
+        src = f.read_text(encoding="utf-8")
+        out = rcssmin.cssmin(src) if name.endswith(".css") else rjsmin.jsmin(src)
+        before += len(src.encode()); after += len(out.encode())
+        f.write_text(out, encoding="utf-8")
+    print(f"Minifikácia: {before // 1024} kB → {after // 1024} kB")
+
+
+def inline_home_css():
+    """Úvodné stránky dostanú hlavný štýl priamo do HTML – prvé vykreslenie nečaká na ďalší súbor."""
+    css = (SITE / "style.css").read_text(encoding="utf-8").replace("</style", "<\\/style")
+    link = f'<link rel="stylesheet" href="/style.css?v={ASSET_VER["/style.css"]}">'
+    for f in (SITE / "index.html", SITE / "hu" / "index.html", SITE / "uk" / "index.html"):
+        if f.exists():
+            t = f.read_text(encoding="utf-8")
+            assert link in t, f"{f}: chýba odkaz na style.css"
+            f.write_text(t.replace(link, "<style>" + css + "</style>"), encoding="utf-8")
+
+
 def compute_versions():
     import hashlib
     for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js"):
@@ -1179,6 +1227,7 @@ def build():
         shutil.rmtree(SITE / d, ignore_errors=True)
     (SITE / "assets").mkdir(parents=True)
     (SITE / "assets" / "pages.css").write_text(extract_css(), encoding="utf-8")
+    minify_assets()
     compute_versions()
 
     # produkty, látky, skupiny
@@ -2875,7 +2924,7 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             '<meta property="og:url" content="https://doplatkyliekov.sk/">': f'<meta property="og:url" content="{BASE}{L["root"]}">',
             '<meta property="og:locale" content="sk_SK">': f'<meta property="og:locale" content="{L["locale"]}">',
             '"inLanguage":"sk"': f'"inLanguage":"{L["code"]}"',
-            "n.toLocaleString('sk-SK',": f"n.toLocaleString('{L['num']}',",
+            "new Intl.NumberFormat('sk-SK',": f"new Intl.NumberFormat('{L['num']}',",
             "link.href = '/liek/' + ": f"link.href = '{L['drug']}' + ",
             "const DRUG_BASE = '/liek/';": f"const DRUG_BASE = '{L['drug']}';",
         }
@@ -3090,6 +3139,8 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
     (SITE / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + sm + "</urlset>\n", encoding="utf-8")
+
+    inline_home_css()
 
     n_atc = len([u for u, _ in urls if u.startswith("/skupina/")])
     print(f"Vygenerované: {len(products)} stránok liekov, {len(by_subst)} látok, {n_atc} skupín, "

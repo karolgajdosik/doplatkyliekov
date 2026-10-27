@@ -21,6 +21,8 @@
 <!--PREFS_HEAD-->
 <link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/unbounded-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/onest-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <meta name="theme-color" content="#05090b">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -87,7 +89,8 @@ function init(payload) {
 const DATA = payload.groups;
 const pl = document.getElementById('platnost'); if (pl) pl.textContent = payload.platnost || '';
 
-const eur = n => (n == null ? '–' : n.toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €');
+const NF = new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const eur = n => (n == null ? '–' : NF.format(n) + ' €');
 const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 // rovnaká logika ako product_slug v scripts/build_pages.py
 const slugify = (s, limit = 60) => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, limit).replace(/-+$/, '');
@@ -99,9 +102,10 @@ function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.
 
 // flatten
 const ITEMS = [];
-DATA.forEach((g, gi) => g.i.forEach((it, ii) => ITEMS.push({ gi, ii, kod: it[0], name: it[1], pack: it[2], konc: it[3], uzp: it[4], dop: it[5], typ: it[6], key: norm(it[1] + ' ' + g.s) })));
+const BY_G = DATA.map(() => []);
+DATA.forEach((g, gi) => g.i.forEach((it, ii) => { const x = { gi, ii, kod: it[0], name: it[1], pack: it[2], konc: it[3], uzp: it[4], dop: it[5], typ: it[6], key: norm(it[1] + ' ' + g.s) }; ITEMS.push(x); BY_G[gi].push(x); }));
 const byKod = new Map(ITEMS.map(x => [x.kod, x]));
-function groupItems(gi) { return ITEMS.filter(x => x.gi === gi); }
+function groupItems(gi) { return BY_G[gi]; }
 
 let current = null, packs = 4;
 const slip = document.getElementById('slip');
@@ -217,6 +221,7 @@ function search(term) {
 }
 function pick(x) { results.hidden = true; q.setAttribute('aria-expanded', 'false'); q.value = x.name; render(x); slip.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
 q.addEventListener('input', () => search(q.value));
+if (document.activeElement === q && q.value.trim().length >= 2) search(q.value); // písal skôr, ako sa načítali údaje
 q.addEventListener('focus', () => { if (q.value.trim().length >= 2 && current && q.value !== current.name) search(q.value); });
 q.addEventListener('blur', () => setTimeout(() => { results.hidden = true; q.setAttribute('aria-expanded', 'false'); }, 120));
 q.addEventListener('keydown', e => {
@@ -263,10 +268,18 @@ tops.slice(0, 5).forEach(t => {
 const want = new URLSearchParams(location.search).get('liek');
 if (want && byKod.get(want)) render(byKod.get(want));
 }
-fetch('/data.json', { cache: 'no-cache' })
+// údaje sa sťahujú až po načítaní stránky (písma a obsah majú prednosť), alebo hneď, keď človek začne hľadať
+let started = false;
+function loadData() {
+  if (started) return; started = true;
+  fetch('/data.json', { cache: 'no-cache' })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(init)
   .catch(() => { const sl = document.getElementById('slip'); sl.hidden = false; sl.innerHTML = '<p class="slip-foot">Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.</p>'; });
+}
+if (document.readyState === 'complete' || new URLSearchParams(location.search).has('liek')) loadData();
+else { window.addEventListener('load', loadData, { once: true }); }
+['focusin', 'pointerdown', 'keydown'].forEach(ev => document.getElementById('q').addEventListener(ev, loadData, { once: true }));
 </script>
 <script src="/ui.js" defer></script>
 <script src="/moje.js" defer></script>
