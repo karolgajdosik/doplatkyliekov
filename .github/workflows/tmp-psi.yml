@@ -9,10 +9,10 @@ jobs:
       - run: |
           set +e
           npm i -g lighthouse@13.5.0 >/dev/null 2>&1
-          for i in 1 2 3; do lighthouse https://doplatkyliekov.sk/ --only-categories=performance --output=json --output-path=r$i.json --chrome-flags="--headless=new" --quiet; done
+          for i in 1 2 3 4 5; do lighthouse https://doplatkyliekov.sk/ --only-categories=performance --output=json --output-path=r$i.json --chrome-flags="--headless=new" --quiet; done
           python3 - <<'PY'
           import json
-          for i in (1,2,3):
+          for i in (1,2,3,4,5):
               L=json.load(open(f'r{i}.json')); a=L['audits']
               m=' | '.join(f"{k.split('-')[0]}={a[k].get('displayValue')}" for k in ['first-contentful-paint','largest-contentful-paint','speed-index','total-blocking-time','cumulative-layout-shift'])
               print(f"::notice title=beh {i}::{L['categories']['performance']['score']} {m}")
