@@ -56,7 +56,82 @@
       if (s1 - s2 > 1) p.append('. S najlacnejšími verziami by to bolo ', el('b', 'mc-best', eur0(s2)), ', teda o ', el('b', null, eur0(s1 - s2)), ' menej.');
       else p.append('. Vaše lieky patrili celý čas medzi najlacnejšie.');
       out.append(p, el('p', 'hint', 'Mesačný doplatok podľa dávkovania (pri liekoch bez tabliet 1 balenie mesačne) a doplatkov platných v danom mesiaci. Orientačný výpočet.'));
+      yearly(out, months, now, best, H, d, list, n, s1, s2);
     });
+  }
+
+  /* ---------- ročný prehľad: rozpis podľa liekov a mesiacov, tlač a obrázok ---------- */
+  function yearly(out, months, now, best, H, d, list, n, s1, s2) {
+    var from = months.length - n, per = [];
+    list.forEach(function (m) {
+      var h = H[shardOf(m.kod)].k[m.kod]; if (!h) return;
+      var hit = d.by[m.kod], ks = hit ? hit.it[8] : null, f = ks ? 30.4 * dose(m.d) / ks : 1, a = 0, b = 0;
+      for (var i = from; i < months.length; i++) { var o = h[0][i], c = h[1][i]; if (o == null) continue; a += o * f; b += (c == null ? o : Math.min(c, o)) * f; }
+      per.push({ name: hit ? hit.it[1] : m.kod, kod: m.kod, a: a, b: b });
+    });
+    per.sort(function (x, y) { return y.a - x.a; });
+    var box = el('div', 'yr');
+    box.append(el('h3', null, 'Ročný prehľad podľa liekov'));
+    var tw = el('div', 'scroll'), t = el('table', 'ltable yr-table'), th = el('tr');
+    ['Liek', 'Doplatili ste', 'Najlacnejšie', 'Rozdiel'].forEach(function (x, i) { th.append(el('th', i ? 'num' : null, x)); });
+    var thead = el('thead'); thead.append(th); t.append(thead);
+    var tb = el('tbody');
+    per.forEach(function (r) {
+      var tr = el('tr'); tr.append(el('td', null, r.name), el('td', 'num', eur(r.a)), el('td', 'num', eur(r.b)), el('td', 'num' + (r.a - r.b > 0.5 ? ' yr-save' : ''), r.a - r.b > 0.5 ? eur(r.a - r.b) : '–'));
+      tb.append(tr);
+    });
+    var tf = el('tr', 'yr-total'); tf.append(el('td', null, 'Spolu'), el('td', 'num', eur(s1)), el('td', 'num', eur(s2)), el('td', 'num' + (s1 - s2 > 0.5 ? ' yr-save' : ''), s1 - s2 > 0.5 ? eur(s1 - s2) : '–'));
+    tb.append(tf); t.append(tb); tw.append(t); box.append(tw);
+    var det = el('details', 'yr-months'), sum = el('summary', null, 'Po mesiacoch');
+    var t2 = el('table', 'ltable'), h2 = el('tr');
+    ['Mesiac', 'Vaše lieky', 'S najlacnejšími'].forEach(function (x, i) { h2.append(el('th', i ? 'num' : null, x)); });
+    var th2 = el('thead'); th2.append(h2); t2.append(th2);
+    var tb2 = el('tbody');
+    for (var i = months.length - 1; i >= from; i--) {
+      var tr = el('tr'); tr.append(el('td', null, MESIACE[+months[i].slice(5, 7) - 1] + ' ' + months[i].slice(0, 4)), el('td', 'num', eur(now[i])), el('td', 'num', eur(best[i])));
+      tb2.append(tr);
+    }
+    t2.append(tb2); det.append(sum, t2); box.append(det);
+    var tools = el('div', 'mine-tools no-print'), bp = el('button', null, 'Vytlačiť prehľad'), bi = el('button', null, 'Uložiť ako obrázok'), msg = el('p', 'form-msg');
+    bp.type = bi.type = 'button';
+    bp.addEventListener('click', function () {
+      det.open = true; document.body.classList.add('print-yr');
+      var done = function () { document.body.classList.remove('print-yr'); window.removeEventListener('afterprint', done); };
+      window.addEventListener('afterprint', done); window.print(); setTimeout(done, 3000);
+    });
+    bi.addEventListener('click', function () { deliver(yearImage(months.slice(from), now.slice(from), best.slice(from), per, s1, s2), 'moje-doplatky-za-rok.png', 'Moje doplatky za lieky', msg); });
+    tools.append(bp, bi); box.append(tools, msg);
+    out.append(box);
+  }
+  function yearImage(ms, a, b, per, s1, s2) {
+    var W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var x = cv.getContext('2d'), F = getComputedStyle(document.body).fontFamily || 'sans-serif';
+    x.fillStyle = '#05090b'; x.fillRect(0, 0, W, H);
+    var g = x.createRadialGradient(W, 0, 0, W, 0, 700); g.addColorStop(0, 'rgba(69,240,192,.25)'); g.addColorStop(1, 'rgba(69,240,192,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#45f0c0'; x.font = '600 28px ' + F; x.fillText('MOJE DOPLATKY ZA LIEKY', 72, 110);
+    x.fillStyle = '#e8f3f0'; x.font = '600 56px ' + F; x.fillText('Za posledných ' + ms.length + ' mesiacov', 72, 185);
+    x.font = '700 120px ' + F; x.fillText(eur0(s1), 72, 320);
+    x.fillStyle = '#a9bdb8'; x.font = '400 34px ' + F;
+    if (s1 - s2 > 1) { x.fillText('S najlacnejšími verziami by to bolo ' + eur0(s2) + '.', 72, 385); x.fillStyle = '#ffb26b'; x.font = '600 40px ' + F; x.fillText('Ušetriť sa dalo ' + eur0(s1 - s2) + '.', 72, 440); }
+    else x.fillText('Vaše lieky patrili medzi najlacnejšie.', 72, 385);
+    // stĺpce po mesiacoch
+    var top = 520, bh = 300, bw = (W - 144) / ms.length, mx = Math.max.apply(null, a.concat([1]));
+    for (var i = 0; i < ms.length; i++) {
+      var h1 = bh * a[i] / mx, h2 = bh * b[i] / mx, x0 = 72 + i * bw;
+      x.fillStyle = '#2a5450'; x.fillRect(x0 + 6, top + bh - h1, bw - 12, h1);
+      x.fillStyle = '#45f0c0'; x.fillRect(x0 + 6, top + bh - h2, bw - 12, Math.max(h2, 2));
+      x.fillStyle = '#8aa29c'; x.font = '400 22px ' + F; x.textAlign = 'center'; x.fillText(MESIACE[+ms[i].slice(5, 7) - 1], x0 + bw / 2, top + bh + 34); x.textAlign = 'left';
+    }
+    x.font = '400 24px ' + F; x.fillStyle = '#2a5450'; x.fillRect(72, top + bh + 60, 24, 24); x.fillStyle = '#c9d8d4'; x.fillText('vaše lieky', 106, top + bh + 80);
+    x.fillStyle = '#45f0c0'; x.fillRect(300, top + bh + 60, 24, 24); x.fillStyle = '#c9d8d4'; x.fillText('s najlacnejšími verziami', 334, top + bh + 80);
+    var y = top + bh + 150;
+    per.slice(0, 4).forEach(function (r) {
+      x.fillStyle = '#e8f3f0'; x.font = '400 30px ' + F; var nm = r.name.length > 34 ? r.name.slice(0, 33) + '…' : r.name; x.fillText(nm, 72, y);
+      x.textAlign = 'right'; x.font = '600 30px ' + F; x.fillText(eur0(r.a), W - 72, y); x.textAlign = 'left'; y += 52;
+    });
+    x.fillStyle = '#e8f3f0'; x.font = '600 34px ' + F; x.fillText('doplatkyliekov.sk', 72, H - 110);
+    x.fillStyle = '#8aa29c'; x.font = '400 22px ' + F; x.fillText('Orientačný výpočet podľa dávkovania a doplatkov MZ SR v danom mesiaci.', 72, H - 66);
+    return cv;
   }
   function svgChart(months, a, b) {
     var W = 640, Hh = 260, L = 56, R = 14, T = 14, B = 34, n = months.length;

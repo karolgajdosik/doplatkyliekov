@@ -103,7 +103,7 @@ function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.
 // flatten
 const ITEMS = [];
 const BY_G = DATA.map(() => []);
-DATA.forEach((g, gi) => g.i.forEach((it, ii) => { const x = { gi, ii, kod: it[0], name: it[1], pack: it[2], konc: it[3], uzp: it[4], dop: it[5], typ: it[6], key: norm(it[1] + ' ' + g.s) }; ITEMS.push(x); BY_G[gi].push(x); }));
+DATA.forEach((g, gi) => g.i.forEach((it, ii) => { const x = { gi, ii, kod: it[0], name: it[1], subst: g.s, pack: it[2], konc: it[3], uzp: it[4], dop: it[5], typ: it[6], key: norm(it[1] + ' ' + g.s) }; ITEMS.push(x); BY_G[gi].push(x); }));
 const byKod = new Map(ITEMS.map(x => [x.kod, x]));
 function groupItems(gi) { return BY_G[gi]; }
 
@@ -204,7 +204,8 @@ function search(term) {
   const t = norm(term.trim());
   if (t.length < 2) { results.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
   const words = t.split(/\s+/);
-  hits = ITEMS.filter(x => words.every(w => x.key.includes(w)))
+  // s preklepmi a kódom ŠÚKL (hladaj.js); bez neho len presná zhoda
+  hits = window.Hladaj ? window.Hladaj.find(ITEMS, term, { limit: 30 }) : ITEMS.filter(x => words.every(w => x.key.includes(w)))
     .sort((a, b) => (norm(a.name).startsWith(words[0]) ? 0 : 1) - (norm(b.name).startsWith(words[0]) ? 0 : 1) || a.name.localeCompare(b.name, 'sk'))
     .slice(0, 30);
   active = -1;
@@ -285,6 +286,7 @@ if (document.readyState === 'complete' || new URLSearchParams(location.search).h
 else { window.addEventListener('load', loadData, { once: true }); }
 ['focusin', 'pointerdown', 'keydown'].forEach(ev => document.getElementById('q').addEventListener(ev, loadData, { once: true }));
 </script>
+<script src="/hladaj.js" defer></script>
 <script src="/ui.js" defer></script>
 <script src="/moje.js" defer></script>
 <script src="/foto.js" defer></script>

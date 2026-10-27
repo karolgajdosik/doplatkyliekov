@@ -784,3 +784,17 @@ html.pharm-open, html.pharm-open body { overflow: hidden; }
 .letak-out ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 /* Moje lieky: kým sa zoznam nenačíta, pätička a karty pod ním sa neukazujú (inak by ich zoznam odsunul) */
 body:has(#moje-rest[hidden]) footer { display: none; }
+
+/* Moje lieky: ročný prehľad */
+.yr { margin-top: 18px; display: grid; gap: 10px; }
+.yr h3 { margin: 0; }
+.yr-table td:first-child { max-width: 260px; }
+.yr .yr-save { color: var(--save); font-weight: 600; }
+.yr .yr-total td { font-weight: 700; border-top: 2px solid var(--line-strong); }
+.yr-months summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+@media print {
+  body.print-yr * { visibility: hidden !important; }
+  body.print-yr #mine-chart, body.print-yr #mine-chart * { visibility: visible !important; }
+  body.print-yr #mine-chart { position: absolute; left: 0; top: 0; width: 100%; background: #fff; color: #000; box-shadow: none; }
+  body.print-yr #mine-chart .no-print { display: none !important; }
+}

@@ -39,3 +39,9 @@ site/lekarne/
 site/lekarne.json
 site/pil/
 node_modules/
+
+# generované build_extras.py
+site/rss.xml
+site/data/
+site/pre-lekarov/
+site/vlozit/

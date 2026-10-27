@@ -94,6 +94,53 @@ await check('Moje lieky – pridanie a zobrazenie', async () => {
   return `kód ${kod}, položiek ${items}`;
 });
 
+await check('Moje lieky – ročný prehľad', async () => {
+  await page.waitForSelector('.yr-table', { timeout: 20000 });
+  const rows = await page.locator('.yr-table tbody tr').count();
+  assert(rows >= 2, 'ročný prehľad je prázdny');
+  return `${rows - 1} liekov`;
+});
+
+await check('Vyhľadávanie s preklepom a kódom ŠÚKL', async () => {
+  await page.goto(BASE + '/');
+  await page.fill('#q', 'konkor');
+  await page.waitForSelector('#results button');
+  const first = await page.locator('#results .rn').first().textContent();
+  assert(/concor/i.test(first), `„konkor“ našlo ${first}`);
+  await page.fill('#q', '94163');
+  await page.waitForFunction(() => /concor/i.test(document.querySelector('#results .rn')?.textContent || ''));
+  return first;
+});
+
+await check('Kalkulačka na vloženie', async () => {
+  await page.goto(BASE + '/vlozit/');
+  await page.waitForSelector('.emb-preview iframe');
+  const fr = page.frameLocator('.emb-preview iframe');
+  await fr.locator('#q').fill('glukofag');
+  await fr.locator('#res button').first().click();
+  await fr.locator('.card .big').waitFor();
+  await page.waitForFunction(() => document.querySelector('.emb-preview iframe').offsetHeight > 320);
+  return (await fr.locator('.card h2').textContent()).trim();
+});
+
+await check('Ťahák pre ambulancie a dáta pre novinárov', async () => {
+  await page.goto(BASE + '/pre-lekarov/');
+  const rows = await page.locator('.ch-table tbody tr:not(.ch-cond)').count();
+  assert(rows >= 30, `ťahák má len ${rows} riadkov`);
+  await page.goto(BASE + '/data/');
+  const links = await page.locator('a[download]').evaluateAll((l) => l.map((a) => a.getAttribute('href')));
+  assert(links.length >= 3, 'chýbajú súbory na stiahnutie');
+  for (const l of links) {
+    const r = await page.request.get(BASE + l);
+    assert(r.ok(), `${l} HTTP ${r.status()}`);
+    const head = (await r.text()).slice(0, 20);
+    assert(head.includes('kod_sukl'), `${l} nemá hlavičku`);
+  }
+  const rss = await page.request.get(BASE + '/rss.xml');
+  assert(rss.ok() && (await rss.text()).includes('<item>'), 'RSS bez položiek');
+  return `${rows} látok, ${links.length} súbory`;
+});
+
 await check('Ochranný limit – kalkulačka', async () => {
   await page.goto(BASE + '/ochranny-limit/');
   await page.waitForSelector('#calc');

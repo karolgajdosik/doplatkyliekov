@@ -33,7 +33,7 @@ SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
-             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia"]
+             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
@@ -319,6 +319,7 @@ MENU = [
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
                  ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
+    ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
     ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
                 ("/pristupnost/", "Vyhlásenie o prístupnosti")]),
@@ -1054,11 +1055,12 @@ NOTES = """
 ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani aplikácia nepoužili starú verziu
 
 
-MINIFY = ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js")
+MINIFY = ("style.css", "assets/pages.css", "hladaj.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js")
 
 
 def minify_assets():
-    """Zmenší štýly a skripty v site/ (len pri nasadení na Cloudflare alebo s --minify, aby sa nemenili zdrojové súbory v gite)."""
+    """Zmenší štýly a skripty v site/ priamo na mieste – len pri nasadení na Cloudflare (CF_PAGES).
+    Lokálne --minify PREPÍŠE zdrojové súbory v gite; potom ich treba vrátiť: git checkout -- site/*.js site/style.css"""
     import os
     if not (os.environ.get("CF_PAGES") or "--minify" in sys.argv):
         return
@@ -1102,7 +1104,7 @@ def inline_home_css():
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js"):
+    for name in ("style.css", "assets/pages.css", "hladaj.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -2168,7 +2170,7 @@ def build():
   </div>
   <div class="mine-extras" id="mine-extras" hidden>
     <section class="card" id="mine-chart" hidden>
-      <h2>Vaše doplatky v čase</h2>
+      <h2>Ročný prehľad doplatkov</h2>
       <div class="mc-body"><p class="hint">Načítavam históriu…</p></div>
     </section>
     <section class="card" id="check-card">
@@ -2827,6 +2829,16 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
                                   "Plagát A4 s najväčšími rozdielmi v doplatkoch za lieky a leták A5 s QR kódom pre ambulancie, lekárne a kluby dôchodcov.",
                                   "/na-vytlacenie/", body, breadcrumb_ld(crumb_items), script_pr))
     urls.append(("/na-vytlacenie/", "0.4"))
+
+    # --- dáta pre novinárov, ťahák pre ambulancie, kalkulačka na vloženie (scripts/build_extras.py) ---
+    from build_extras import build_extras
+    (SITE / "vlozit").mkdir(parents=True, exist_ok=True)
+    for fn in ("okno.js", "embed.js"):
+        shutil.copy(ROOT / "templates" / fn, SITE / "vlozit" / fn)
+    build_extras({"esc": esc, "eur": eur, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
+                  "SITE": SITE, "ROOT": ROOT, "BASE": BASE, "PLATNOST": PLATNOST, "cur_iso": cur_iso, "groups": groups, "nxt": nxt,
+                  "vyp": vyp, "history": history, "urls": urls, "subst_slug": subst_slug, "month_articles": month_articles,
+                  "segno": segno, "sk_date": sk_date, "type_label": type_label, "versioned": versioned})
 
     # --- lekárne v okolí (OpenStreetMap) ---
     lek_src = DATA / "lekarne.json"

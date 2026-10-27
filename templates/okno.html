@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Porovnanie doplatkov za lieky – doplatkyliekov.sk</title>
+<link rel="canonical" href="https://doplatkyliekov.sk/">
+<style>
+:root { --bg: #ffffff; --ink: #10201c; --muted: #5b6b67; --line: #d9e3e0; --soft: #f2f7f5; --accent: #0a8f6f; --accent-ink: #fff; --save: #b34a00; color-scheme: light; }
+:root[data-t="dark"] { --bg: #05090b; --ink: #e8f3f0; --muted: #93a8a3; --line: #1f2d30; --soft: #0b1316; --accent: #45f0c0; --accent-ink: #05090b; --save: #ffb26b; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+.w { padding: 16px; border: 1px solid var(--line); border-radius: 16px; }
+h1 { font-size: 18px; margin: 0 0 4px; }
+.sub { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+input { width: 100%; font: inherit; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--soft); color: var(--ink); }
+input:focus { outline: none; border-color: var(--accent); }
+ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.res button { width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 9px 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; }
+.res button:hover, .res button:focus-visible { background: var(--soft); outline: none; }
+.res small { display: block; color: var(--muted); font-size: 12.5px; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+.card { margin-top: 12px; padding: 14px; border-radius: 12px; background: var(--soft); }
+.card h2 { font-size: 16px; margin: 0 0 2px; }
+.card .pack { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+.big { font-size: 22px; font-weight: 700; }
+.alt li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.alt a { color: var(--accent); }
+.alt .save { color: var(--save); font-size: 13px; display: block; text-align: right; }
+.ok { color: var(--accent); font-weight: 600; margin: 8px 0 0; }
+.more { display: inline-block; margin-top: 10px; color: var(--accent); font-weight: 600; }
+.foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--muted); }
+.foot a { color: var(--accent); font-weight: 700; text-decoration: none; }
+.msg { color: var(--muted); font-size: 14px; margin: 8px 0 0; }
+</style>
+<script>(function(){var t=new URLSearchParams(location.search).get('t');if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.t=t;})();</script>
+</head>
+<body>
+<div class="w">
+  <h1>Porovnajte doplatok za liek</h1>
+  <p class="sub">Nájdite lacnejší liek s rovnakou účinnou látkou, silou a balením.</p>
+  <label for="q">Názov lieku alebo kód z krabičky</label>
+  <input id="q" type="search" autocomplete="off" placeholder="napr. Concor, Controloc, Glucophage" aria-controls="res">
+  <ul class="res" id="res" aria-live="polite"></ul>
+  <div id="out"></div>
+  <div class="foot"><span>Údaje MZ SR platné od {{PLATNOST}}. Doplatok je maximálny, lekáreň ho môže znížiť.</span><a href="https://doplatkyliekov.sk/?zdroj=vlozene" target="_blank" rel="noopener">doplatkyliekov.sk</a></div>
+</div>
+<script src="/hladaj.js" defer></script>
+<script src="/vlozit/okno.js" defer></script>
+</body>
+</html>
