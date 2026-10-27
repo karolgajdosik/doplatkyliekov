@@ -55,6 +55,9 @@ await check('Úvodná stránka a vyhľadávanie', async () => {
   const rows = await page.locator('#slip a[href^="/liek/"]').count();
   assert(rows > 1, 'porovnanie nemá odkazy na lieky');
   drugUrl = await page.locator('#slip a[href^="/liek/"]').first().getAttribute('href');
+  await page.evaluate(() => document.fonts.ready);
+  const fonts = await page.evaluate(() => ['Onest', 'Unbounded'].filter((f) => !document.fonts.check(`16px "${f}"`, 'Doplatok č')));
+  assert(!fonts.length, 'nenačítané písma: ' + fonts.join(', '));
   return `${n} výsledkov, porovnanie ${rows} liekov`;
 });
 

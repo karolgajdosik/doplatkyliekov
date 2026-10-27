@@ -4,8 +4,6 @@
 /
   Cache-Control: public, max-age=600, must-revalidate
 
-/style.css
-  Cache-Control: no-cache
 
 /sw.js
   Cache-Control: no-cache
@@ -20,3 +18,44 @@
 
 /img3d/*
   Cache-Control: public, max-age=2592000
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# štýly a skripty sa vždy odkazujú s ?v=<hash obsahu> (compute_versions v build_pages.py), preto môžu byť v pamäti natrvalo
+/style.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/pages.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/ui.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/moje.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/moje2.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/limit.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/sprava.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/asistent.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/foto.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/sync.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/qr.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/lekarne.js
+  Cache-Control: public, max-age=31536000, immutable

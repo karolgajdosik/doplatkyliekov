@@ -48,7 +48,7 @@ def figure(pack, atc, cls="drug3d", label=None, alt_name="", eager=False, note="
     if alt is None:
         alt = f"Ilustračný obrázok: {FORM_NAMES.get(form, 'liek')}" + (f" – {alt_name}" if alt_name else "")
     return (f'<figure class="{cls}" style="--dc:{color_of(atc)}"><img src="{src}" alt="{html.escape(alt)}" width="640" height="480"'
-            f'{"" if eager else " loading=\"lazy\""} decoding="async">'
+            f'{" fetchpriority=\"high\"" if eager else " loading=\"lazy\" decoding=\"async\""}>'
             + (f'<span class="d3-lab">{html.escape(lab)}</span>' if lab else "")
             + f'<span class="d3-note">{html.escape(note)}</span></figure>')
 

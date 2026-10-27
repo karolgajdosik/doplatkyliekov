@@ -258,10 +258,9 @@ def load(name, default=None):
 
 # ---------- šablóny ----------
 
-FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
-         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600'
-         '&family=Onest:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap">'
+# písma sú na vlastnom serveri (site/fonts, @font-face v style.css) – rýchlejšie a bez kontaktu s Google
+FONTS = ('<link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
+         '<link rel="preload" href="/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
          '<meta name="theme-color" content="#05090b">'
          '<link rel="manifest" href="/manifest.webmanifest">'
          '<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">'
@@ -2147,6 +2146,7 @@ def build():
       <p class="hint">Všetky polia sú nepovinné. Údaje aj obrázok zostávajú len v tomto zariadení, nikam ich neposielame. Ako tapetu ho nastavíte v Nastaveniach telefónu (Tapeta → Uzamknutá obrazovka). Po zmene liekov si kartu vytvorte znova.</p>
     </section>
   </div>
+  <div id="moje-rest" hidden>
   <section class="card" id="sync-card">
     <h2>Prepojiť s ďalším zariadením</h2>
     <div class="sync-body"></div>
@@ -2164,7 +2164,8 @@ def build():
     <h2>Doplatky ako aplikácia v mobile</h2>
     <p class="page-sub" id="install-text">Pridajte si web na plochu telefónu. Otvorí sa ako aplikácia a Moje lieky budete mať vždy po ruke, aj bez internetu.</p>
     <button type="button" id="install-btn" hidden>Nainštalovať aplikáciu</button>
-  </section>"""
+  </section>
+  </div>"""
     write("/moje-lieky/", page("Moje lieky – sledovanie doplatkov", "Uložte si lieky, ktoré užívate, a sledujte ich doplatky, zmeny a výpadky na jednom mieste.", "/moje-lieky/", body, breadcrumb_ld(crumb_items),
                                script='<script src="/moje2.js" defer></script><script src="/qr.js" defer></script><script src="/sync.js" defer></script>'))
 

@@ -252,6 +252,14 @@
   }
 
   /* stránka /moje-lieky/ */
+  // karty pod zoznamom (prepojenie, upozornenia…) sa ukážu až so zoznamom, aby ich načítaný zoznam neodsúval (CLS)
+  document.addEventListener('moje:rendered', function () {
+    var rest = document.getElementById('moje-rest');
+    if (!rest || !rest.hidden) return;
+    rest.hidden = false;
+    var h = location.hash && document.getElementById(location.hash.slice(1));
+    if (h && rest.contains(h)) h.scrollIntoView();
+  });
   var cache = null, slugCache = null;
   function loadData() {
     if (cache) return cache;

@@ -1,7 +1,7 @@
 /* Service worker doplatkyliekov.sk: stránky a dáta najprv zo siete (aby boli aktuálne),
-   bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma z pamäte s obnovou na pozadí. */
+   bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma (/fonts) z pamäte s obnovou na pozadí. */
 'use strict';
-var V = 'v7';
+var V = 'v8';
 var SHELL = 'shell-' + V, PAGES = 'pages-' + V;
 var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/',
   '/data.json', '/alerts.json', '/manifest.webmanifest', '/icons/icon-192.png'];
@@ -71,7 +71,6 @@ self.addEventListener('fetch', function (e) {
     if (/\.(png|svg|webmanifest|woff2?)$/.test(url.pathname)) { e.respondWith(staleWhileRevalidate(req)); return; }
     return;
   }
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') e.respondWith(staleWhileRevalidate(req));
 });
 
 /* notifikácie */
