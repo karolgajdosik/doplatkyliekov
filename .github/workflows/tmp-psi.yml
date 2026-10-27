@@ -1,0 +1,22 @@
+name: tmp psi
+on: { workflow_dispatch: {} }
+jobs:
+  p:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          set +e
+          curl -s "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=https://doplatkyliekov.sk/&strategy=mobile&category=performance" > psi.json
+          python3 - <<'PY'
+          import json
+          r=json.load(open('psi.json'))
+          if 'lighthouseResult' not in r: print('::error::'+json.dumps(r)[:500]); raise SystemExit
+          L=r['lighthouseResult']; a=L['audits']
+          m=' | '.join(f"{k}={a[k].get('displayValue')}" for k in ['first-contentful-paint','largest-contentful-paint','speed-index','total-blocking-time','cumulative-layout-shift'])
+          print(f"::notice title=score::{L['categories']['performance']['score']} {m}")
+          def show(k,n=1200):
+              x=a.get(k)
+              if x: print(f"::notice title={k}::{x.get('displayValue')} {json.dumps(x.get('details'))[:n]}")
+          show('lcp-breakdown-insight'); show('network-dependency-tree-insight',3000); show('render-blocking-insight'); show('font-display-insight'); show('lcp-discovery-insight')
+          show('mainthread-work-breakdown',600); show('network-requests',2500)
+          PY
