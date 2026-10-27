@@ -29,11 +29,14 @@ for (const p of PAGES) {
     last.categories.accessibility.auditRefs.some((r) => r.id === a.id && r.weight > 0));
   for (const a of failed) problems.push(`${p}: prístupnosť – ${a.title}`);
   console.log(p, JSON.stringify(m), Math.round(median(lcp)), 'ms');
+  console.log(`::notice title=Lighthouse ${p}::rýchlosť ${m.performance}, prístupnosť ${m.accessibility}, postupy ${m['best-practices']}, SEO ${m.seo}, LCP ${(median(lcp) / 1000).toFixed(1)} s, ${Math.round(median(bytes) / 1024)} kB`);
+  fs.mkdirSync('lh', { recursive: true });
+  fs.writeFileSync(`lh/${p.replace(/\W+/g, '_') || 'home'}.json`, JSON.stringify(last));
 }
 await chrome.kill();
 const md = ['### Rýchlosť a prístupnosť (mobil, medián z 3 meraní)', '', '| Stránka | Rýchlosť | Prístupnosť | Postupy | SEO | LCP | Veľkosť |', '|---|---|---|---|---|---|---|', ...rows, '',
   problems.length ? '**Na opravu:**\n' + problems.map((x) => '- ' + x).join('\n') : 'Všetko v poriadku.'].join('\n');
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md + '\n');
 console.log(md);
-for (const x of problems) console.log(`::warning title=Lighthouse::${x}`);
+for (const x of problems.slice(0, 8)) console.log(`::warning title=Lighthouse::${x}`);
 process.exit(problems.some((x) => / < /.test(x)) ? 1 : 0);

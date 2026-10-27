@@ -46,9 +46,17 @@ jobs:
         if: always() && github.event_name != 'workflow_run' && (github.event_name != 'workflow_dispatch' || inputs.lighthouse)
         working-directory: tests
         run: node lighthouse.mjs
+      - name: Správy Lighthouse
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: lighthouse
+          path: tests/lh/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Snímky chýb
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: snimky-chyb
           path: tests/test-chyba-*.png
