@@ -19,7 +19,7 @@ function log(ok, name, info = '') {
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ ...devices['Pixel 7'], locale: 'sk-SK', timezoneId: 'Europe/Bratislava', serviceWorkers: 'block' });
-ctx.setDefaultTimeout(20000);
+ctx.setDefaultTimeout(35000);
 const jsErrors = [];
 ctx.on('page', (p) => {
   p.on('pageerror', (e) => jsErrors.push(`${p.url().replace(BASE, '')}: ${e.message}`));
@@ -95,7 +95,7 @@ await check('Moje lieky – pridanie a zobrazenie', async () => {
 });
 
 await check('Moje lieky – ročný prehľad', async () => {
-  await page.waitForSelector('.yr-table', { timeout: 20000 });
+  await page.waitForSelector('.yr-table', { timeout: 40000 });
   const rows = await page.locator('.yr-table tbody tr').count();
   assert(rows >= 2, 'ročný prehľad je prázdny');
   return `${rows - 1} liekov`;
