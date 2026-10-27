@@ -43,7 +43,7 @@
       <input id="q" type="search" autocomplete="off" placeholder="napr. Concor, Controloc, metformín" role="combobox" aria-controls="results" aria-expanded="false" aria-autocomplete="list">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <div id="results" class="results" role="listbox" aria-label="Nájdené lieky" hidden></div>
-      <div class="chips" id="chips" aria-label="Príklady"></div>
+      <div class="chips" id="chips" aria-label="Príklady"><button type="button" class="chip">Concor 10 mg</button><button type="button" class="chip">CONTROLOC 40 mg</button><button type="button" class="chip">Glucophage 1000 mg</button><button type="button" class="chip">Agen 5</button></div>
       <div class="foto">
         <label class="foto-btn"><input type="file" id="foto-in" accept="image/*"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Odfotiť krabičku alebo recept</span></label>
         <small class="foto-note">Liek rozpozná umelá inteligencia. Fotku neukladáme. Na recepte zakryte meno a rodné číslo.</small>
@@ -237,11 +237,12 @@ q.addEventListener('keydown', e => {
 });
 
 // example chips
-const chips = document.getElementById('chips');
-['Concor 10 mg', 'CONTROLOC 40 mg', 'Glucophage 1000 mg', 'Agen 5'].forEach(n => {
-  const x = ITEMS.filter(i => i.name === n).sort((a, b) => b.dop - a.dop)[0];
-  if (!x) return;
-  const c = el('button', 'chip', n); c.type = 'button'; c.onclick = () => pick(x); chips.append(c);
+// tlačidlá sú priamo v HTML (aby po načítaní údajov neposúvali stránku); tu dostanú akciu
+document.querySelectorAll('#chips .chip').forEach(c => {
+  const x = ITEMS.filter(i => i.name === c.textContent).sort((a, b) => b.dop - a.dop)[0];
+  if (!x) { c.remove(); return; }
+  c.onclick = () => pick(x);
+  if (pendingChip === c) pick(x);
 });
 
 // top savings among everyday drugs (doplatok up to 60 €)
@@ -269,7 +270,10 @@ const want = new URLSearchParams(location.search).get('liek');
 if (want && byKod.get(want)) render(byKod.get(want));
 }
 // údaje sa sťahujú až po načítaní stránky (písma a obsah majú prednosť), alebo hneď, keď človek začne hľadať
+var pendingChip = null;
 let started = false;
+// klik na príklad skôr, ako sa načítali údaje: zapamätať a otvoriť po načítaní
+document.getElementById('chips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c && !c.onclick) { pendingChip = c; loadData(); } });
 function loadData() {
   if (started) return; started = true;
   fetch('/data.json', { cache: 'no-cache' })
