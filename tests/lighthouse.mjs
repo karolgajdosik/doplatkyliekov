@@ -29,7 +29,9 @@ for (const p of PAGES) {
     last.categories.accessibility.auditRefs.some((r) => r.id === a.id && r.weight > 0));
   for (const a of failed) problems.push(`${p}: prístupnosť – ${a.title}`);
   console.log(p, JSON.stringify(m), Math.round(median(lcp)), 'ms');
-  console.log(`::notice title=Lighthouse ${p}::rýchlosť ${m.performance}, prístupnosť ${m.accessibility}, postupy ${m['best-practices']}, SEO ${m.seo}, LCP ${(median(lcp) / 1000).toFixed(1)} s, ${Math.round(median(bytes) / 1024)} kB`);
+  console.log(`::notice title=Lighthouse ${p}::rýchlosť ${m.performance}, prístupnosť ${m.accessibility}, postupy ${m['best-practices']}, SEO ${m.seo}, LCP ${(median(lcp) / 1000).toFixed(1)} s, ${Math.round(median(bytes) / 1024)} kB` +
+    ' || ' + Object.values(last.audits).filter((a) => a.score !== null && a.score < 0.9 && last.categories.performance.auditRefs.some((r) => r.id === a.id))
+      .map((a) => `${a.id}${a.displayValue ? ' (' + a.displayValue + ')' : ''}${a.id === 'largest-contentful-paint-element' || a.id === 'render-blocking-resources' || a.id === 'lcp-discovery-insight' || a.id === 'render-blocking-insight' ? ': ' + JSON.stringify((a.details?.items || []).slice(0, 3)).slice(0, 260) : ''}`).join('; ').slice(0, 1500));
   fs.mkdirSync('lh', { recursive: true });
   fs.writeFileSync(`lh/${p.replace(/\W+/g, '_') || 'home'}.json`, JSON.stringify(last));
 }
