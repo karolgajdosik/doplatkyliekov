@@ -95,7 +95,10 @@ await check('Moje lieky – pridanie a zobrazenie', async () => {
 });
 
 await check('Moje lieky – ročný prehľad', async () => {
-  await page.waitForSelector('.yr-table', { timeout: 40000 });
+  try { await page.waitForSelector('.yr-table', { timeout: 40000, state: 'attached' }); } catch (e) {
+    const st = await page.evaluate(() => { const c = document.getElementById('mine-chart'); return { url: location.pathname, chart: c ? (c.hidden ? 'skrytý' : c.innerText.slice(0, 160)) : 'chýba', extras: document.getElementById('mine-extras')?.hidden, ls: Object.keys(localStorage).join(',') }; });
+    throw new Error('ročný prehľad sa nezobrazil: ' + JSON.stringify(st));
+  }
   const rows = await page.locator('.yr-table tbody tr').count();
   assert(rows >= 2, 'ročný prehľad je prázdny');
   return `${rows - 1} liekov`;
