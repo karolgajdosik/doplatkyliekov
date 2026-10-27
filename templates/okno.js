@@ -67,4 +67,6 @@
     }).catch(function () { out.replaceChildren(el('p', 'msg', 'Údaje sa nepodarilo načítať. Skúste to o chvíľu.')); });
   }
   size();
+  // človek mohol začať písať skôr, ako sa tento skript načítal
+  if (q.value.trim().length >= 2) q.dispatchEvent(new Event('input'));
 })();

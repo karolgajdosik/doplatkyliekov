@@ -500,7 +500,7 @@
       empty.append(p, a);
       root.append(empty);
       window.MojeStats = { packSave: 0, yearSave: 0, yearNow: 0, count: 0, known: 0, shared: !!shared };
-      document.dispatchEvent(new CustomEvent('moje:rendered', { detail: { list: [], shared: !!shared } }));
+      window.MojeLast = { list: [], shared: !!shared }; document.dispatchEvent(new CustomEvent('moje:rendered', { detail: window.MojeLast }));
       return;
     }
     Promise.all([loadData(), shared ? loadSlugs() : Promise.resolve({})]).then(function (all) {
@@ -628,7 +628,7 @@
 
       if (!shared) pushSync();
       window.MojeStats = { packSave: totalPack, yearSave: yearKnown ? yearNow - yearBest : 0, yearNow: yearNow, count: list.length, known: yearKnown, shared: !!shared };
-      document.dispatchEvent(new CustomEvent('moje:rendered', { detail: { list: list, shared: !!shared } }));
+      window.MojeLast = { list: list, shared: !!shared }; document.dispatchEvent(new CustomEvent('moje:rendered', { detail: window.MojeLast }));
       var cal = document.getElementById('mine-ics');
       if (cal) {
         cal.hidden = shared || (!Object.keys(RUNOUT).length && !list.some(function (m) { return Array.isArray(m.t) && m.t.length; }));

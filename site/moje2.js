@@ -325,12 +325,15 @@
     return c;
   }
 
-  document.addEventListener('moje:rendered', function (e) {
+  // moje.js mohol zoznam vykresliť skôr, ako sa tento súbor načítal (pomalé pripojenie) – posledný stav je vo window.MojeLast
+  function onRendered(e) {
     last = e.detail || last;
     box.hidden = last.shared || !last.list.length;
     var brag = document.getElementById('mine-brag'); if (brag) brag.hidden = last.shared || !last.list.length;
     if (!box.hidden) chart();
     var out = document.getElementById('mine-check-out'); if (out && e.detail) { out.hidden = true; document.getElementById('mine-check-print').hidden = true; }
-  });
+  }
+  document.addEventListener('moje:rendered', onRendered);
+  if (window.MojeLast) onRendered({ detail: window.MojeLast });
   bindCheck(); bindCard(); bindShare();
 })();
