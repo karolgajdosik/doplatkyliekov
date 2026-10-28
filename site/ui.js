@@ -11,17 +11,17 @@
   function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* bez úložiska */ } }
   var prefs = load();
   function cur() {
-    return { t: prefs.t || 'dark', f: prefs.f != null ? +prefs.f : 1, c: !!prefs.c };
+    return { t: prefs.t || 'light', f: prefs.f != null ? +prefs.f : 1, c: !!prefs.c };
   }
   function apply() {
     var p = cur();
     root.dataset.theme = p.t;
-    root.dataset.eff = (p.t === 'light' || (p.t === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches)) ? 'light' : 'dark';
+    root.dataset.eff = (p.t === 'dark' || (p.t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) ? 'dark' : 'light';
     root.dataset.fs = String(p.f);
     if (p.c) root.dataset.contrast = 'high'; else delete root.dataset.contrast;
     var light = root.dataset.eff === 'light';
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', p.c ? (light ? '#ffffff' : '#000000') : (light ? '#f3f7f5' : '#05090b'));
+    if (meta) meta.setAttribute('content', p.c ? (light ? '#ffffff' : '#000000') : (light ? '#ffffff' : '#0b1220'));
     paint();
   }
   function paint() {
@@ -40,7 +40,7 @@
   }
   function set(k, v) {
     prefs[k] = v;
-    if (k === 't' && v === 'dark') delete prefs.t;
+    if (k === 't' && v === 'light') delete prefs.t;
     if (k === 'f' && v === 1) delete prefs.f;
     if (k === 'c' && !v) delete prefs.c;
     save(prefs); apply();

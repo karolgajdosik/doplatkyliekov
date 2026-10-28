@@ -120,6 +120,10 @@ await check('Kalkulačka na vloženie', async () => {
   await page.waitForSelector('.emb-preview iframe');
   const fr = page.frameLocator('.emb-preview iframe');
   await fr.locator('#q').fill('glukofag');
+  await fr.locator('#res button').first().waitFor();
+  await page.waitForTimeout(800); // okno po zobrazení výsledkov zmení výšku, kliknúť až potom
+  await page.evaluate(() => document.querySelector('.emb-preview iframe').scrollIntoView({ block: 'start' })); // nie pod spodnou lištou
+  await page.evaluate(() => scrollBy(0, -80));
   await fr.locator('#res button').first().click();
   await fr.locator('.card .big').waitFor();
   await page.waitForFunction(() => document.querySelector('.emb-preview iframe').offsetHeight > 320);

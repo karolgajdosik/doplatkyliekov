@@ -1,7 +1,7 @@
 /* Service worker doplatkyliekov.sk: stránky a dáta najprv zo siete (aby boli aktuálne),
    bez internetu z vyrovnávacej pamäte. Štýly, skripty a písma (/fonts) z pamäte s obnovou na pozadí. */
 'use strict';
-var V = 'v8';
+var V = 'v9';
 var SHELL = 'shell-' + V, PAGES = 'pages-' + V;
 var PRECACHE = ['/', '/moje-lieky/', '/ochranny-limit/',
   '/data.json', '/alerts.json', '/manifest.webmanifest', '/icons/icon-192.png'];
@@ -29,7 +29,7 @@ function networkFirst(req, cacheName) {
       if (hit) return hit;
       if (req.mode === 'navigate') {
         return caches.match('/moje-lieky/').then(function (m) {
-          return m || new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><body style="background:#05090b;color:#e8f3ef;font-family:sans-serif;padding:24px"><h1>Ste offline</h1><p>Táto stránka nie je uložená. Pripojte sa na internet a skúste to znova.</p>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+          return m || new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><body style="background:#fff;color:#0d1726;font-family:sans-serif;font-size:20px;padding:24px"><h1>Ste offline</h1><p>Táto stránka nie je uložená. Pripojte sa na internet a skúste to znova.</p>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
         });
       }
       return Response.error();

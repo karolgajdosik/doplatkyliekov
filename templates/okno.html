@@ -7,15 +7,17 @@
 <title>Porovnanie doplatkov za lieky – doplatkyliekov.sk</title>
 <link rel="canonical" href="https://doplatkyliekov.sk/">
 <style>
-:root { --bg: #ffffff; --ink: #10201c; --muted: #5b6b67; --line: #d9e3e0; --soft: #f2f7f5; --accent: #0a8f6f; --accent-ink: #fff; --save: #b34a00; color-scheme: light; }
-:root[data-t="dark"] { --bg: #05090b; --ink: #e8f3f0; --muted: #93a8a3; --line: #1f2d30; --soft: #0b1316; --accent: #45f0c0; --accent-ink: #05090b; --save: #ffb26b; color-scheme: dark; }
+:root { --bg: #ffffff; --ink: #0d1726; --muted: #34425a; --line: #c7d0de; --soft: #f2f5fa; --accent: #0b4fb3; --accent-ink: #fff; --save: #a63600; color-scheme: light; }
+:root[data-t="dark"] { --bg: #0b1220; --ink: #f1f5fb; --muted: #c3cee0; --line: #2b3a55; --soft: #121c30; --accent: #8ab8ff; --accent-ink: #0b1220; --save: #ffb27a; color-scheme: dark; }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
-.w { padding: 16px; border: 1px solid var(--line); border-radius: 16px; }
+@font-face { font-family: "Atkinson"; font-display: swap; font-weight: 400 800; src: url(/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+2000-206F,U+20AC; }
+@font-face { font-family: "Atkinson"; font-display: swap; font-weight: 400 800; src: url(/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2) format("woff2"); unicode-range: U+0100-017F; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 Atkinson, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+.w { padding: 16px; border: 2px solid var(--line); border-radius: 14px; }
 h1 { font-size: 18px; margin: 0 0 4px; }
 .sub { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
 label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-input { width: 100%; font: inherit; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--soft); color: var(--ink); }
+input { width: 100%; font: inherit; font-size: 19px; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--ink); background: var(--soft); color: var(--ink); }
 input:focus { outline: none; border-color: var(--accent); }
 ul { list-style: none; margin: 8px 0 0; padding: 0; }
 .res button { width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 9px 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; }

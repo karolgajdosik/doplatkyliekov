@@ -107,11 +107,11 @@
     layer.clearLayers();
     var pts = [];
     shown.forEach(function (x) {
-      var mk = L.circleMarker([x[0], x[1]], { radius: 8, color: '#05090b', weight: 2, fillColor: '#45f0c0', fillOpacity: 1 });
+      var mk = L.circleMarker([x[0], x[1]], { radius: 8, color: '#ffffff', weight: 2, fillColor: '#0b4fb3', fillOpacity: 1 });
       var box = document.createElement('div'); box.append(el('b', null, x[2]), document.createElement('br'), [x[3], x[4]].filter(Boolean).join(', '));
       mk.bindPopup(box); layer.addLayer(mk); pts.push([x[0], x[1]]);
     });
-    if (here) { layer.addLayer(L.circleMarker(here, { radius: 9, color: '#fff', weight: 3, fillColor: '#ffb26b', fillOpacity: 1 }).bindPopup('Vy')); pts.push(here); }
+    if (here) { layer.addLayer(L.circleMarker(here, { radius: 9, color: '#fff', weight: 3, fillColor: '#a63600', fillOpacity: 1 }).bindPopup('Vy')); pts.push(here); }
     if (pts.length) map.fitBounds(pts, { padding: [24, 24], maxZoom: 15 }); else map.setView([48.7, 19.5], 7);
   }
   mapBtn.addEventListener('click', function () {

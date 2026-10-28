@@ -106,31 +106,31 @@
   function yearImage(ms, a, b, per, s1, s2) {
     var W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var x = cv.getContext('2d'), F = getComputedStyle(document.body).fontFamily || 'sans-serif';
-    x.fillStyle = '#05090b'; x.fillRect(0, 0, W, H);
-    var g = x.createRadialGradient(W, 0, 0, W, 0, 700); g.addColorStop(0, 'rgba(69,240,192,.25)'); g.addColorStop(1, 'rgba(69,240,192,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#45f0c0'; x.font = '600 28px ' + F; x.fillText('MOJE DOPLATKY ZA LIEKY', 72, 110);
-    x.fillStyle = '#e8f3f0'; x.font = '600 56px ' + F; x.fillText('Za posledných ' + ms.length + ' mesiacov', 72, 185);
+    x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
+    var g = x.createRadialGradient(W, 0, 0, W, 0, 700); g.addColorStop(0, 'rgba(11,79,179,.10)'); g.addColorStop(1, 'rgba(11,79,179,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#0b4fb3'; x.font = '600 28px ' + F; x.fillText('MOJE DOPLATKY ZA LIEKY', 72, 110);
+    x.fillStyle = '#0d1726'; x.font = '600 56px ' + F; x.fillText('Za posledných ' + ms.length + ' mesiacov', 72, 185);
     x.font = '700 120px ' + F; x.fillText(eur0(s1), 72, 320);
-    x.fillStyle = '#a9bdb8'; x.font = '400 34px ' + F;
-    if (s1 - s2 > 1) { x.fillText('S najlacnejšími verziami by to bolo ' + eur0(s2) + '.', 72, 385); x.fillStyle = '#ffb26b'; x.font = '600 40px ' + F; x.fillText('Ušetriť sa dalo ' + eur0(s1 - s2) + '.', 72, 440); }
+    x.fillStyle = '#34425a'; x.font = '400 34px ' + F;
+    if (s1 - s2 > 1) { x.fillText('S najlacnejšími verziami by to bolo ' + eur0(s2) + '.', 72, 385); x.fillStyle = '#a63600'; x.font = '600 40px ' + F; x.fillText('Ušetriť sa dalo ' + eur0(s1 - s2) + '.', 72, 440); }
     else x.fillText('Vaše lieky patrili medzi najlacnejšie.', 72, 385);
     // stĺpce po mesiacoch
     var top = 520, bh = 300, bw = (W - 144) / ms.length, mx = Math.max.apply(null, a.concat([1]));
     for (var i = 0; i < ms.length; i++) {
       var h1 = bh * a[i] / mx, h2 = bh * b[i] / mx, x0 = 72 + i * bw;
-      x.fillStyle = '#2a5450'; x.fillRect(x0 + 6, top + bh - h1, bw - 12, h1);
-      x.fillStyle = '#45f0c0'; x.fillRect(x0 + 6, top + bh - h2, bw - 12, Math.max(h2, 2));
-      x.fillStyle = '#8aa29c'; x.font = '400 22px ' + F; x.textAlign = 'center'; x.fillText(MESIACE[+ms[i].slice(5, 7) - 1], x0 + bw / 2, top + bh + 34); x.textAlign = 'left';
+      x.fillStyle = '#c7d0de'; x.fillRect(x0 + 6, top + bh - h1, bw - 12, h1);
+      x.fillStyle = '#0b4fb3'; x.fillRect(x0 + 6, top + bh - h2, bw - 12, Math.max(h2, 2));
+      x.fillStyle = '#4a5872'; x.font = '400 22px ' + F; x.textAlign = 'center'; x.fillText(MESIACE[+ms[i].slice(5, 7) - 1], x0 + bw / 2, top + bh + 34); x.textAlign = 'left';
     }
-    x.font = '400 24px ' + F; x.fillStyle = '#2a5450'; x.fillRect(72, top + bh + 60, 24, 24); x.fillStyle = '#c9d8d4'; x.fillText('vaše lieky', 106, top + bh + 80);
-    x.fillStyle = '#45f0c0'; x.fillRect(300, top + bh + 60, 24, 24); x.fillStyle = '#c9d8d4'; x.fillText('s najlacnejšími verziami', 334, top + bh + 80);
+    x.font = '400 24px ' + F; x.fillStyle = '#c7d0de'; x.fillRect(72, top + bh + 60, 24, 24); x.fillStyle = '#34425a'; x.fillText('vaše lieky', 106, top + bh + 80);
+    x.fillStyle = '#0b4fb3'; x.fillRect(300, top + bh + 60, 24, 24); x.fillStyle = '#34425a'; x.fillText('s najlacnejšími verziami', 334, top + bh + 80);
     var y = top + bh + 150;
     per.slice(0, 4).forEach(function (r) {
-      x.fillStyle = '#e8f3f0'; x.font = '400 30px ' + F; var nm = r.name.length > 34 ? r.name.slice(0, 33) + '…' : r.name; x.fillText(nm, 72, y);
+      x.fillStyle = '#0d1726'; x.font = '400 30px ' + F; var nm = r.name.length > 34 ? r.name.slice(0, 33) + '…' : r.name; x.fillText(nm, 72, y);
       x.textAlign = 'right'; x.font = '600 30px ' + F; x.fillText(eur0(r.a), W - 72, y); x.textAlign = 'left'; y += 52;
     });
-    x.fillStyle = '#e8f3f0'; x.font = '600 34px ' + F; x.fillText('doplatkyliekov.sk', 72, H - 110);
-    x.fillStyle = '#8aa29c'; x.font = '400 22px ' + F; x.fillText('Orientačný výpočet podľa dávkovania a doplatkov MZ SR v danom mesiaci.', 72, H - 66);
+    x.fillStyle = '#0d1726'; x.font = '600 34px ' + F; x.fillText('doplatkyliekov.sk', 72, H - 110);
+    x.fillStyle = '#4a5872'; x.font = '400 22px ' + F; x.fillText('Orientačný výpočet podľa dávkovania a doplatkov MZ SR v danom mesiaci.', 72, H - 66);
     return cv;
   }
   function svgChart(months, a, b) {
@@ -210,7 +210,7 @@
   /* ---------- kreslenie obrázkov ---------- */
   function fontsReady() {
     var f = document.fonts; if (!f || !f.load) return Promise.resolve();
-    return Promise.all(['700 40px Unbounded', '600 40px Onest', '400 40px Onest'].map(function (x) { return f.load(x).catch(function () {}); }));
+    return Promise.all(['800 40px Atkinson', '600 40px Atkinson', '400 40px Atkinson'].map(function (x) { return f.load(x, 'Aá ľščťžýíé 0123 €').catch(function () {}); }));
   }
   function wrapText(ctx, text, maxW) {
     var words = String(text).split(/\s+/), lines = [], cur = '';
@@ -260,14 +260,14 @@
     var y = 760, P = 80, maxW = W - 2 * P; // horná časť obrazovky zakrýva hodiny
     x.fillStyle = '#e5484d'; roundRect(x, P, y, maxW, 120, 28); x.fill();
     drawCross(x, P + 60, y + 60);
-    x.font = '700 40px Unbounded, sans-serif'; x.textBaseline = 'middle'; x.fillText('ZDRAVOTNÉ ÚDAJE', P + 120, y + 48);
-    x.font = '500 30px Onest, sans-serif'; x.fillText('pre záchranárov a lekárov', P + 120, y + 88);
+    x.font = '700 40px Atkinson, sans-serif'; x.textBaseline = 'middle'; x.fillText('ZDRAVOTNÉ ÚDAJE', P + 120, y + 48);
+    x.font = '500 30px Atkinson, sans-serif'; x.fillText('pre záchranárov a lekárov', P + 120, y + 88);
     y += 180;
     x.textBaseline = 'alphabetic';
     function row(label, val, color) {
       if (!val) return;
-      x.fillStyle = '#9fb3b0'; x.font = '600 28px Onest, sans-serif'; x.fillText(label.toUpperCase(), P, y); y += 50;
-      x.fillStyle = color || '#f1f7f6'; x.font = '600 44px Onest, sans-serif';
+      x.fillStyle = '#9fb3b0'; x.font = '600 28px Atkinson, sans-serif'; x.fillText(label.toUpperCase(), P, y); y += 50;
+      x.fillStyle = color || '#f1f7f6'; x.font = '600 44px Atkinson, sans-serif';
       wrapText(x, val, maxW).slice(0, 3).forEach(function (l) { x.fillText(l, P, y); y += 56; });
       y += 22;
     }
@@ -275,19 +275,19 @@
     row('Alergie', v.alergie, '#ffb26b');
     row('Krvná skupina', v.krv);
     row('Ochorenia', v.diag);
-    x.fillStyle = '#9fb3b0'; x.font = '600 28px Onest, sans-serif'; x.fillText('UŽÍVANÉ LIEKY', P, y); y += 54;
+    x.fillStyle = '#9fb3b0'; x.font = '600 28px Atkinson, sans-serif'; x.fillText('UŽÍVANÉ LIEKY', P, y); y += 54;
     list.slice(0, 12).forEach(function (m) {
       var hit = d.by[m.kod], name = m.name || (hit ? hit.it[1] : m.kod);
-      x.fillStyle = '#f1f7f6'; x.font = '600 40px Onest, sans-serif';
+      x.fillStyle = '#f1f7f6'; x.font = '600 40px Atkinson, sans-serif';
       wrapText(x, name, maxW).slice(0, 2).forEach(function (l) { x.fillText(l, P, y); y += 48; });
       var times = Array.isArray(m.t) && m.t.length ? ' · ' + m.t.join(', ') : '';
-      x.fillStyle = '#45f0c0'; x.font = '400 32px Onest, sans-serif';
+      x.fillStyle = '#8ab8ff'; x.font = '400 32px Atkinson, sans-serif';
       x.fillText(String(dose(m.d)).replace('.', ',') + ' ks denne' + times, P, y); y += 58;
     });
-    if (list.length > 12) { x.fillStyle = '#9fb3b0'; x.font = '400 30px Onest, sans-serif'; x.fillText('+ ďalšie lieky: ' + (list.length - 12), P, y); y += 50; }
+    if (list.length > 12) { x.fillStyle = '#9fb3b0'; x.font = '400 30px Atkinson, sans-serif'; x.fillText('+ ďalšie lieky: ' + (list.length - 12), P, y); y += 50; }
     y += 10;
     row('Kontakt v núdzi', v.kontakt);
-    x.fillStyle = '#6f8582'; x.font = '400 26px Onest, sans-serif';
+    x.fillStyle = '#6f8582'; x.font = '400 26px Atkinson, sans-serif';
     x.fillText('Aktualizované ' + todaySk() + ' · doplatkyliekov.sk', P, Math.min(H - 70, Math.max(y + 20, H - 120)));
     return c;
   }
@@ -306,22 +306,22 @@
   function drawBrag(st) {
     var S = 1080, c = document.createElement('canvas'); c.width = S; c.height = S;
     var x = c.getContext('2d');
-    var g = x.createLinearGradient(0, 0, S, S); g.addColorStop(0, '#05090b'); g.addColorStop(1, '#0c2a24'); x.fillStyle = g; x.fillRect(0, 0, S, S);
-    x.strokeStyle = 'rgba(69,240,192,.18)'; x.lineWidth = 2;
+    var g = x.createLinearGradient(0, 0, S, S); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#ffffff'); x.fillStyle = g; x.fillRect(0, 0, S, S);
+    x.strokeStyle = '#e7effc'; x.lineWidth = 2;
     for (var i = 0; i < S; i += 54) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, S); x.stroke(); }
     var P = 90;
-    x.fillStyle = '#45f0c0'; roundRect(x, P, 100, 120, 64, 32); x.fill(); x.fillStyle = '#05090b'; roundRect(x, P + 60, 106, 54, 52, 26); x.fill();
-    x.fillStyle = '#f1f7f6'; x.font = '600 40px Onest, sans-serif'; x.fillText('doplatkyliekov.sk', P + 150, 146);
+    x.fillStyle = '#0b4fb3'; roundRect(x, P, 100, 120, 64, 32); x.fill(); x.fillStyle = '#ffffff'; roundRect(x, P + 60, 106, 54, 52, 26); x.fill();
+    x.fillStyle = '#0d1726'; x.font = '600 40px Atkinson, sans-serif'; x.fillText('doplatkyliekov.sk', P + 150, 146);
     var year = st.yearSave || 0, pack = st.packSave || 0, big, top, sub;
     if (year >= 1) { top = 'Na liekoch môžem ušetriť'; big = eur0(year); sub = 'ročne'; }
     else if (pack >= 0.5) { top = 'Na liekoch môžem ušetriť'; big = eur(pack); sub = 'na jednom nákupe'; }
     else { top = 'Moje lieky už mám'; big = 'najlacnejšie'; sub = 'a vy?'; }
-    x.font = '600 58px Onest, sans-serif'; x.fillStyle = '#c9d6d4'; x.fillText(top, P, 400);
-    x.font = '700 ' + (big.length > 8 ? 130 : 190) + 'px Unbounded, sans-serif'; x.fillStyle = '#ffb26b'; x.fillText(big, P, 600);
-    x.font = '600 64px Onest, sans-serif'; x.fillStyle = '#ffb26b'; x.fillText(sub, P, 690);
-    x.font = '400 42px Onest, sans-serif'; x.fillStyle = '#c9d6d4';
+    x.font = '600 58px Atkinson, sans-serif'; x.fillStyle = '#34425a'; x.fillText(top, P, 400);
+    x.font = '700 ' + (big.length > 8 ? 130 : 190) + 'px Atkinson, sans-serif'; x.fillStyle = '#a63600'; x.fillText(big, P, 600);
+    x.font = '600 64px Atkinson, sans-serif'; x.fillStyle = '#a63600'; x.fillText(sub, P, 690);
+    x.font = '400 42px Atkinson, sans-serif'; x.fillStyle = '#34425a';
     wrapText(x, 'Rovnaká účinná látka, nižší doplatok. Porovnajte si svoje lieky zadarmo.', S - 2 * P).forEach(function (l, i) { x.fillText(l, P, 820 + i * 56); });
-    x.font = '700 44px Unbounded, sans-serif'; x.fillStyle = '#45f0c0'; x.fillText('doplatkyliekov.sk', P, 990);
+    x.font = '700 44px Atkinson, sans-serif'; x.fillStyle = '#0b4fb3'; x.fillText('doplatkyliekov.sk', P, 990);
     return c;
   }
 

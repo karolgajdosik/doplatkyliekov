@@ -113,7 +113,7 @@ def index_svg(series, css=True):
 
     def y(v):
         return T + (H - T - B) * (1 - v / top)
-    col = ("var(--accent)", "var(--save)", "var(--line)", "var(--muted)") if css else ("#0a8f6f", "#c2560c", "#e2e8e6", "#5b6b67")
+    col = ("var(--accent)", "var(--save)", "var(--line)", "var(--muted)") if css else ("#0b4fb3", "#a63600", "#d6e0f0", "#34425a")
     fs = "" if css else ' font-size="12"'
     if css:
         L = 84  # väčšie popisky na mobile potrebujú viac miesta vľavo
@@ -255,20 +255,20 @@ def build_extras(c):
   <style>
     .ix-head {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }}
     .ix-num {{ display: grid; gap: 2px; }}
-    .ix-num b {{ font-family: var(--font-mono); font-size: 34px; line-height: 1.1; color: var(--accent); }}
+    .ix-num b {{ font-family: var(--font-mono); font-size: 38px; font-weight: 800; line-height: 1.1; color: var(--accent); }}
     .ix-num b.avg {{ color: var(--save); }} .ix-num b.zero {{ color: var(--ink); }}
-    .ix-lbl {{ font-size: 14px; color: var(--muted); }} .ix-d {{ font-size: 14px; color: var(--muted); }}
+    .ix-lbl {{ font-size: 17px; color: var(--muted); }} .ix-d {{ font-size: 17px; color: var(--muted); }}
     .ix-sum {{ grid-column: 1 / -1; margin: 0; }}
     .ix-chart svg {{ width: 100%; height: auto; display: block; }}
     .ix-chart text {{ font-family: var(--font-mono); font-size: 14px; }}
     @media (max-width: 640px) {{ .ix-chart text {{ font-size: 22px; }} }}
-    .ix-legend {{ display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); margin: 8px 0 0; }}
+    .ix-legend {{ display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 17px; color: var(--muted); margin: 8px 0 0; }}
     .ix-legend span {{ display: inline-flex; align-items: center; gap: 8px; }}
     .ix-legend .k1::before, .ix-legend .k2::before {{ content: ""; width: 22px; height: 3px; border-radius: 2px; background: var(--accent); }}
     .ix-legend .k2::before {{ background: var(--save); }}
     .ix-table td.up {{ color: var(--save); }} .ix-table td.down {{ color: var(--accent); }}
     .ix-table small {{ color: var(--muted); }}
-    .emb-code {{ white-space: pre-wrap; word-break: break-all; background: var(--surface-solid); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 13.5px; }}
+    .emb-code {{ white-space: pre-wrap; word-break: break-all; background: var(--surface-solid); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 16px; }}
   </style>"""
         copy_js = """<script>
 document.querySelectorAll('[data-copy]').forEach(function (b) {
@@ -285,13 +285,13 @@ document.querySelectorAll('[data-copy]').forEach(function (b) {
         # graf na vloženie (samostatná stránka bez hlavičky webu)
         emb = f"""<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>Index doplatkov za lieky – doplatkyliekov.sk</title><link rel="canonical" href="{BASE}/index-doplatkov/">
-<style>body{{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#10201c;background:#fff}}.w{{padding:16px;border:1px solid #d9e3e0;border-radius:14px}}
-h1{{font-size:18px;margin:0 0 4px}}p{{margin:4px 0;color:#4a5d57}}.n{{display:flex;gap:24px;flex-wrap:wrap;margin:10px 0}}.n b{{display:block;font-size:26px;color:#0a8f6f}}.n b.a{{color:#c2560c}}
-svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:#5b6b67;margin-top:6px}}a{{color:#0a8f6f;font-weight:700;text-decoration:none}}</style></head>
+<style>@font-face{{font-family:"Atkinson";font-display:swap;font-weight:400 800;src:url(/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F,U+20AC}}@font-face{{font-family:"Atkinson";font-display:swap;font-weight:400 800;src:url(/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-017F}}body{{margin:0;font:16px/1.45 Atkinson,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#0d1726;background:#fff}}.w{{padding:16px;border:2px solid #c7d0de;border-radius:14px}}
+h1{{font-size:18px;margin:0 0 4px}}p{{margin:4px 0;color:#34425a}}.n{{display:flex;gap:24px;flex-wrap:wrap;margin:10px 0}}.n b{{display:block;font-size:28px;color:#0b4fb3}}.n b.a{{color:#a63600}}
+svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:#34425a;margin-top:6px}}a{{color:#0b4fb3;font-weight:700;text-decoration:none}}</style></head>
 <body><div class="w"><h1>Index doplatkov za lieky</h1><p>Košík {len(basket)} bežných liekov, z každého jedno balenie · {esc(ahead_txt.lower() if not ahead else ahead_txt)}</p>
 <div class="n"><div>Najlacnejší košík<b>{eur(head[1])}</b></div><div>Priemerný košík<b class="a">{eur(head[2])}</b></div></div>
 {index_svg(series, css=False)}
-<div class="f"><span>Zelená: najlacnejší košík · oranžová: priemerný · zdroj: zoznam MZ SR</span><a href="{BASE}/index-doplatkov/?zdroj=vlozene" target="_blank" rel="noopener">doplatkyliekov.sk</a></div></div></body></html>"""
+<div class="f"><span>Modrá: najlacnejší košík · oranžová: priemerný · zdroj: zoznam MZ SR</span><a href="{BASE}/index-doplatkov/?zdroj=vlozene" target="_blank" rel="noopener">doplatkyliekov.sk</a></div></div></body></html>"""
         (SITE / "index-doplatkov" / "graf").mkdir(parents=True, exist_ok=True)
         (SITE / "index-doplatkov" / "graf" / "index.html").write_text(emb, encoding="utf-8")
         # náhľadový obrázok vykreslí build_pages spolu s ostatnými (až keď je k dispozícii Pillow)
@@ -448,18 +448,18 @@ svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:spac
   <style>
     .print-btns button {{ font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-ink); padding: 12px 20px; margin-top: 8px; }}
     .cheat {{ background: #fff; color: #111; border-radius: 14px; padding: 24px; max-width: 900px; box-shadow: 0 10px 40px -20px #000; }}
-    .ch-head {{ display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 2px solid #0a8f6f; padding-bottom: 10px; }}
-    .ch-head h2 {{ font-family: var(--font-display); color: #0b3d33; font-size: 24px; margin: 0; }}
+    .ch-head {{ display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 2px solid #0b4fb3; padding-bottom: 10px; }}
+    .ch-head h2 {{ font-family: var(--font-display); color: #0d1726; font-size: 24px; margin: 0; }}
     .ch-head p {{ margin: 4px 0 0; color: #444; font-size: 14px; }}
     .ch-qr {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: #333; }}
     .ch-qr svg {{ width: 70px; height: 70px; }}
     .ch-table {{ width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }}
     .ch-table th, .ch-table td {{ text-align: left; padding: 4px 8px; border-bottom: 1px solid #e3e3e3; vertical-align: top; color: #111; }}
     .ch-table thead th {{ font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #555; }}
-    .ch-table .ch-cond th {{ background: #eef8f5; color: #0b3d33; font-size: 13px; padding-top: 7px; }}
+    .ch-table .ch-cond th {{ background: #e7effc; color: #0d1726; font-size: 13px; padding-top: 7px; }}
     .ch-table td:first-child {{ width: 28%; font-weight: 600; }}
     .ch-table td:first-child a {{ color: #111; text-decoration: none; }}
-    .ch-table td.zero {{ color: #075e49; font-weight: 600; }}
+    .ch-table td.zero {{ color: #0b4fb3; font-weight: 600; }}
     .ch-table small {{ color: #666; }}
     .ch-foot {{ font-size: 12px; color: #555; margin: 10px 0 0; }}
     @media (max-width: 560px) {{ .cheat {{ padding: 14px; }} .ch-head {{ flex-direction: column; align-items: flex-start; }} .ch-table {{ font-size: 13px; }} }}
@@ -518,7 +518,7 @@ svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:spac
   </section>
   <style>
     .emb-preview {{ max-width: 640px; }}
-    .emb-code {{ white-space: pre-wrap; word-break: break-all; background: var(--surface-2, #0b1316); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 13.5px; }}
+    .emb-code {{ white-space: pre-wrap; word-break: break-all; background: var(--surface-2, #0b1316); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 16px; }}
     details summary {{ cursor: pointer; margin-top: 10px; }}
   </style>"""
     script = """<script src="/vlozit/embed.js" async></script>
