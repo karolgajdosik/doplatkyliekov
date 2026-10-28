@@ -518,7 +518,7 @@ svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:spac
   </section>
   <style>
     .emb-preview {{ max-width: 640px; }}
-    .emb-code {{ white-space: pre-wrap; word-break: break-all; background: var(--surface-2, #0b1316); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 16px; }}
+    .emb-code {{ white-space: pre-wrap; word-break: break-all; background: var(--accent-soft); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 16px; }}
     details summary {{ cursor: pointer; margin-top: 10px; }}
   </style>"""
     script = """<script src="/vlozit/embed.js" async></script>
