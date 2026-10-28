@@ -1,0 +1,18 @@
+name: tmp ceny
+on: { workflow_dispatch: {} }
+jobs:
+  t:
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          A: ${{ secrets.CF_ACCOUNT_ID }}
+          T: ${{ secrets.CF_API_TOKEN }}
+          NS: ${{ secrets.CF_KV_NAMESPACE_ID }}
+        run: |
+          set +e
+          B=https://doplatkyliekov.sk
+          M=$(date -u +%Y-%m)
+          echo "::notice::POST $(curl -s -X POST $B/api/ceny -H 'Content-Type: application/json' --data "{\"obec\":\"testovacia obec\",\"lekaren\":\"Test\",\"mesiac\":\"$M\",\"items\":[{\"kod\":\"94163\",\"suma\":3.5},{\"kod\":\"94163\",\"suma\":99}]}")"
+          echo "::notice::GET $(curl -s "$B/api/ceny?kod=94163")"
+          curl -s -X DELETE -H "Authorization: Bearer $T" "https://api.cloudflare.com/client/v4/accounts/$A/storage/kv/namespaces/$NS/values/ceny:94163" | jq -c .success
+          echo "::notice::po zmazaní $(curl -s "$B/api/ceny?kod=94163&t=$RANDOM")"
