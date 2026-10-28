@@ -33,7 +33,7 @@ SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
-             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit"]
+             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
@@ -320,7 +320,7 @@ MENU = [
                  ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
-    ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
+    ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
     ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
                 ("/pristupnost/", "Vyhlásenie o prístupnosti")]),
 ]
@@ -1055,7 +1055,7 @@ NOTES = """
 ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani aplikácia nepoužili starú verziu
 
 
-MINIFY = ("style.css", "assets/pages.css", "hladaj.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js")
+MINIFY = ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js")
 
 
 def minify_assets():
@@ -1104,7 +1104,7 @@ def inline_home_css():
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "hladaj.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js"):
+    for name in ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -1515,6 +1515,10 @@ def build():
 {presc_html}
 {about_html}
 {letak_card(p) if p["kod"] in pil_map else ""}
+  <section class="card ceny-card" data-ceny="{esc(p['kod'])}" data-max="{'' if p['dop'] is None else p['dop']}" hidden>
+    <h2>Koľko ľudia naozaj zaplatili</h2>
+    <div class="ceny-out"><p class="hint">Načítavam…</p></div>
+  </section>
 {ai_card(p)}
 {alert_form(p["kod"])}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
@@ -1527,7 +1531,7 @@ def build():
                    "description": desc}
         if chain:
             drug_ld["drugClass"] = {"@type": "DrugClass", "name": chain[-1][1]}
-        write(path, page(title, desc, path, body, [breadcrumb_ld(crumb_items), drug_ld], og=f"/og/latka/{subst_slug[g['s']]}.jpg", alts=alt_paths("drug", p["slug"])))
+        write(path, page(title, desc, path, body, [breadcrumb_ld(crumb_items), drug_ld], script='<script src="/ceny.js" defer></script>', og=f"/og/latka/{subst_slug[g['s']]}.jpg", alts=alt_paths("drug", p["slug"])))
         # --- cudzojazyčné verzie stránky lieku ---
         ctx = {"p": p, "g": g, "items": items, "cheapest": cheapest, "saving": saving, "pk": pk, "vyp": vyp, "max_dop": max_dop,
                "vstate": vstate, "nxt": nxt, "change": change, "available": available, "chart": chart, "points": points,
@@ -2163,11 +2167,13 @@ def build():
   <div class="mine-tools" id="mine-tools" hidden>
     <button type="button" id="mine-print">Vytlačiť pre lekára</button>
     <button type="button" id="mine-share">Zdieľať zoznam</button>
+    <button type="button" id="mine-wallet">Kartička do peňaženky</button>
     <button type="button" id="mine-ics" hidden>Pripomienky do kalendára</button>
     <button type="button" id="mine-brag" hidden>Zdieľať moju úsporu</button>
     <a href="/ochranny-limit/#tracker">Prehľad doplatkov pre ochranný limit</a>
     <p class="form-msg" id="mine-tools-msg" aria-live="polite"></p>
   </div>
+  <div id="wallet-print" class="wallet-print" aria-hidden="true"></div>
   <div class="mine-extras" id="mine-extras" hidden>
     <section class="card" id="mine-chart" hidden>
       <h2>Ročný prehľad doplatkov</h2>
@@ -2310,6 +2316,8 @@ def build():
     <h2 id="foto">Rozpoznanie lieku z fotky</h2>
     <p>Ak na úvodnej stránke odfotíte balenie lieku alebo recept, prehliadač fotku zmenší a pošle ju jazykovému modelu umelej inteligencie v službe Cloudflare Workers AI (Cloudflare, Inc., USA), ktorý z nej vyčíta názov, silu a veľkosť balenia lieku. Fotku ani výsledok neukladáme; po spracovaní sa zahodí. Model má pokyn ignorovať osobné údaje, no fotka receptu ich môže obsahovať, preto <strong>meno, rodné číslo a adresu na recepte pred fotením zakryte</strong>. Ak by fotka obsahovala údaje o zdraví, spracúvajú sa len na váš výslovný pokyn (odfotenie a odoslanie) na účel, ktorý ste si vyžiadali (čl. 9 ods. 2 písm. a) GDPR). Prenos do USA prebieha na základe štandardných zmluvných doložiek.</p>
     <p>Rovnako spracúvame fotku <strong>bločku z lekárne</strong> v prehľade ochranného limitu: model z nej vyčíta dátum, názvy liekov, počty a sumy. Fotku ani výsledok neukladáme; rozpoznané položky sa po vašom potvrdení uložia len vo vašom prehliadači. Meno, číslo karty a ďalšie údaje na bločku model ignoruje, aj tak ich pred fotením odporúčame zakryť.</p>
+    <h2 id="ceny">Skutočné doplatky v lekárňach</h2>
+    <p>Pri čítaní bločku v prehľade ochranného limitu môžete zaškrtnúť, že chcete <strong>anonymne prispieť</strong> zaplatenými sumami. Vtedy na náš server (Cloudflare KV) odošleme len kód lieku, sumu zaplatenú za jedno balenie, obec a názov lekárne a mesiac nákupu. Neukladáme vašu IP adresu, fotku, dátum nákupu ani nič, čo by vás identifikovalo. Súhrn (najnižšia a bežná suma, obce) sa zobrazuje na stránkach liekov. Príspevok je dobrovoľný; bez zaškrtnutia sa nič neodošle. Údaje uchovávame najviac 300 posledných záznamov pre každý liek a zobrazujeme posledné 3 mesiace. Právny základ: oprávnený záujem informovať verejnosť o cenách; ide o anonymné údaje.</p>
     <h2 id="lekarne">Lekárne v okolí</h2>
     <p>Ak na stránke Lekárne v okolí použijete tlačidlo „Lekárne pri mne“, prehliadač po vašom povolení zistí polohu a vzdialenosti vypočíta priamo vo vašom zariadení; polohu nikam neposielame ani neukladáme. Mapa sa zobrazí až po kliknutí na „Zobraziť na mape“; vtedy sa mapové podklady načítajú zo serverov OpenStreetMap Foundation (Spojené kráľovstvo), ktoré pritom vidia vašu IP adresu.</p>
     <h2 id="prepojenie">Prepojenie zariadení</h2>
@@ -2832,13 +2840,14 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
 
     # --- dáta pre novinárov, ťahák pre ambulancie, kalkulačka na vloženie (scripts/build_extras.py) ---
     from build_extras import build_extras
+    og_jobs = []
     (SITE / "vlozit").mkdir(parents=True, exist_ok=True)
     for fn in ("okno.js", "embed.js"):
         shutil.copy(ROOT / "templates" / fn, SITE / "vlozit" / fn)
     build_extras({"esc": esc, "eur": eur, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
                   "SITE": SITE, "ROOT": ROOT, "BASE": BASE, "PLATNOST": PLATNOST, "cur_iso": cur_iso, "groups": groups, "nxt": nxt,
                   "vyp": vyp, "history": history, "urls": urls, "subst_slug": subst_slug, "month_articles": month_articles,
-                  "segno": segno, "sk_date": sk_date, "type_label": type_label, "versioned": versioned})
+                  "segno": segno, "sk_date": sk_date, "type_label": type_label, "versioned": versioned, "og_jobs": og_jobs})
 
     # --- lekárne v okolí (OpenStreetMap) ---
     lek_src = DATA / "lekarne.json"
@@ -3141,6 +3150,8 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             if its:
                 ogmod.render(ogd / "choroby" / f"{slug}.jpg", "Lieky podľa ochorenia", title, f"{plural_lieky(len(its))} hradených poisťovňou",
                              str(sum(1 for x in its if x["dop"] == 0)), "liekov bez doplatku", big_color=(69, 240, 192))
+        for job in og_jobs:
+            ogmod.render(*job, big_color=(69, 240, 192))
         print("Náhľadové obrázky vytvorené.")
     except Exception as e:  # noqa: BLE001
         print("Náhľadové obrázky sa nevytvorili:", e)

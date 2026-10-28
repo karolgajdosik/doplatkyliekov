@@ -116,6 +116,12 @@
         added++;
       });
       save(KEY, entries); curQ = quarterOf(day); render();
+      if (shCb.checked && obec.value.trim().length >= 2) {
+        var sent = rows.filter(function (r) { return r.cb.checked && by[r.sel.value] && r.suma != null; }).map(function (r) {
+          return { kod: r.sel.value, suma: Math.round(r.suma / Math.max(1, parseInt(r.cnt.value, 10) || 1) * 100) / 100 };
+        });
+        if (sent.length) fetch('/api/ceny', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ obec: obec.value, lekaren: lname.value, mesiac: day.slice(0, 7), items: sent }) }).catch(function () {});
+      }
     });
   });
   function alertMsg(t) { pickedEl.textContent = t; }
@@ -156,8 +162,19 @@
       var lab = el('label', 'scan-row'); lab.append(cb, el('span', 'scan-text', x.text));
       var ctl = el('div', 'scan-ctl'); ctl.append(sel, cnt, el('span', null, 'bal.'));
       li.append(lab, ctl, info); ul.append(li);
-      rows.push({ cb: cb, sel: sel, cnt: cnt });
+      rows.push({ cb: cb, sel: sel, cnt: cnt, suma: x.suma });
     });
+    // dobrovoľný anonymný príspevok do prehľadu skutočných doplatkov v lekárňach
+    var lk = j.lekaren || {}, share = el('div', 'scan-share');
+    var shCb = el('input'); shCb.type = 'checkbox'; shCb.id = 'scan-share-cb';
+    var shLab = el('label'); shLab.htmlFor = 'scan-share-cb';
+    shLab.append(shCb, ' Anonymne prispieť zaplatenými sumami do prehľadu ', el('a', null, 'skutočných doplatkov v lekárňach'));
+    shLab.querySelector('a').href = '/ochrana-sukromia/#ceny';
+    var obec = el('input'); obec.type = 'text'; obec.maxLength = 40; obec.value = lk.obec || ''; obec.placeholder = 'Obec lekárne'; obec.setAttribute('aria-label', 'Obec, kde je lekáreň');
+    var lname = el('input'); lname.type = 'text'; lname.maxLength = 60; lname.value = lk.nazov || ''; lname.placeholder = 'Názov lekárne (nepovinné)'; lname.setAttribute('aria-label', 'Názov lekárne');
+    var shFields = el('div', 'scan-share-f'); shFields.append(obec, lname); shFields.hidden = true;
+    shCb.addEventListener('change', function () { shFields.hidden = !shCb.checked; });
+    share.append(shLab, shFields, el('small', null, 'Pošle sa len liek, suma za balenie, obec, lekáreň a mesiac. Nič o vás.'));
     var add = el('button', null, 'Pridať označené do prehľadu'); add.type = 'button';
     add.addEventListener('click', function () {
       var n0 = 0;
@@ -167,10 +184,16 @@
         n0++;
       });
       save(KEY, entries); curQ = quarterOf(day); render();
+      if (shCb.checked && obec.value.trim().length >= 2) {
+        var sent = rows.filter(function (r) { return r.cb.checked && by[r.sel.value] && r.suma != null; }).map(function (r) {
+          return { kod: r.sel.value, suma: Math.round(r.suma / Math.max(1, parseInt(r.cnt.value, 10) || 1) * 100) / 100 };
+        });
+        if (sent.length) fetch('/api/ceny', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ obec: obec.value, lekaren: lname.value, mesiac: day.slice(0, 7), items: sent }) }).catch(function () {});
+      }
       scanSay(n0 ? 'Pridané: ' + n0 + (n0 === 1 ? ' položka.' : n0 < 5 ? ' položky.' : ' položiek.') : 'Nič nebolo označené.', 'form-msg ok');
       list.scrollIntoView({ block: 'center' });
     });
-    scanOut.append(ul, add, el('p', 'hint', 'Do limitu počítame doplatok za najlacnejší náhradný liek podľa zoznamu ministerstva, nie celú sumu z bločku.'));
+    scanOut.append(ul, share, add, el('p', 'hint', 'Do limitu počítame doplatok za najlacnejší náhradný liek podľa zoznamu ministerstva, nie celú sumu z bločku.'));
   }
   if (scanIn) scanIn.addEventListener('change', function () {
     var f = scanIn.files && scanIn.files[0]; if (!f) return;

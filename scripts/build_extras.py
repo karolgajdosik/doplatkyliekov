@@ -12,6 +12,8 @@ from collections import defaultdict
 from email.utils import format_datetime
 
 STAV = {"R": "Prerušené dodávky", "Z": "Ukončené dodávky", "PR": "Ohlásené prerušenie", "PZ": "Ohlásené ukončenie"}
+GENITIV = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"]
+DATIV = ["januáru", "februáru", "marcu", "aprílu", "máju", "júnu", "júlu", "augustu", "septembru", "októbru", "novembru", "decembru"]
 MESIACE = ["január", "február", "marec", "apríl", "máj", "jún", "júl", "august", "september", "október", "november", "december"]
 
 # ťahák: ochorenie → látky (ATC), poradie v tabuľke; vyberané podľa toho, aké bežné sú v praxi všeobecného lekára
@@ -56,6 +58,85 @@ def _csv(rows, header):
     for r in rows:
         w.writerow([cell(v) for v in r])
     return "﻿" + buf.getvalue()
+
+
+MESIACE_KR = ["jan", "feb", "mar", "apr", "máj", "jún", "júl", "aug", "sep", "okt", "nov", "dec"]
+
+
+def basket_of(groups):
+    """Košík indexu: pri každej látke z CHEAT najčastejšia skupina na perorálne podanie (sila × balenie s najviac liekmi)."""
+    by_atc = defaultdict(list)
+    for g in groups:
+        by_atc[g["a"]].append(g)
+    out = []
+    for cond, atcs in CHEAT:
+        for a in atcs:
+            gs = [g for g in by_atc.get(a, []) if g["f"].startswith("p.o.")]
+            if gs:
+                out.append((cond, max(gs, key=lambda g: len(g["i"]))))
+    return out
+
+
+def index_series(basket, history, nxt):
+    """[(mesiac, najlacnejší košík, priemerný košík, počet balení bez doplatku, výhľad?)]"""
+    periods = [(iso[:7], prices, False) for iso, prices in history]
+    if nxt:
+        periods.append((nxt["platnostIso"][:7], {k: v for k, v in nxt["prices"].items()}, True))
+    out = []
+    for m, prices, ahead in periods:
+        s_min = s_avg = 0.0
+        zero = n = 0
+        for _, g in basket:
+            vals = [prices[it["kod"]][2] for it in g["i"] if it["kod"] in prices and prices[it["kod"]][2] is not None]
+            if not vals:
+                continue
+            n += 1
+            s_min += min(vals)
+            s_avg += sum(vals) / len(vals)
+            zero += 1 if min(vals) < 0.005 else 0
+        out.append((m, round(s_min, 2), round(s_avg, 2), zero, ahead, n))
+    return out
+
+
+def index_svg(series, css=True):
+    """Čiarový graf oboch košíkov; výhľad na budúci mesiac prerušovanou čiarou."""
+    W, H, L, R, T, B = 720, 300, 64, 18, 18, 40
+    n = len(series)
+    mx = max(max(s[1], s[2]) for s in series) * 1.12
+    raw = mx / 4
+    mag = 10 ** len(str(int(raw))) / 10 if raw >= 1 else 1
+    tick = next(k * mag for k in (1, 2, 2.5, 5, 10) if k * mag >= raw)
+    top = tick * 4
+
+    def x(i):
+        return L + (W - L - R) * i / max(n - 1, 1)
+
+    def y(v):
+        return T + (H - T - B) * (1 - v / top)
+    col = ("var(--accent)", "var(--save)", "var(--line)", "var(--muted)") if css else ("#0a8f6f", "#c2560c", "#e2e8e6", "#5b6b67")
+    fs = "" if css else ' font-size="12"'
+    if css:
+        L = 84  # väčšie popisky na mobile potrebujú viac miesta vľavo
+    parts = [f'<svg viewBox="0 0 {W} {H}" class="ix-svg" role="img" aria-label="Vývoj košíka bežných liekov: najlacnejší košík {series[-1][1]} €, priemerný {series[-1][2]} €">']
+    for k in range(5):
+        v = top * k / 4
+        parts.append(f'<line x1="{L}" x2="{W - R}" y1="{y(v):.1f}" y2="{y(v):.1f}" stroke="{col[2]}"/>'
+                     f'<text x="{L - 8}" y="{y(v) + 4:.1f}" text-anchor="end" fill="{col[3]}"{fs}>{v:g} €</text>')
+    for i, s in enumerate(series):
+        mo = int(s[0][5:7])
+        if i in (0, n - 1) or (mo == 1 and 2 < i < n - 3):
+            anchor = "start" if i == 0 else "end" if i == n - 1 else "middle"
+            parts.append(f'<text x="{x(i):.1f}" y="{H - 12}" text-anchor="{anchor}" fill="{col[3]}"{fs}>{MESIACE_KR[mo - 1]} {s[0][:4]}</text>')
+    for idx, c_ in ((2, col[1]), (1, col[0])):
+        past = [(i, s[idx]) for i, s in enumerate(series) if not s[4]]
+        d = " ".join(f'{"M" if j == 0 else "L"}{x(i):.1f} {y(v):.1f}' for j, (i, v) in enumerate(past))
+        parts.append(f'<path d="{d}" fill="none" stroke="{c_}" stroke-width="3" stroke-linejoin="round"/>')
+        if series[-1][4]:
+            i0, v0 = past[-1]
+            parts.append(f'<path d="M{x(i0):.1f} {y(v0):.1f} L{x(n - 1):.1f} {y(series[-1][idx]):.1f}" fill="none" stroke="{c_}" stroke-width="3" stroke-dasharray="6 5"/>')
+        parts.append(f'<circle cx="{x(n - 1):.1f}" cy="{y(series[-1][idx]):.1f}" r="5" fill="{c_}"/>')
+    parts.append("</svg>")
+    return "".join(parts)
 
 
 def build_extras(c):
@@ -104,6 +185,118 @@ def build_extras(c):
         fn = f"zmeny-{nxt_iso[:7]}.csv"
         (ddir / fn).write_text(_csv(ch, ["kod_sukl", "nazov", "ucinna_latka", "doplatok_teraz_eur", f"doplatok_od_{nxt_iso}_eur", "zmena_eur", "stav"]), encoding="utf-8")
         files.append((fn, f"Zmeny doplatkov od {sk_date(nxt_iso)} oproti súčasnému zoznamu", len(ch)))
+
+    # ---------------- /index-doplatkov/ ----------------
+    basket = basket_of(groups)
+    series = index_series(basket, history, nxt) if history else []
+    if series:
+        def mlabel(m):
+            return f"{MESIACE[int(m[5:7]) - 1]} {m[:4]}"
+        cur = [s for s in series if not s[4]][-1]
+        prev = [s for s in series if not s[4]][-2]
+        ahead = series[-1] if series[-1][4] else None
+        yago = next((s for s in series if s[0] == f"{int(cur[0][:4]) - 1}{cur[0][4:]}"), None)
+        head = ahead or cur
+        base = cur if ahead else prev
+
+        def delta(a, b):
+            d = round(a - b, 2)
+            return "bez zmeny" if abs(d) < 0.01 else (f"+{eur(d)}" if d > 0 else f"−{eur(-d)}")
+        ix_rows = [[s[0], s[1], s[2], s[3], "výhľad" if s[4] else ""] for s in series]
+        (ddir / "index-doplatkov.csv").write_text(_csv(ix_rows, ["mesiac", "najlacnejsi_kosik_eur", "priemerny_kosik_eur", "baleni_bez_doplatku", "poznamka"]), encoding="utf-8")
+        files.append(("index-doplatkov.csv", f"Index doplatkov: košík {len(basket)} bežných liekov po mesiacoch", len(ix_rows)))
+        trs = []
+        for cond, g in basket:
+            def mn(prices):
+                v = [prices[it["kod"]][2] for it in g["i"] if it["kod"] in prices and prices[it["kod"]][2] is not None]
+                return min(v) if v else None
+            now_p = {it["kod"]: [None, None, it["dop"]] for it in g["i"]}
+            a_ = mn(now_p)
+            b_ = mn(nxt["prices"]) if ahead else None
+            ch = "" if b_ is None or abs(b_ - a_) < 0.01 else (' class="up"' if b_ > a_ else ' class="down"')
+            trs.append(f'<tr><td>{esc(cond)}</td><td><a href="/latka/{subst_slug.get(g["s"], "")}/">{esc(g["s"])}</a> <small>{esc(g["f"].replace("p.o. ", ""))}</small></td>'
+                       f'<td class="num">{eur(a_)}</td>' + (f'<td class="num"{ch}>{eur(b_)}</td>' if ahead else "") + "</tr>")
+        crumb_items = [("Domov", "/"), ("Index doplatkov", None)]
+        svg = index_svg(series)
+        ahead_txt = f"Od {sk_date(nxt['platnostIso'])}" if ahead else f"V mesiaci {mlabel(cur[0])}"
+        snippet = f'<iframe src="{BASE}/index-doplatkov/graf/" title="Index doplatkov za lieky" style="width:100%;max-width:720px;height:460px;border:0" loading="lazy"></iframe>'
+        body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Mesačný index · {esc(mlabel(head[0]))}</p>
+    <h1 class="page-h1">Index doplatkov za lieky</h1>
+    <p class="page-sub">Koľko pacient doplatí za košík {len(basket)} bežných liekov na tlak, cholesterol, cukrovku, riedenie krvi a ďalšie ochorenia – z každého jedno balenie. Každý mesiac podľa nového zoznamu MZ SR.</p>
+  </section>
+  <section class="card ix-head">
+    <div class="ix-num"><span class="ix-lbl">{esc(ahead_txt)}: najlacnejší košík</span><b>{eur(head[1])}</b><span class="ix-d">{delta(head[1], base[1])} oproti {esc(DATIV[int(base[0][5:7]) - 1])}</span></div>
+    <div class="ix-num"><span class="ix-lbl">Priemerný košík</span><b class="avg">{eur(head[2])}</b><span class="ix-d">{delta(head[2], base[2])}</span></div>
+    <div class="ix-num"><span class="ix-lbl">Balení bez doplatku</span><b class="zero">{head[3]} z {head[5]}</b><span class="ix-d">pri najlacnejšej voľbe</span></div>
+    <p class="ix-sum">Kto si vyberá najlacnejšie lieky, zaplatí za celý košík {eur(head[1])}. Pri priemernom lieku zo skupiny je to {eur(head[2])}, teda o {eur(head[2] - head[1])} viac.{f" Pred rokom stál najlacnejší košík {eur(yago[1])}." if yago else ""}</p>
+  </section>
+  <section class="card">
+    <h2>Vývoj od {esc(GENITIV[int(series[0][0][5:7]) - 1])} {series[0][0][:4]}</h2>
+    <div class="ix-chart">{svg}</div>
+    <p class="ix-legend"><span class="k1">Najlacnejší košík</span><span class="k2">Priemerný košík</span>{"<span>prerušovane: výhľad podľa schváleného zoznamu na budúci mesiac</span>" if ahead else ""}</p>
+  </section>
+  <section class="card">
+    <h2>Čo je v košíku</h2>
+    <p>Pri každej látke rátame najbežnejšiu silu a veľkosť balenia (skupinu s najviac liekmi v zozname MZ SR). <b>Najlacnejší košík</b> je súčet najnižších doplatkov v skupinách, <b>priemerný</b> súčet priemerných doplatkov všetkých liekov v skupine. Doplatok je maximálny podľa zoznamu; lekáreň ho môže znížiť.</p>
+    <div class="scroll"><table class="ltable ix-table">
+      <thead><tr><th>Ochorenie</th><th>Látka a balenie</th><th>Najnižší doplatok teraz</th>{f"<th>Od {esc(sk_date(nxt['platnostIso']))}</th>" if ahead else ""}</tr></thead>
+      <tbody>{"".join(trs)}</tbody>
+    </table></div>
+  </section>
+  <section class="card">
+    <h2>Pre médiá</h2>
+    <p>Graf môžete vložiť do článku; aktualizuje sa sám každý mesiac:</p>
+    <pre class="emb-code" id="ix-code">{esc(snippet)}</pre>
+    <div class="mine-tools"><button type="button" data-copy="ix-code">Skopírovať kód</button> <a href="/data/index-doplatkov.csv" download>Stiahnuť údaje (CSV)</a></div>
+    <p class="hint">Zdroj uvádzajte: doplatkyliekov.sk podľa údajov MZ SR. Ďalšie dáta sú na stránke <a href="/data/">Dáta pre novinárov</a>.</p>
+  </section>
+  <style>
+    .ix-head {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }}
+    .ix-num {{ display: grid; gap: 2px; }}
+    .ix-num b {{ font-family: var(--font-mono); font-size: 34px; line-height: 1.1; color: var(--accent); }}
+    .ix-num b.avg {{ color: var(--save); }} .ix-num b.zero {{ color: var(--ink); }}
+    .ix-lbl {{ font-size: 14px; color: var(--muted); }} .ix-d {{ font-size: 14px; color: var(--muted); }}
+    .ix-sum {{ grid-column: 1 / -1; margin: 0; }}
+    .ix-chart svg {{ width: 100%; height: auto; display: block; }}
+    .ix-chart text {{ font-family: var(--font-mono); font-size: 14px; }}
+    @media (max-width: 640px) {{ .ix-chart text {{ font-size: 22px; }} }}
+    .ix-legend {{ display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); margin: 8px 0 0; }}
+    .ix-legend span {{ display: inline-flex; align-items: center; gap: 8px; }}
+    .ix-legend .k1::before, .ix-legend .k2::before {{ content: ""; width: 22px; height: 3px; border-radius: 2px; background: var(--accent); }}
+    .ix-legend .k2::before {{ background: var(--save); }}
+    .ix-table td.up {{ color: var(--save); }} .ix-table td.down {{ color: var(--accent); }}
+    .ix-table small {{ color: var(--muted); }}
+    .emb-code {{ white-space: pre-wrap; word-break: break-all; background: var(--surface-solid); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: var(--font-mono); font-size: 13.5px; }}
+  </style>"""
+        copy_js = """<script>
+document.querySelectorAll('[data-copy]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var t = document.getElementById(b.dataset.copy).textContent, old = b.textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Skopírované'; }, function () { b.textContent = 'Označte kód a stlačte Ctrl+C'; });
+    setTimeout(function () { b.textContent = old; }, 2500);
+  });
+});
+</script>"""
+        write("/index-doplatkov/", page(f"Index doplatkov za lieky – {mlabel(head[0])}", f"Košík {len(basket)} bežných liekov: najlacnejšie {eur(head[1])}, v priemere {eur(head[2])}. Mesačný vývoj doplatkov podľa zoznamu MZ SR.",
+                                       "/index-doplatkov/", body, breadcrumb_ld(crumb_items), copy_js, og="/og/index-doplatkov.jpg"))
+        urls.append(("/index-doplatkov/", "0.6"))
+        # graf na vloženie (samostatná stránka bez hlavičky webu)
+        emb = f"""<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Index doplatkov za lieky – doplatkyliekov.sk</title><link rel="canonical" href="{BASE}/index-doplatkov/">
+<style>body{{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#10201c;background:#fff}}.w{{padding:16px;border:1px solid #d9e3e0;border-radius:14px}}
+h1{{font-size:18px;margin:0 0 4px}}p{{margin:4px 0;color:#4a5d57}}.n{{display:flex;gap:24px;flex-wrap:wrap;margin:10px 0}}.n b{{display:block;font-size:26px;color:#0a8f6f}}.n b.a{{color:#c2560c}}
+svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:#5b6b67;margin-top:6px}}a{{color:#0a8f6f;font-weight:700;text-decoration:none}}</style></head>
+<body><div class="w"><h1>Index doplatkov za lieky</h1><p>Košík {len(basket)} bežných liekov, z každého jedno balenie · {esc(ahead_txt.lower() if not ahead else ahead_txt)}</p>
+<div class="n"><div>Najlacnejší košík<b>{eur(head[1])}</b></div><div>Priemerný košík<b class="a">{eur(head[2])}</b></div></div>
+{index_svg(series, css=False)}
+<div class="f"><span>Zelená: najlacnejší košík · oranžová: priemerný · zdroj: zoznam MZ SR</span><a href="{BASE}/index-doplatkov/?zdroj=vlozene" target="_blank" rel="noopener">doplatkyliekov.sk</a></div></div></body></html>"""
+        (SITE / "index-doplatkov" / "graf").mkdir(parents=True, exist_ok=True)
+        (SITE / "index-doplatkov" / "graf" / "index.html").write_text(emb, encoding="utf-8")
+        # náhľadový obrázok vykreslí build_pages spolu s ostatnými (až keď je k dispozícii Pillow)
+        c["og_jobs"].append((SITE / "og" / "index-doplatkov.jpg", f"Index doplatkov · {mlabel(head[0])}", f"Košík {len(basket)} bežných liekov",
+                             f"priemerne {eur(head[2])} · {delta(head[1], base[1])} oproti {DATIV[int(base[0][5:7]) - 1]}", eur(head[1]), "pri najlacnejších liekoch"))
 
     vrows = []
     for g in groups:

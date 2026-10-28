@@ -137,11 +137,27 @@ await check('Ťahák pre ambulancie a dáta pre novinárov', async () => {
     const r = await page.request.get(BASE + l);
     assert(r.ok(), `${l} HTTP ${r.status()}`);
     const head = (await r.text()).slice(0, 20);
-    assert(head.includes('kod_sukl'), `${l} nemá hlavičku`);
+    assert(/^\ufeff?[a-z_]+;/.test(head), `${l} nemá hlavičku`);
   }
   const rss = await page.request.get(BASE + '/rss.xml');
   assert(rss.ok() && (await rss.text()).includes('<item>'), 'RSS bez položiek');
   return `${rows} látok, ${links.length} súbory`;
+});
+
+await check('Index doplatkov a skutočné doplatky z lekární', async () => {
+  await page.goto(BASE + '/index-doplatkov/');
+  const n = await page.locator('.ix-num b').first().textContent();
+  assert(/\d+,\d{2} €/.test(n), 'index bez čísla');
+  assert(await page.locator('.ix-chart svg path').count() >= 2, 'graf indexu chýba');
+  const g = await page.request.get(BASE + '/index-doplatkov/graf/');
+  assert(g.ok(), 'graf na vloženie HTTP ' + g.status());
+  if (LIVE) {
+    const r = await page.request.get(BASE + '/api/ceny?kod=94163');
+    assert(r.ok(), '/api/ceny HTTP ' + r.status());
+  }
+  await page.goto(BASE + '/liek/concor-10-mg-94163/');
+  await page.waitForSelector('.ceny-card:not([hidden])');
+  return n.trim();
 });
 
 await check('Ochranný limit – kalkulačka', async () => {

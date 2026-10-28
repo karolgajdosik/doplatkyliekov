@@ -62,8 +62,15 @@
       if ((code && x.kod === code) || words.every(function (w) { return x._key.indexOf(w) >= 0; })) { x._fuzzy = false; exact.push(x); seen[x.kod] = 1; }
     });
     var first = words[0];
+    // čísla v hľadaní (sila) musia sedieť presne: „5 mg“ nie je „2,5 mg“
+    var qn = (t.match(/\d+(?:[.,]\d+)?/g) || []).map(function (n) { return n.replace(',', '.'); });
+    function numOk(x) {
+      if (!qn.length) return 0;
+      if (x._num == null) x._num = (norm(x.name).match(/\d+(?:[.,]\d+)?/g) || []).map(function (n) { return n.replace(',', '.'); });
+      return qn.every(function (n) { return x._num.indexOf(n) >= 0; }) ? 0 : 1;
+    }
     exact.sort(function (a, b) {
-      return (code ? (b.kod === code) - (a.kod === code) : 0) ||
+      return (code ? (b.kod === code) - (a.kod === code) : 0) || numOk(a) - numOk(b) ||
         ((norm(a.name).indexOf(first) === 0 ? 0 : 1) - (norm(b.name).indexOf(first) === 0 ? 0 : 1)) || a.name.localeCompare(b.name, 'sk');
     });
     if (exact.length >= 3 || opts.exactOnly) return exact.slice(0, limit);

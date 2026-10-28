@@ -1,0 +1,49 @@
+name: Nasadenie e-mailovej služby lieky@
+
+# Worker workers/email odpovedá na e-maily s názvami liekov (Cloudflare Email Routing → Worker).
+on:
+  push:
+    branches: [main]
+    paths: ["workers/email/**", "site/hladaj.js", ".github/workflows/email-worker.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            workers
+            site/hladaj.js
+          sparse-checkout-cone-mode: false
+      - name: Nahrať Worker a nastaviť smerovanie
+        env:
+          A: ${{ secrets.CF_ACCOUNT_ID }}
+          T: ${{ secrets.CF_API_TOKEN }}
+          NS: ${{ secrets.CF_KV_NAMESPACE_ID }}
+        run: |
+          set +e
+          H="Authorization: Bearer $T"
+          { echo 'var window = globalThis;'; cat site/hladaj.js; cat workers/email/index.js; } > index.js
+          jq -n --arg ns "$NS" '{main_module:"index.js",compatibility_date:"2026-10-01",bindings:[{type:"kv_namespace",name:"SUBS",namespace_id:$ns}]}' > meta.json
+          r=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$A/workers/scripts/doplatky-email" -H "$H" \
+            -F "metadata=@meta.json;type=application/json" -F "index.js=@index.js;type=application/javascript+module")
+          echo "$r" | jq -e .success >/dev/null || { echo "::error::Nahratie zlyhalo: $(echo "$r" | jq -c .errors)"; exit 1; }
+          echo "::notice::Worker doplatky-email nasadený"
+          Z=$(curl -s -H "$H" "https://api.cloudflare.com/client/v4/zones?name=doplatkyliekov.sk" | jq -r '.result[0].id // empty')
+          if [ -z "$Z" ]; then echo "::warning::Smerovanie e-mailu treba nastaviť ručne (kľúč nemá prístup k zóne)."; exit 0; fi
+          st=$(curl -s -H "$H" "https://api.cloudflare.com/client/v4/zones/$Z/email/routing" | jq -c '{s:.success,e:.errors,en:.result.enabled,st:.result.status}')
+          echo "::notice::Email Routing: $st"
+          have=$(curl -s -H "$H" "https://api.cloudflare.com/client/v4/zones/$Z/email/routing/rules" | jq -r '[.result[]? | select(.matchers[]?.value=="lieky@doplatkyliekov.sk")] | length')
+          if [ "$have" = "0" ]; then
+            rr=$(curl -s -X POST -H "$H" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4/zones/$Z/email/routing/rules" \
+              --data '{"name":"lieky@ → doplatky-email","enabled":true,"matchers":[{"type":"literal","field":"to","value":"lieky@doplatkyliekov.sk"}],"actions":[{"type":"worker","value":["doplatky-email"]}]}')
+            echo "::notice::Pravidlo: $(echo "$rr" | jq -c '{s:.success,e:.errors}')"
+          else
+            echo "::notice::Pravidlo pre lieky@ už existuje"
+          fi

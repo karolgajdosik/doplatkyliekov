@@ -330,10 +330,53 @@
     last = e.detail || last;
     box.hidden = last.shared || !last.list.length;
     var brag = document.getElementById('mine-brag'); if (brag) brag.hidden = last.shared || !last.list.length;
+    var wal = document.getElementById('mine-wallet'); if (wal) wal.hidden = !last.list.length;
     if (!box.hidden) chart();
     var out = document.getElementById('mine-check-out'); if (out && e.detail) { out.hidden = true; document.getElementById('mine-check-print').hidden = true; }
   }
   document.addEventListener('moje:rendered', onRendered);
   if (window.MojeLast) onRendered({ detail: window.MojeLast });
-  bindCheck(); bindCard(); bindShare();
+  /* ---------- kartička do peňaženky (85,6 × 54 mm, predná a zadná strana) ---------- */
+  function bindWallet() {
+    var btn = document.getElementById('mine-wallet'), box = document.getElementById('wallet-print');
+    if (!btn || !box) return;
+    btn.addEventListener('click', function () {
+      var list = last.list; if (!list.length) return;
+      btn.disabled = true;
+      data().then(function (d) {
+        box.replaceChildren();
+        var rows = list.map(function (m) {
+          var hit = d.by[m.kod]; if (!hit) return null;
+          var it = hit.it, best = hit.g.i.filter(function (x) { return x[5] != null; }).sort(function (a, b) { return a[5] - b[5]; })[0];
+          return { name: it[1], dop: it[5], alt: best && best[0] !== it[0] && it[5] - best[5] >= 0.5 ? { name: best[1], dop: best[5] } : null, kod: it[0] };
+        }).filter(Boolean);
+        var per = 5;
+        for (var i = 0; i < rows.length; i += per) {
+          var front = el('div', 'wl-card wl-front');
+          var h = el('div', 'wl-h'); h.append(el('b', null, 'Moje lieky' + (profileName() ? ' · ' + profileName() : '')), el('span', null, todaySk()));
+          front.append(h);
+          rows.slice(i, i + per).forEach(function (r) {
+            var li = el('div', 'wl-row'), top = el('div', 'wl-top');
+            top.append(el('span', 'wl-n', r.name), el('span', 'wl-p', eur(r.dop)));
+            li.append(top);
+            if (r.alt) li.append(el('div', 'wl-alt', 'lacnejšie: ' + r.alt.name + ' ' + eur(r.alt.dop)));
+            front.append(li);
+          });
+          box.append(front);
+        }
+        var back = el('div', 'wl-card wl-back'), url = location.origin + '/moje-lieky/?l=' + list.map(function (m) { return m.kod + (m.d && dose(m.d) !== 1 ? '*' + dose(m.d) : ''); }).join(',');
+        var q = el('div', 'wl-qr');
+        if (window.qrcode) { var qr = window.qrcode(0, 'M'); qr.addData(url); qr.make(); q.innerHTML = qr.createSvgTag({ cellSize: 2, margin: 0, scalable: true }); }
+        var t = el('div', 'wl-t');
+        t.append(el('b', null, 'Pre lekárnika'), el('p', null, 'Ak je to možné, vydajte mi prosím liek s rovnakou látkou a nižším doplatkom.'),
+          el('p', 'wl-small', 'Kódy ŠÚKL: ' + rows.map(function (r) { return r.kod; }).join(', ')), el('p', 'wl-brand', 'doplatkyliekov.sk'));
+        back.append(q, t); box.append(back);
+        box.append(el('p', 'wl-note', 'Vystrihnite po prerušovanej čiare, prednú a zadnú stranu prelepte alebo zalaminujte. Doplatky podľa zoznamu MZ SR k ' + todaySk() + '.'));
+        document.body.classList.add('print-wallet');
+        var done = function () { document.body.classList.remove('print-wallet'); window.removeEventListener('afterprint', done); btn.disabled = false; };
+        window.addEventListener('afterprint', done); setTimeout(function () { window.print(); }, 50); setTimeout(done, 4000);
+      });
+    });
+  }
+  bindCheck(); bindCard(); bindShare(); bindWallet();
 })();

@@ -4,10 +4,10 @@
 import { vision, match } from './foto.js';
 
 const PROMPT = `Na fotke je pokladničný doklad (bloček) z lekárne na Slovensku.
-Vypíš dátum nákupu a všetky položky liekov. Pri každej položke uveď text názvu tak, ako je na bločku, obchodný názov lieku (napr. Concor), silu (napr. 10 mg), počet kusov/balení a sumu, ktorú zákazník zaplatil za položku (doplatok) v eurách.
-Ignoruj meno, rodné číslo, číslo karty, adresu, DIČ a iné údaje. Nevymýšľaj položky, ktoré na bločku nie sú.
+Vypíš názov lekárne a obec z hlavičky bločku, dátum nákupu a všetky položky liekov. Pri každej položke uveď text názvu tak, ako je na bločku, obchodný názov lieku (napr. Concor), silu (napr. 10 mg), počet kusov/balení a sumu, ktorú zákazník zaplatil za položku (doplatok) v eurách.
+Ignoruj meno zákazníka, rodné číslo, číslo karty, adresu zákazníka, DIČ a iné údaje. Nevymýšľaj položky, ktoré na bločku nie sú.
 Odpovedz IBA platným JSON bez ďalšieho textu:
-{"datum":"2026-10-21","polozky":[{"text":"CONCOR 10MG TBL FLM 30","nazov":"Concor","sila":"10 mg","kusov":1,"suma":4.12}]}
+{"lekaren":{"nazov":"Lekáreň U Lipy","obec":"Žilina"},"datum":"2026-10-21","polozky":[{"text":"CONCOR 10MG TBL FLM 30","nazov":"Concor","sila":"10 mg","kusov":1,"suma":4.12}]}
 Ak to nie je bloček z lekárne, odpovedz {"datum":null,"polozky":[]}.`;
 
 function json(obj, status = 200) {
@@ -47,7 +47,10 @@ export async function onRequestPost({ request, env }) {
       items.push({ text: String(x.text || nazov).slice(0, 80), kusov: Math.max(1, Math.min(20, parseInt(x.kusov, 10) || 1)), suma: num(x.suma),
         liek: best ? { kod: best.kod, name: best.name, pack: best.pack, dop: best.dop } : null, ine: cands.slice(1, 4).map((c) => ({ kod: c.kod, name: c.name, pack: c.pack })) });
     }
-    return json({ datum, items, model });
+    const lk = j.lekaren && typeof j.lekaren === 'object' ? j.lekaren : {};
+    const clean = (v, n) => String(v || '').replace(/[^\p{L}\p{N} .,\-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, n);
+    const lekaren = { nazov: clean(lk.nazov, 60), obec: clean(lk.obec, 40) };
+    return json({ datum, items, lekaren, model });
   } catch (e) {
     return json({ error: 'Bloček sa teraz nepodarilo prečítať. Skúste to prosím o chvíľu alebo pridajte lieky ručne.' }, 502);
   }

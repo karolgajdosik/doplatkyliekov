@@ -30,6 +30,9 @@
 /assets/pages.css
   Cache-Control: public, max-age=31536000, immutable
 
+/ceny.js
+  Cache-Control: public, max-age=31536000, immutable
+
 /hladaj.js
   Cache-Control: public, max-age=31536000, immutable
 

@@ -798,3 +798,37 @@ body:has(#moje-rest[hidden]) footer { display: none; }
   body.print-yr #mine-chart { position: absolute; left: 0; top: 0; width: 100%; background: #fff; color: #000; box-shadow: none; }
   body.print-yr #mine-chart .no-print { display: none !important; }
 }
+
+/* Moje lieky: kartička do peňaženky (len pri tlači) */
+.wallet-print { display: none; }
+@media print {
+  body.print-wallet > *:not(.wrap), body.print-wallet main > *:not(#wallet-print), body.print-wallet footer { display: none !important; }
+  body.print-wallet .wrap, body.print-wallet main { display: block !important; padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  body.print-wallet { background: #fff !important; padding: 0 !important; }
+  body.print-wallet .wallet-print { display: flex !important; flex-wrap: wrap; gap: 6mm; padding: 8mm; color: #000; font-family: var(--font-body); }
+  .wl-card { width: 85.6mm; height: 54mm; box-sizing: border-box; border: 0.3mm dashed #888; border-radius: 3mm; padding: 3mm 3.5mm; overflow: hidden; break-inside: avoid; background: #fff; }
+  .wl-h { display: flex; justify-content: space-between; font-size: 7.5pt; border-bottom: 0.4mm solid #0a8f6f; padding-bottom: 1mm; margin-bottom: 1mm; }
+  .wl-h b { color: #0a8f6f; }
+  .wl-row { padding: 0.6mm 0; border-bottom: 0.2mm solid #ddd; }
+  .wl-top { display: flex; justify-content: space-between; gap: 2mm; font-size: 7.5pt; font-weight: 600; }
+  .wl-n { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .wl-p { white-space: nowrap; }
+  .wl-alt { font-size: 6.5pt; color: #8a3a00; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wl-back { display: flex; gap: 3mm; align-items: center; }
+  .wl-qr { width: 30mm; flex: none; } .wl-qr svg { width: 30mm; height: 30mm; display: block; }
+  .wl-t { font-size: 7.5pt; } .wl-t p { margin: 1mm 0; } .wl-small { font-size: 6pt; color: #444; } .wl-brand { font-weight: 700; color: #0a8f6f; }
+  .wl-note { flex-basis: 100%; font-size: 8pt; color: #555; margin: 0; }
+}
+
+/* bloček: dobrovoľný príspevok do skutočných doplatkov */
+.scan-share { margin: 12px 0; padding: 12px 14px; border: 1px dashed var(--line-strong); border-radius: var(--r); display: grid; gap: 8px; font-size: 15px; }
+.scan-share label { display: flex; gap: 8px; align-items: flex-start; }
+.scan-share-f { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.scan-share-f input { font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface-solid); color: var(--ink); min-width: 0; }
+.scan-share small { color: var(--muted); }
+/* stránka lieku: skutočné doplatky v lekárňach */
+.ceny-card .ceny-sum { display: flex; flex-wrap: wrap; gap: 18px; margin: 6px 0 10px; }
+.ceny-card .ceny-sum b { display: block; font-family: var(--font-mono); font-size: 24px; color: var(--accent); }
+.ceny-card ul { list-style: none; padding: 0; margin: 0; }
+.ceny-card li { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+.ceny-card li small { color: var(--muted); }
