@@ -27,7 +27,8 @@ for (const p of PAGES) {
   for (const [k, min] of Object.entries(MIN)) if (m[k] < min) problems.push(`${p}: ${k} ${m[k]} < ${min}`);
   const failed = Object.values(last.audits).filter((a) => a.score !== null && a.score < 0.9 && ['binary', 'numeric'].includes(a.scoreDisplayMode) &&
     last.categories.accessibility.auditRefs.some((r) => r.id === a.id && r.weight > 0));
-  for (const a of failed) problems.push(`${p}: prístupnosť – ${a.title}`);
+  for (const a of failed) problems.push(`${p}: prístupnosť – ${a.title}` +
+    (a.details?.items || []).slice(0, 3).map((x) => ` | ${x.node?.selector || ''} ${(x.node?.explanation || '').replace(/\s+/g, ' ').slice(0, 160)}`).join(''));
   console.log(p, JSON.stringify(m), Math.round(median(lcp)), 'ms');
   console.log(`::notice title=Lighthouse ${p}::rýchlosť ${m.performance}, prístupnosť ${m.accessibility}, postupy ${m['best-practices']}, SEO ${m.seo}, LCP ${(median(lcp) / 1000).toFixed(1)} s, ${Math.round(median(bytes) / 1024)} kB` +
     ' || ' + Object.values(last.audits).filter((a) => a.score !== null && a.score < 0.9 && last.categories.performance.auditRefs.some((r) => r.id === a.id))
