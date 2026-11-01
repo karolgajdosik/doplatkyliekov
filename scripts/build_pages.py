@@ -259,8 +259,8 @@ def load(name, default=None):
 # ---------- šablóny ----------
 
 # písma sú na vlastnom serveri (site/fonts, @font-face v style.css) – rýchlejšie a bez kontaktu s Google
-FONTS = ('<link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
-         '<link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
+FONTS = ('<link rel="preload" href="/fonts/onest-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
+         '<link rel="preload" href="/fonts/onest-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
          '<meta name="theme-color" content="#ffffff">'
          '<link rel="manifest" href="/manifest.webmanifest">'
          '<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">'
@@ -272,7 +272,7 @@ CAPSULE = ('<svg class="capsule" width="40" height="22" viewBox="0 0 40 22" aria
            'fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M11 1h9v20h-9a10 10 0 0 1 0-20z" fill="var(--accent)"/></svg>')
 
 ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' "
-        "rx='8' fill='%230b4fb3'/%3E%3Crect x='4' y='10' width='24' height='12' rx='6' fill='none' stroke='%23ffffff' "
+        "rx='8' fill='%23087a5f'/%3E%3Crect x='4' y='10' width='24' height='12' rx='6' fill='none' stroke='%23ffffff' "
         "stroke-width='2.4'/%3E%3Cpath d='M10 10h6v12h-6a6 6 0 0 1 0-12z' fill='%23ffffff'/%3E%3C/svg%3E")
 
 
@@ -2777,18 +2777,18 @@ def build():
     .print-btns button {{ font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-ink); padding: 12px 20px; }}
     .poster, .flyer {{ background: #fff; color: #111; border-radius: 14px; box-shadow: 0 10px 40px -20px #000; font-family: var(--font-body, Onest, sans-serif); }}
     .poster {{ padding: 28px; display: grid; gap: 18px; max-width: 820px; }}
-    .poster h2, .flyer h2 {{ font-family: var(--font-display); color: #0d1726; font-size: 30px; line-height: 1.1; margin: 0; }}
+    .poster h2, .flyer h2 {{ font-family: var(--font-display); color: #12211d; font-size: 30px; line-height: 1.1; margin: 0; }}
     .poster p, .flyer p, .flyer li {{ color: #222; }}
     .fl-brand {{ display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 18px; color: #111; margin: 0; }}
-    .fl-brand b {{ color: #0b4fb3; }}
-    .fl-brand .capsule rect {{ stroke: #0b4fb3; }} .fl-brand .capsule path {{ fill: #0b4fb3; }}
+    .fl-brand b {{ color: #087a5f; }}
+    .fl-brand .capsule rect {{ stroke: #087a5f; }} .fl-brand .capsule path {{ fill: #087a5f; }}
     .po-table {{ width: 100%; border-collapse: collapse; font-size: 15px; }}
-    .po-table th {{ text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #555; border-bottom: 2px solid #0b4fb3; padding: 6px 8px; }}
+    .po-table th {{ text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #555; border-bottom: 2px solid #087a5f; padding: 6px 8px; }}
     .po-table td {{ border-bottom: 1px solid #ddd; padding: 7px 8px; vertical-align: top; color: #111; }}
     .po-table td small {{ display: block; color: #666; font-size: 12px; }}
     .po-table .num {{ font-family: var(--font-mono); white-space: nowrap; }}
     .po-table .save {{ color: #b34a00; font-weight: 700; }}
-    .po-foot {{ display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; border-top: 2px solid #0b4fb3; padding-top: 14px; }}
+    .po-foot {{ display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; border-top: 2px solid #087a5f; padding-top: 14px; }}
     .po-foot small {{ color: #555; }}
     .fl-qr {{ display: flex; align-items: center; gap: 12px; }}
     .fl-qr svg {{ width: 110px; height: 110px; padding: 6px; background: #fff; }}
@@ -2797,7 +2797,7 @@ def build():
     .flyer {{ padding: 26px; display: grid; gap: 12px; max-width: 560px; }}
     .flyer .fl-lead {{ font-size: 17px; }}
     .flyer ul {{ margin: 0; padding-left: 20px; display: grid; gap: 6px; }}
-    .flyer li::marker {{ color: #0b4fb3; }}
+    .flyer li::marker {{ color: #087a5f; }}
     .fl-note {{ font-size: 12px; color: #555 !important; }}
     @media (max-width: 560px) {{ .po-foot {{ grid-template-columns: 1fr; }} .poster {{ padding: 18px; }} .po-table {{ font-size: 13px; }} }}
     @media print {{

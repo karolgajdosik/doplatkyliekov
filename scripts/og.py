@@ -5,16 +5,16 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 FONTS = Path(__file__).resolve().parent.parent / "assets-src" / "fonts"
 W, H = 1200, 630
-# dizajn „Veľké a jasné“: biela, tmavomodrá, písmo Atkinson Hyperlegible Next
-BG = (255, 255, 255)
-ACC = (11, 79, 179)
-INK = (13, 23, 38)
-MUTED = (52, 66, 90)
-SAVE = (166, 54, 0)
-LINE = (199, 208, 222)
-SOFT = (242, 245, 250)
-BOLD = "AtkinsonHyperlegibleNext-ExtraBold.ttf"
-TEXT = "AtkinsonHyperlegibleNext-Medium.ttf"
+# dizajn „Lekáreň“: svetlý, zelený akcent, písmo Onest
+BG = (246, 248, 247)
+ACC = (8, 122, 95)
+INK = (18, 33, 29)
+MUTED = (67, 86, 80)
+SAVE = (179, 71, 0)
+LINE = (211, 222, 217)
+SOFT = (230, 244, 239)
+BOLD = "Onest-Bold.ttf"
+TEXT = "Onest-Medium.ttf"
 
 _cache = {}
 
@@ -31,7 +31,7 @@ def _background():
         return _cache["bg"]
     im = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(im)
-    d.rectangle([0, 0, W, 14], fill=ACC)            # modrý pruh hore
+    d.rectangle([0, 0, W, 14], fill=ACC)            # zelený pruh hore
     # logo: kapsula + názov
     x0, y0 = 64, 58
     d.rounded_rectangle([x0, y0, x0 + 64, y0 + 34], radius=17, outline=ACC, width=4)
@@ -69,7 +69,7 @@ def _wrap(d, text, f, width, max_lines):
 
 
 def render(out, eyebrow, title, sub="", big="", big_label="", big_color=SAVE):
-    if big_color == (69, 240, 192):  # pôvodná zelená „bez doplatku“ → modrá v novom dizajne
+    if big_color == (69, 240, 192):  # pôvodná zelená „bez doplatku“ → zelená v novom dizajne
         big_color = ACC
     elif big_color == (255, 178, 107):
         big_color = SAVE

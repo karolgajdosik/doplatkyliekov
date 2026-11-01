@@ -21,7 +21,7 @@
     if (p.c) root.dataset.contrast = 'high'; else delete root.dataset.contrast;
     var light = root.dataset.eff === 'light';
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', p.c ? (light ? '#ffffff' : '#000000') : (light ? '#ffffff' : '#0b1220'));
+    if (meta) meta.setAttribute('content', p.c ? (light ? '#ffffff' : '#000000') : (light ? '#ffffff' : '#0e1714'));
     paint();
   }
   function paint() {

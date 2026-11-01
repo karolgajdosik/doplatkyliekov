@@ -113,7 +113,7 @@ def index_svg(series, css=True):
 
     def y(v):
         return T + (H - T - B) * (1 - v / top)
-    col = ("var(--accent)", "var(--save)", "var(--line)", "var(--muted)") if css else ("#0b4fb3", "#a63600", "#d6e0f0", "#34425a")
+    col = ("var(--accent)", "var(--save)", "var(--line)", "var(--muted)") if css else ("#087a5f", "#b34700", "#dbe8e3", "#435650")
     fs = "" if css else ' font-size="12"'
     if css:
         L = 84  # väčšie popisky na mobile potrebujú viac miesta vľavo
@@ -285,9 +285,9 @@ document.querySelectorAll('[data-copy]').forEach(function (b) {
         # graf na vloženie (samostatná stránka bez hlavičky webu)
         emb = f"""<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>Index doplatkov za lieky – doplatkyliekov.sk</title><link rel="canonical" href="{BASE}/index-doplatkov/">
-<style>@font-face{{font-family:"Atkinson";font-display:swap;font-weight:400 800;src:url(/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F,U+20AC}}@font-face{{font-family:"Atkinson";font-display:swap;font-weight:400 800;src:url(/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-017F}}body{{margin:0;font:16px/1.45 Atkinson,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#0d1726;background:#fff}}.w{{padding:16px;border:2px solid #c7d0de;border-radius:14px}}
-h1{{font-size:18px;margin:0 0 4px}}p{{margin:4px 0;color:#34425a}}.n{{display:flex;gap:24px;flex-wrap:wrap;margin:10px 0}}.n b{{display:block;font-size:28px;color:#0b4fb3}}.n b.a{{color:#a63600}}
-svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:#34425a;margin-top:6px}}a{{color:#0b4fb3;font-weight:700;text-decoration:none}}</style></head>
+<style>@font-face{{font-family:"Onest";font-display:swap;font-weight:400 800;src:url(/fonts/onest-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F,U+20AC}}@font-face{{font-family:"Onest";font-display:swap;font-weight:400 800;src:url(/fonts/onest-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-017F}}body{{margin:0;font:16px/1.45 Onest,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#12211d;background:#fff}}.w{{padding:16px;border:2px solid #d3ded9;border-radius:14px}}
+h1{{font-size:18px;margin:0 0 4px}}p{{margin:4px 0;color:#435650}}.n{{display:flex;gap:24px;flex-wrap:wrap;margin:10px 0}}.n b{{display:block;font-size:28px;color:#087a5f}}.n b.a{{color:#b34700}}
+svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:#435650;margin-top:6px}}a{{color:#087a5f;font-weight:700;text-decoration:none}}</style></head>
 <body><div class="w"><h1>Index doplatkov za lieky</h1><p>Košík {len(basket)} bežných liekov, z každého jedno balenie · {esc(ahead_txt.lower() if not ahead else ahead_txt)}</p>
 <div class="n"><div>Najlacnejší košík<b>{eur(head[1])}</b></div><div>Priemerný košík<b class="a">{eur(head[2])}</b></div></div>
 {index_svg(series, css=False)}
@@ -448,18 +448,18 @@ svg{{width:100%;height:auto;display:block}}.f{{display:flex;justify-content:spac
   <style>
     .print-btns button {{ font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-ink); padding: 12px 20px; margin-top: 8px; }}
     .cheat {{ background: #fff; color: #111; border-radius: 14px; padding: 24px; max-width: 900px; box-shadow: 0 10px 40px -20px #000; }}
-    .ch-head {{ display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 2px solid #0b4fb3; padding-bottom: 10px; }}
-    .ch-head h2 {{ font-family: var(--font-display); color: #0d1726; font-size: 24px; margin: 0; }}
+    .ch-head {{ display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 2px solid #087a5f; padding-bottom: 10px; }}
+    .ch-head h2 {{ font-family: var(--font-display); color: #12211d; font-size: 24px; margin: 0; }}
     .ch-head p {{ margin: 4px 0 0; color: #444; font-size: 14px; }}
     .ch-qr {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: #333; }}
     .ch-qr svg {{ width: 70px; height: 70px; }}
     .ch-table {{ width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }}
     .ch-table th, .ch-table td {{ text-align: left; padding: 4px 8px; border-bottom: 1px solid #e3e3e3; vertical-align: top; color: #111; }}
     .ch-table thead th {{ font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #555; }}
-    .ch-table .ch-cond th {{ background: #e7effc; color: #0d1726; font-size: 13px; padding-top: 7px; }}
+    .ch-table .ch-cond th {{ background: #e6f4ef; color: #12211d; font-size: 13px; padding-top: 7px; }}
     .ch-table td:first-child {{ width: 28%; font-weight: 600; }}
     .ch-table td:first-child a {{ color: #111; text-decoration: none; }}
-    .ch-table td.zero {{ color: #0b4fb3; font-weight: 600; }}
+    .ch-table td.zero {{ color: #087a5f; font-weight: 600; }}
     .ch-table small {{ color: #666; }}
     .ch-foot {{ font-size: 12px; color: #555; margin: 10px 0 0; }}
     @media (max-width: 560px) {{ .cheat {{ padding: 14px; }} .ch-head {{ flex-direction: column; align-items: flex-start; }} .ch-table {{ font-size: 13px; }} }}
