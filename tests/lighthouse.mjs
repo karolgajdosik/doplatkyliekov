@@ -16,7 +16,7 @@ for (const p of PAGES) {
   const sc = { performance: [], accessibility: [], 'best-practices': [], seo: [] }, lcp = [], bytes = [];
   let last;
   for (let i = 0; i < RUNS; i++) {
-    const r = await lighthouse(BASE + p, { port: chrome.port, output: 'json', logLevel: 'error', onlyCategories: Object.keys(sc) });
+    const r = await lighthouse(BASE + p, { port: chrome.port, output: 'json', logLevel: 'error', onlyCategories: Object.keys(sc), blockedUrlPatterns: ['*cloudflareinsights.com*', '*/cdn-cgi/rum*'] });
     last = r.lhr;
     for (const k in sc) sc[k].push(Math.round(last.categories[k].score * 100));
     lcp.push(last.audits['largest-contentful-paint'].numericValue);
