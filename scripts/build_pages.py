@@ -1522,13 +1522,14 @@ def build():
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
         title = f"{p['name']} ({pk}) – doplatok a lacnejšie alternatívy"
-        drug_ld = {"@context": "https://schema.org", "@type": "Drug", "name": p["name"], "url": BASE + path,
-                   "nonProprietaryName": g["s"], "activeIngredient": g["s"], "dosageForm": p["pack"],
-                   "isAvailableGenerically": len(items) > 1,
-                   "code": {"@type": "MedicalCode", "codeValue": g["a"], "codingSystem": "ATC"},
-                   "description": desc}
+        # MedicalWebPage, nie Drug: Drug je pre Google druh produktu (Product) a vyžaduje offers/review/aggregateRating
+        # (Search Console 4. 11. 2026); web lieky nepredáva, preto stránka opisuje liek ako zdravotnícku tému
+        drug_ld = {"@context": "https://schema.org", "@type": "MedicalWebPage", "name": title, "url": BASE + path,
+                   "description": desc, "inLanguage": "sk",
+                   "about": {"@type": "MedicalEntity", "name": p["name"], "alternateName": g["s"],
+                             "code": {"@type": "MedicalCode", "codeValue": g["a"], "codingSystem": "ATC"}}}
         if chain:
-            drug_ld["drugClass"] = {"@type": "DrugClass", "name": chain[-1][1]}
+            drug_ld["keywords"] = ", ".join([g["s"], chain[-1][1]])
         write(path, page(title, desc, path, body, [breadcrumb_ld(crumb_items), drug_ld], script='<script src="/ceny.js" defer></script>', og=f"/og/latka/{subst_slug[g['s']]}.jpg", alts=alt_paths("drug", p["slug"])))
         # --- cudzojazyčné verzie stránky lieku ---
         ctx = {"p": p, "g": g, "items": items, "cheapest": cheapest, "saving": saving, "pk": pk, "vyp": vyp, "max_dop": max_dop,
