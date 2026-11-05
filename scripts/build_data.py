@@ -17,6 +17,7 @@ import csv
 import datetime as dt
 import http.client
 import io
+import html
 import json
 import re
 import sys
@@ -82,22 +83,68 @@ def fetch(url, attempts=12):
     raise RuntimeError(f"nepodarilo sa stiahnuť celý súbor ({len(data)} B z {total})")
 
 
+# Od 5. 11. 2026 má MZ SR nový web: každý mesiac má podstránku .../zoznam-kategorizovanych-liekov/liekyRRRRMM/
+# a súbory sú na cloud.health.gov.sk; súbor nájdeme podľa textu odkazu. Pôvodné adresy /Zdroje?/Sources/… vracajú 404.
+NEW_LIST = "https://www.health.gov.sk/odbornik/kategorizacia-a-cenotvorba/kategorizacia-liekov/zoznam-kategorizovanych-liekov/"
+LINK_TEXT = [  # (začiatok pôvodného názvu súboru, regulárny výraz na text odkazu)
+    ("cast_A_zoznam_liekov", r"^Zoznam liekov\b"),
+    ("zoznam_IO_po_produktoch", r"^Zoznam indikačných obmedzení\s*[–-]\s*Produkty"),
+    ("cast_E_", r"^Časť E\b"),
+    ("cast_F_", r"^Časť F\b"),
+    ("cast_G_", r"^Časť G\b"),
+    ("cast_H_", r"^Časť H\b"),
+]
+_month_links = {}
+
+
+def month_links(y, m):
+    """{text odkazu: url} z podstránky mesiaca na novom webe MZ SR."""
+    key = f"{y}{m:02d}"
+    if key not in _month_links:
+        links = {}
+        for attempt in range(1, 6):
+            try:
+                req = urllib.request.Request(f"{NEW_LIST}lieky{key}/", headers=UA)
+                with urllib.request.urlopen(req, timeout=90) as r:
+                    t = r.read().decode("utf-8", "replace")
+                for href, txt in re.findall(r'<a [^>]*href="(https://cloud\.health\.gov\.sk/s/[A-Za-z0-9]+/download)[^"]*"[^>]*>(.*?)</a>', t, re.S):
+                    txt = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", txt))).strip()
+                    links.setdefault(txt, href)
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    break
+                print(f"  podstránka {key}, pokus {attempt}: HTTP {e.code}")
+                time.sleep(3)
+            except Exception as e:  # noqa: BLE001
+                print(f"  podstránka {key}, pokus {attempt}: {e}")
+                time.sleep(3)
+        _month_links[key] = links
+    return _month_links[key]
+
+
 def get_file(y, m, name):
     """Vráti obsah prílohy zoznamu za daný mesiac alebo None, ak neexistuje."""
     folder = f"{y}{m:02d}"
     if RAW_DIR:
         p = RAW_DIR / folder / name
         return p.read_bytes() if p.exists() else None
-    url = BASE + f"{folder}/{name}"
-    try:
-        data = fetch(url)
-    except Exception as e:  # noqa: BLE001
-        print(f"  nedostupné: {folder}/{name} ({e})")
-        return None
-    if data[:2] != b"PK":  # xlsx aj docx sú zip
-        print(f"  nie je xlsx/docx: {folder}/{name}")
-        return None
-    return data
+    urls = []
+    pat = next((rx for pref, rx in LINK_TEXT if name.startswith(pref)), None)
+    if pat:
+        urls += [u for txt, u in month_links(y, m).items() if re.search(pat, txt, re.I)][:1]
+    urls.append(BASE + f"{folder}/{name}")  # pôvodná adresa (pre istotu, ak by ju ministerstvo obnovilo)
+    for url in urls:
+        try:
+            data = fetch(url)
+        except Exception as e:  # noqa: BLE001
+            print(f"  nedostupné: {folder}/{name} ({e})")
+            continue
+        if data[:2] != b"PK":  # xlsx aj docx sú zip
+            print(f"  nie je xlsx/docx: {folder}/{name}")
+            continue
+        return data
+    return None
 
 
 def part_a(y, m):
