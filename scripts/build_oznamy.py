@@ -82,7 +82,10 @@ def match(sukl, products):
             for pref in title_names(r["title"]):
                 hits += [p["kod"] for n, g, p in pnorm if n == pref or n.startswith(pref + " ")]
         for k in dict.fromkeys(hits):
-            recalls.setdefault(k, []).append(dict(r, how=how))
+            rr = dict(r, how=how)
+            if k in (r.get("per") or {}):  # šarže konkrétneho lieku z tabuľky v oznamu
+                rr.update(r["per"][k])
+            recalls.setdefault(k, []).append(rr)
     subst_first = {(_norm(g["s"]).split(" ") or [""])[0] for g, p in products}
     for d in sukl.get("dhpc", []):
         if (d.get("date") or "") < dh_cut:

@@ -73,28 +73,55 @@ def parse_list(h, path):
     return out
 
 
+PV = 2  # verzia parsera detailu; pri zmene sa detaily stiahnu znova
+
+
 def parse_recall(h):
     t = text_of(h)
+    lines = [l.strip() for l in t.split("\n") if l.strip()]
     d = re.search(r"Zverejnené:\s*(\d{1,2})\.(\d{1,2})\.(\d{4})", t)
     trieda = re.search(r"\b(I{1,3})\.\s*trieda urgentnosti", t)
     kody = []
-    for k in re.findall(r"kód\s*ŠÚKL\s*:?\s*([0-9A-Z]{5})\b", t, re.I):
+    for k in re.findall(r"(?:kód\s*ŠÚKL|ŠÚKL\s*kód)\s*:?\s*([0-9A-Z]{5})\b", t, re.I):
         if k not in kody:
             kody.append(k)
     sarze = []
-    for s in re.findall(r"(?:č\.|číslo|čísla)\s*šarž[eí]\s*:?\s*([0-9A-Za-z][0-9A-Za-z/\-]*(?:\s*,\s*[0-9A-Za-z][0-9A-Za-z/\-]*)*)", t, re.I):
-        for x in re.split(r"\s*,\s*", s):
-            if x and x not in sarze and len(x) <= 20 and re.search(r"\d", x):
-                sarze.append(x)
-    vsetky = bool(re.search(r"všetk\w+ šarž", t, re.I))
+
+    def add(x):
+        x = x.strip().strip(".,;")
+        if x and x not in sarze and len(x) <= 20 and re.search(r"\d", x):
+            sarze.append(x)
+    for s_ in re.findall(r"(?:č\.|číslo|čísla)\s*šarž[eí]\s*:?\s*([0-9A-Za-z][0-9A-Za-z/\-]*(?:\s*,\s*[0-9A-Za-z][0-9A-Za-z/\-]*)*)", t, re.I):
+        for x in re.split(r"\s*,\s*", s_):
+            add(x)
+    for s_ in re.findall(r"šarž\w*\s+s\s+čísl\w*\s+([0-9A-Za-z][0-9A-Za-z/\-]*(?:\s*(?:,|a)\s*[0-9A-Za-z][0-9A-Za-z/\-]*)*)", t, re.I):
+        for x in re.split(r"\s*(?:,|\sa\s)\s*", s_):
+            add(x)
+    # tabuľka: Kód ŠÚKL | Názov lieku | Doplnok | Číslo šarže | Exspirácia
+    per = {}
+    if any(re.fullmatch(r"Číslo šarže", l, re.I) for l in lines):
+        for i, l in enumerate(lines):
+            if re.fullmatch(r"[0-9A-Z]{5}", l) and re.search(r"\d", l) and i + 3 < len(lines):
+                batch = lines[i + 3]
+                if l not in kody:
+                    kody.append(l)
+                if re.search(r"všetk\w+ šarž", batch, re.I):
+                    per[l] = {"vsetky": True, "sarze": []}
+                else:
+                    bs = [x for x in re.split(r"\s*[,;]\s*|\s+a\s+", batch) if re.search(r"\d", x) and len(x) <= 20]
+                    per[l] = {"vsetky": False, "sarze": bs[:12]}
+                    for x in bs:
+                        add(x)
+    vsetky = bool(re.search(r"všetk\w+ šarž", t, re.I)) and (not per or all(v["vsetky"] for v in per.values()))
     dovod = ""
-    m = re.search(r"(Dôvod\w*[^.\n]{0,40}(?:je|sú|bol\w*)\s[^.\n]{5,260}\.)", t)
+    m = re.search(r"(Dôvod\w*[^.\n]{0,200}?\s(?:je|sú|bol\w*)\s[^\n]{5,260}?\.)(?:\s|$)", t)
     if m:
         dovod = re.sub(r"\s+", " ", m.group(1)).strip()
+        dovod = re.sub(r"\s+,", ",", dovod)
     return {
         "date": f"{d.group(3)}-{int(d.group(2)):02d}-{int(d.group(1)):02d}" if d else "",
         "trieda": trieda.group(1) if trieda else "",
-        "kody": kody, "sarze": sarze[:30], "vsetky": vsetky, "dovod": dovod[:300],
+        "kody": kody, "sarze": sarze[:30], "vsetky": vsetky, "dovod": dovod[:300], "per": per, "pv": PV,
     }
 
 
@@ -119,8 +146,8 @@ def main():
             new = 0
             for it in items:
                 prev = old_rec.get(it["id"])
-                if prev and prev.get("detail"):
-                    it.update({k: prev[k] for k in ("trieda", "kody", "sarze", "vsetky", "dovod") if k in prev})
+                if prev and prev.get("detail") and prev.get("pv") == PV:
+                    it.update({k: prev[k] for k in ("trieda", "kody", "sarze", "vsetky", "dovod", "per", "pv") if k in prev})
                     it["detail"] = True
                     continue
                 dh = get(it["url"])
