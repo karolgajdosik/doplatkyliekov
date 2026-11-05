@@ -5,14 +5,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - run: |
-          for d in zkzp zkszm zkdp zkl; do
-            u="https://www.health.gov.sk/Zdroje?/Sources/kategorizacia/$d/"
-            n=$(curl -sL "$u" | grep -oiE 'href="[^"]*"' | grep -c . || true)
-            last=$(curl -sL "$u" | grep -oiE 'href="[^"]*/[0-9]{6}/?"' | sort | tail -1)
-            echo "::notice title=$d::odkazov $n, posledny $last"
+          for d in zkzp zkdp; do
+            for m in 202611 202612; do
+              h=$(curl -sL "https://www.health.gov.sk/Zdroje?/Sources/kategorizacia/$d/$m/" | grep -oiE "[A-Za-z0-9_.%-]+\.(xlsx|xls|docx|pdf|zip)" | sort -u | head -12 | tr '\n' ' ')
+              echo "::notice title=$d $m::$h"
+            done
           done
-          f=$(curl -sL "https://www.health.gov.sk/Zdroje?/Sources/kategorizacia/zkzp/" | grep -oiE 'href="[^"]*/[0-9]{6}/?"' | sort | tail -1 | sed 's/href="//;s/"$//')
-          [ -n "$f" ] && echo "::notice title=zkzp-obsah::$(curl -sL "https://www.health.gov.sk$f" | grep -oiE 'href="[^"]*\.(xlsx?|zip|pdf|csv)"' | head -8 | tr '\n' ' ')"
-          u="https://www.sukl.sk/hlavna-stranka/slovenska-verzia/bezpecnost-liekov/stiahnutie-liekov-z-trhu"
-          echo "::notice title=sukl-stiahnutie::$(curl -sL -o /dev/null -w '%{http_code}' "$u")"
-          echo "::notice title=sukl-hladaj::$(curl -sL https://www.sukl.sk/ | grep -oiE 'href="[^"]*(stiahn|rapid|kvalit|oznam)[^"]*"' | sort -u | head -8 | tr '\n' ' ')"
+          x=$(curl -sL "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov" | grep -oiE "stiahnutie-[a-z0-9-]+" | sort -u | wc -l)
+          echo "::notice title=sukl stiahnutia::pocet oznamov na stranke $x"
