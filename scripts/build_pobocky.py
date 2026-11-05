@@ -144,32 +144,31 @@ def dovera():
 
 
 def union():
-    base = "https://www.union.sk"
-    h = get(base + "/union-kontakty/pobocky/")
-    links = list(dict.fromkeys(l for l in re.findall(r'href="((?:https://www\.union\.sk)?/union-kontakty/pobocky/[a-z0-9-]+/?)"', h)))
-    out = []
-    for link in links:
-        url = link if link.startswith("http") else base + link
-        d = get(url)
-        if not d:
+    """Zoznam pobočiek Union: riadky „Mesto, ulica“ v časti „Najbližšie pobočky“; súradnice z OpenStreetMap (Nominatim).
+    Union uvádza len dnešné hodiny, preto ich neukladáme (odkaz vedie na stránku pobočiek)."""
+    url = "https://www.union.sk/union-kontakty/pobocky/"
+    t = text_of(get(url))
+    i = t.find("Najbližšie pobočky")
+    if i < 0:
+        return []
+    lines = [l.strip() for l in t[i:].split("\n")[1:] if l.strip()]
+    zrusene = {(c.strip(), a.strip()) for c, a in re.findall(r"Pobočka ([^,\n]+), ([^,\n]+?), je od [\d.]+ zrušená", t)}
+    out, seen = [], set(zrusene)
+    for k, l in enumerate(lines):
+        nxt = " ".join(lines[k + 1:k + 3])
+        m = re.match(r"^([A-ZÁ-Ž][^,\d]{1,40}),\s*(.{3,90})$", l)
+        if not m or not re.search(r"•|Teraz|zatvoren|otvoren", nxt):
             continue
-        t = text_of(d)
-        c = (re.search(r"(?:lat|latitude)[\"':= ]+(4[789]\.\d{3,})[\s\S]{0,80}?(?:lng|lon|longitude)[\"':= ]+(1[6-9]\.\d{3,}|2[0-3]\.\d{3,})", d)
-             or re.search(r"[@=/](4[789]\.\d{4,}),\s*(1[6-9]\.\d{4,}|2[0-3]\.\d{4,})", d))
-        title = re.search(r"<h1[^>]*>(.*?)</h1>", d, re.S)
-        name = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", title.group(1)))).strip() if title else url.rstrip("/").split("/")[-1]
-        name = re.sub(r"^(Pobočka|Union)\s+", "", name)
-        a = re.search(r"([A-ZÁ-Ž][^\n,]{2,60}\s\d+[^\n,]{0,10}),\s*(\d{3}\s?\d{2})\s+([^\n]{2,40})", t)
-        street, city = (a.group(1).strip(), a.group(3).strip()) if a else ("", name)
-        i = t.lower().find("otváracie")
-        if i < 0:
-            i = t.lower().find("pondelok")
-        oh = hours_osm(t[i:i + 900]) if i >= 0 else ""
-        lat_lon = (round(float(c.group(1)), 5), round(float(c.group(2)), 5)) if c else geocode(f"{street}, {city}" if street else f"Union zdravotná poisťovňa {name}")
-        if not lat_lon:
+        city, street = m.group(1).strip(), m.group(2).strip()
+        street = re.sub(r"^ul\.\s*", "", street)
+        if (city, street) in seen:
             continue
-        out.append([lat_lon[0], lat_lon[1], f"Union {name}", street, city, oh, "", "union", url])
-        time.sleep(0.4)
+        seen.add((city, street))
+        q = re.sub(r",\s*[^,]*(?:Center|centrum|OC|Shopping)[^,]*$", "", street, flags=re.I)
+        ll = geocode(f"{q}, {city}") or geocode(city)
+        if not ll:
+            continue
+        out.append([ll[0], ll[1], f"Union {city}" + (f" – {street.split(',')[-1].strip()}" if "," in street else ""), street, city, "", "", "union", url])
     return out
 
 
