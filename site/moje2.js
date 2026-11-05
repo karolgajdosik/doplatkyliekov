@@ -336,6 +336,37 @@
   }
   document.addEventListener('moje:rendered', onRendered);
   if (window.MojeLast) onRendered({ detail: window.MojeLast });
+  /* ---------- stiahnutia z trhu (ŠÚKL) pri uložených liekoch ---------- */
+  var oznamy = null;
+  function showOznamy(e) {
+    var host = document.getElementById('mine-oznamy'), st = (e && e.detail) || window.MojeLast;
+    if (!host || !st) return;
+    var list = st.list || [];
+    if (!list.length) { host.hidden = true; return; }
+    (oznamy ? Promise.resolve(oznamy) : fetch('/oznamy.json').then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }))
+      .then(function (o) {
+        oznamy = o;
+        host.replaceChildren();
+        var seen = {};
+        list.forEach(function (m) {
+          (o[m.kod] || []).forEach(function (z) {
+            if (seen[m.kod + z.u]) return; seen[m.kod + z.u] = 1;
+            var box = document.createElement('div'); box.className = 'alert warn';
+            var h = document.createElement('strong');
+            h.textContent = 'ŠÚKL sťahuje z trhu: ' + (m.name || z.n);
+            var p = document.createElement('p');
+            var d = z.d ? z.d.split('-').reverse().map(function (x) { return String(+x); }).join('. ') : '';
+            p.textContent = (d ? 'Oznam z ' + d + '. ' : '') + (z.v ? 'Týka sa všetkých šarží. ' : z.s && z.s.length ? 'Týka sa len šarží č. ' + z.s.join(', ') + ' – pozrite číslo šarže na krabičke. ' : 'Týka sa len niektorých šarží. ') +
+              'Liečbu neprerušujte bez porady s lekárom alebo lekárnikom. ';
+            var a = document.createElement('a'); a.href = z.u; a.rel = 'nofollow'; a.textContent = 'Oznam ŠÚKL';
+            p.appendChild(a); box.appendChild(h); box.appendChild(p); host.appendChild(box);
+          });
+        });
+        host.hidden = !host.children.length;
+      });
+  }
+  document.addEventListener('moje:rendered', showOznamy);
+  if (window.MojeLast) showOznamy();
   /* ---------- kartička do peňaženky (85,6 × 54 mm, predná a zadná strana) ---------- */
   function bindWallet() {
     var btn = document.getElementById('mine-wallet'), box = document.getElementById('wallet-print');

@@ -185,6 +185,24 @@ await check('Lekárne v okolí – hľadanie obce', async () => {
   return (await page.locator('#lek-list li').count()) + ' lekární';
 });
 
+await check('Zdravotnícke pomôcky a oznamy ŠÚKL', async () => {
+  await page.goto(BASE + '/pomocky/');
+  await page.fill('#zp-q', 'prúžky');
+  await page.waitForSelector('#zp-out li a', { timeout: 15000 });
+  const n = await page.$$eval('#zp-out li', (l) => l.length);
+  assert(n >= 3, `vyhľadávanie pomôcok vrátilo ${n} výsledkov`);
+  const href = await page.$eval('#zp-out li a', (a) => a.getAttribute('href'));
+  await page.goto(BASE + href);
+  const rows = await page.$$eval('ul.glist li', (l) => l.length);
+  assert(rows >= 1, 'stránka skupiny pomôcok je prázdna');
+  await page.goto(BASE + '/upozornenia-sukl/');
+  const oz = await page.$$eval('.glist li', (l) => l.length);
+  assert(oz >= 5, `na stránke oznamov ŠÚKL je len ${oz} položiek`);
+  const j = await page.request.get(BASE + '/oznamy.json');
+  assert(j.status() === 200, 'chýba /oznamy.json');
+  return `${n} výsledkov pre „prúžky“, ${rows} pomôcok v skupine, ${oz} oznamov ŠÚKL`;
+});
+
 await check('Ďalšie jazyky a podstránky', async () => {
   const paths = ['/hu/', '/uk/', '/asistent/', '/bez-doplatku/', '/na-vytlacenie/', '/clanky/', '/statistiky/', '/pristupnost/',
     '/sitemap.xml', '/manifest.webmanifest', '/sw.js', '/ai/search.json', '/lekarne.json'];

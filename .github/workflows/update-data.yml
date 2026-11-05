@@ -30,6 +30,14 @@ jobs:
             exit 1
           }
 
+      - name: Oznamy ŠÚKL (stiahnutia z trhu, DHPC)
+        continue-on-error: true
+        run: python scripts/build_sukl.py
+
+      - name: Zdravotnícke pomôcky (zoznam MZ SR, štvrťročne)
+        continue-on-error: true
+        run: python scripts/build_zp.py
+
       - name: Overiť generovanie podstránok
         run: python scripts/build_pages.py
 

@@ -33,7 +33,7 @@ SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
-             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov"]
+             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
@@ -313,12 +313,12 @@ NAV_TOP = [("/", "Vyhľadať", "", ""), ("/choroby/", "Ochorenia", "", ""),
 
 MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
-               ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky")]),
+               ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
                  ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
-    ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/statistiky/", "Doplatky v číslach")]),
+    ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"), ("/statistiky/", "Doplatky v číslach")]),
     ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
                 ("/pristupnost/", "Vyhlásenie o prístupnosti")]),
 ]
@@ -761,6 +761,11 @@ details.io .code { display: block; margin-top: 8px; font-family: var(--font-mono
 .glist .gline a { min-width: 0; overflow-wrap: anywhere; text-decoration: none; color: var(--ink); font-weight: 500; }
 .glist .gline a:hover { color: var(--accent); }
 .glist .gline .mono { white-space: nowrap; font-weight: 600; }
+.glist .gline .zn { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.glist .gline .zn .tag { margin-left: 6px; vertical-align: middle; white-space: nowrap; }
+ul.plain { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
+ul.plain small { color: var(--muted); }
+.lbl { display: block; font-weight: 600; margin-bottom: 8px; }
 .glist .gline small { grid-column: 1 / -1; color: var(--muted); font-size: 16px; line-height: 1.5; }
 .glist .gline small a { color: var(--accent); font-weight: 500; }
 .glist .save { color: var(--save); font-weight: 600; font-size: 16px; }
@@ -1053,7 +1058,7 @@ NOTES = """
 ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani aplikácia nepoužili starú verziu
 
 
-MINIFY = ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js")
+MINIFY = ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js", "pomocky.js")
 
 
 def minify_assets():
@@ -1102,7 +1107,7 @@ def inline_home_css():
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js"):
+    for name in ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js", "pomocky.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -1246,6 +1251,10 @@ def build():
             products.append((g, p))
         by_subst[g["s"]].append(g)
     by_kod = {p["kod"]: (g, p) for g, p in products}
+    # oznamy ŠÚKL: stiahnutia z trhu a bezpečnostné oznamy (scripts/build_sukl.py → data/sukl_oznamy.json)
+    import build_oznamy
+    sukl_oz = load("sukl_oznamy.json", {}) or {}
+    oz_recalls, oz_dhpc = build_oznamy.match(sukl_oz, products)
 
     subst_slug = {}
     for s in by_subst:
@@ -1365,6 +1374,10 @@ def build():
                               f'{"stúpne" if up else "klesne"} na {eur(change["dop"])}</strong>'
                               f'<p>Dnes {eur(p["dop"])}, {"o " + eur(abs(change["diff"])) + (" viac" if up else " menej")} na balení. '
                               f'Údaj je z nového zoznamu ministerstva, ktorý už bol zverejnený.</p></div>')
+        for r in oz_recalls.get(p["kod"], [])[:2]:
+            alerts.insert(0, build_oznamy.recall_alert(r, esc))
+        for d_ in oz_dhpc.get(p["kod"], [])[:2]:
+            alerts.append(build_oznamy.dhpc_alert(d_, esc))
         alerts_html = "\n    ".join(alerts)
 
         # história
@@ -2162,6 +2175,7 @@ def build():
     <p class="page-sub">Prehľad liekov, ktoré užívate: aktuálny doplatok, lacnejšia alternatíva, zmeny od budúceho mesiaca a výpadky dodávok. Zoznam nikam neposielame, zostáva v tomto zariadení.</p>
   </section>
   <div class="print-only print-head"><b>Zoznam užívaných liekov</b><span id="print-date"></span><span>doplatkyliekov.sk · údaje zo zoznamu MZ SR platného od {esc(PLATNOST)}</span></div>
+  <div id="mine-oznamy" hidden></div>
   <section id="moje-root" aria-live="polite"><p class="page-sub">Načítavam…</p></section>
   <div class="mine-tools" id="mine-tools" hidden>
     <button type="button" id="mine-print">Vytlačiť pre lekára</button>
@@ -2847,6 +2861,13 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
                   "SITE": SITE, "ROOT": ROOT, "BASE": BASE, "PLATNOST": PLATNOST, "cur_iso": cur_iso, "groups": groups, "nxt": nxt,
                   "vyp": vyp, "history": history, "urls": urls, "subst_slug": subst_slug, "month_articles": month_articles,
                   "segno": segno, "sk_date": sk_date, "type_label": type_label, "versioned": versioned, "og_jobs": og_jobs})
+
+    # --- stiahnuté lieky a bezpečnostné oznamy ŠÚKL, zdravotnícke pomôcky ---
+    build_oznamy.build_page({"esc": esc, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
+                             "urls": urls, "SITE": SITE}, sukl_oz, oz_recalls, oz_dhpc, by_kod)
+    from build_zp_pages import build_zp_pages
+    build_zp_pages({"esc": esc, "eur": eur, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
+                    "urls": urls, "SITE": SITE, "DATA": DATA, "slugify": slugify, "plural": plural, "odb": odb})
 
     # --- lekárne v okolí (OpenStreetMap) ---
     lek_src = DATA / "lekarne.json"

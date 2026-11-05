@@ -129,6 +129,18 @@ class Ctx:
             pf = DATA / "history" / f"{py}-{pm:02d}.json"
             if pf.exists():
                 self.prev_keys = set(json.loads(pf.read_text(encoding="utf-8")))
+        # stiahnutia z trhu (ŠÚKL) – upozorníme len na čerstvé oznamy
+        self.recalls = {}
+        so = DATA / "sukl_oznamy.json"
+        if so.exists():
+            try:
+                import build_oznamy
+                rec, _ = build_oznamy.match(json.loads(so.read_text(encoding="utf-8")),
+                                            [(g, p) for g in self.full["groups"] for p in g["i"]])
+                cut = (dt.date.today() - dt.timedelta(days=build_oznamy.NOTIFY_DAYS)).isoformat()
+                self.recalls = {k: [r for r in v if (r.get("date") or "") >= cut] for k, v in rec.items()}
+            except Exception as e:  # noqa: BLE001
+                print(f"Oznamy ŠÚKL sa nepodarilo načítať: {e}")
         self.products = {}
         for g in self.full["groups"]:
             cheapest = min((x for x in g["i"] if x["dop"] is not None), key=lambda x: x["dop"], default=None)
@@ -168,6 +180,15 @@ def changes_for(ctx, kody, notified, since):
                               f"Pribudla lacnejšia alternatíva s rovnakou látkou, silou a balením: {best['name']} "
                               f"s doplatkom {eur(best['dop'])} (teraz doplácate {eur(p['dop'])}). Opýtajte sa lekára alebo lekárnika."))
                 n_gen[kod] = sorted(seen | {x["kod"] for x in fresh})
+        n_rec = notified.setdefault("rec", {})
+        for r in ctx.recalls.get(kod, []):
+            if r["id"] in n_rec.get(kod, []):
+                continue
+            scope = ("všetky šarže" if r.get("vsetky") else
+                     ("šarže č. " + ", ".join(r["sarze"][:6]) + " (číslo šarže je na krabičke)") if r.get("sarze") else "niektoré šarže")
+            items.append((url, p["name"], f"ŠÚKL sťahuje liek z trhu ({sk_date(r['date'])}): týka sa to {scope}. "
+                                          f"Liečbu neprerušujte bez porady s lekárom alebo lekárnikom. Oznam: {r['url']}"))
+            n_rec.setdefault(kod, []).append(r["id"])
         st = vyp.get(kod)
         if st and n_vyp.get(kod) != st["od"]:
             txt = {"R": "Výrobca prerušil dodávky", "Z": "Výrobca ukončil dodávky",
