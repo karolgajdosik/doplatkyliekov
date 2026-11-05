@@ -1,0 +1,13 @@
+name: Dočasná sonda zdrojov
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  s:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/sonda.py
+      - run: |
+          cd raw && git init -q && git checkout -q -b sonda-data && git add -A && git -c user.name=sonda -c user.email=sonda@users.noreply.github.com commit -qm sonda
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" sonda-data
