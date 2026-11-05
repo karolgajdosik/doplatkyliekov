@@ -56,5 +56,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898237+github-actions[bot]@users.noreply.github.com"
-          git add data/lekarne.json data/vydajne.json data/pobocky.json data/pil data/pil_map.json 2>/dev/null || true
-          if git diff --cached --quiet; then echo "Bez zmien."; else git commit -m "Mesačné dáta: letáky a lekárne" && git pull --rebase -q && git push; fi
+          for f in data/lekarne.json data/vydajne.json data/pobocky.json data/pil data/pil_map.json; do [ -e "$f" ] && git add "$f"; done
+          if git diff --cached --quiet; then echo "Bez zmien."; else git commit -m "Mesačné dáta: letáky, lekárne, výdajne a pobočky" && git pull --rebase -q && git push; fi
