@@ -20,16 +20,21 @@ for p in ['/odbornik/kategorizacia-a-cenotvorba/kategorizacia-liekov/', '/odborn
     for a, b in anchors(t):
         if re.search(r'zkl|zoznam|liek', a + b, re.I) and 'ministerstvo' not in a:
             log.append(f'  {a} | {b[:90]}')
-cands = sorted(set(a for p in ['/odbornik/kategorizacia-a-cenotvorba/kategorizacia-liekov/'] for a, b in anchors(get(H + p)) if re.search(r'zkl-?\d{6}|zoznam-kategorizovanych-liekov', a)))
-log.append(f'KANDIDATI {cands[:20]}')
-for c in cands[:3] + [x for x in cands if '202611' in x or '202612' in x][:2]:
+L = H + '/odbornik/kategorizacia-a-cenotvorba/kategorizacia-liekov/zoznam-kategorizovanych-liekov/'
+t = get(L)
+A = anchors(t)
+log.append(f'== ZKL {len(A)} odkazov')
+for a, b in A[:80]:
+    if 'ministerstvo/' in a or a in ('/', '/odbornik/'):
+        continue
+    log.append(f'  {a} | {b[:100]}')
+subs = [a for a, b in A if re.search(r'2026|202611|202612', a + b) and 'cloud' not in a][:3]
+for c in subs:
     u = c if c.startswith('http') else H + c
-    t = get(u)
-    log.append(f'== {u}')
-    for a, b in anchors(t):
-        if 'cloud.health' in a or re.search(r'zkl-?\d{6}', a):
+    log.append(f'== SUB {u}')
+    for a, b in anchors(get(u)):
+        if 'cloud.health' in a:
             log.append(f'  {a} | {b[:110]}')
 pathlib.Path('raw').mkdir(exist_ok=True)
 pathlib.Path('raw/log.txt').write_text('\n'.join(log), encoding='utf-8')
-for l in log: print(f'::notice::{l[:900]}') if False else None
 print('\n'.join(log))
