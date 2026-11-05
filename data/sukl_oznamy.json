@@ -4,163 +4,337 @@
 "id": "stiahnutie-liekov-plenvu-a-moviprep-ztrhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-liekov-plenvu-a-moviprep-ztrhu",
 "title": "Stiahnutie liekov Plenvu a Moviprep z trhu",
-"date": "2026-09-25"
+"date": "2026-09-25",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": true,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-tyverb-250-mg-ztrhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-tyverb-250-mg-ztrhu",
 "title": "Stiahnutie lieku Tyverb 250 mg z trhu",
-"date": "2026-09-10"
+"date": "2026-09-10",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-rowatinex-ztrhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-rowatinex-ztrhu",
 "title": "Stiahnutie lieku Rowatinex z trhu",
-"date": "2026-08-18"
+"date": "2026-08-18",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-fingolimod-zentiva-ztrhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-fingolimod-zentiva-ztrhu",
 "title": "Stiahnutie lieku Fingolimod Zentiva z trhu",
-"date": "2026-08-18"
+"date": "2026-08-18",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-zoely-ztrhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-zoely-ztrhu",
 "title": "Stiahnutie lieku Zoely z trhu",
-"date": "2026-08-13"
+"date": "2026-08-13",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-libtayo-350-mg-koncentrat-na-infuzny-roztok-ztrhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-libtayo-350-mg-koncentrat-na-infuzny-roztok-ztrhu",
 "title": "Stiahnutie lieku LIBTAYO 350 mg koncentrát na infúzny roztok z trhu",
-"date": "2026-07-24"
+"date": "2026-07-24",
+"trieda": "III",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-levosimendan-fmk-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-levosimendan-fmk-z-trhu",
 "title": "Stiahnutie lieku Levosimendan FMK z trhu",
-"date": "2026-07-17"
+"date": "2026-07-17",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-bendamustine-glenmark-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-bendamustine-glenmark-z-trhu",
 "title": "Stiahnutie lieku Bendamustine Glenmark z trhu",
-"date": "2026-07-14"
+"date": "2026-07-14",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-nitrofurantoin-pharmevid-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-nitrofurantoin-pharmevid-z-trhu",
 "title": "Stiahnutie lieku Nitrofurantoin Pharmevid z trhu",
-"date": "2026-07-13"
+"date": "2026-07-13",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-usymro-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-usymro-z-trhu",
 "title": "Stiahnutie lieku Usymro z trhu",
-"date": "2026-06-18"
+"date": "2026-06-18",
+"trieda": "III",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-imuldosa-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-imuldosa-z-trhu",
 "title": "Stiahnutie lieku Imuldosa z trhu",
-"date": "2026-06-04"
+"date": "2026-06-04",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-veral-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-veral-z-trhu",
 "title": "Stiahnutie lieku Veral z trhu",
-"date": "2026-05-26"
+"date": "2026-05-26",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-egoropal-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-egoropal-z-trhu",
 "title": "Stiahnutie lieku Egoropal z trhu",
-"date": "2026-01-07"
+"date": "2026-01-07",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": true,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-clarithromycin-hameln-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-clarithromycin-hameln-z-trhu",
 "title": "Stiahnutie lieku Clarithromycin hameln z trhu",
-"date": "2025-12-10"
+"date": "2025-12-10",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-zaditen-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-zaditen-z-trhu",
 "title": "Stiahnutie lieku Zaditen z trhu",
-"date": "2025-07-04"
+"date": "2025-07-04",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-antalerg-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-antalerg-z-trhu",
 "title": "Stiahnutie lieku ANTALERG z trhu",
-"date": "2025-07-03"
+"date": "2025-07-03",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-atropin-bbp-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-atropin-bbp-z-trhu",
 "title": "Stiahnutie lieku ATROPIN BBP z trhu",
-"date": "2025-05-02"
+"date": "2025-05-02",
+"trieda": "II",
+"kody": [
+"00392"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-cefixim-stada-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-cefixim-stada-z-trhu",
 "title": "Stiahnutie lieku Cefixím STADA z trhu",
-"date": "2025-04-15"
+"date": "2025-04-15",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-elenium-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-elenium-z-trhu",
 "title": "Stiahnutie lieku ELENIUM z trhu",
-"date": "2025-04-11"
+"date": "2025-04-11",
+"trieda": "II",
+"kody": [
+"40564"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-sugammadex-amomed-100-mg-ml-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-sugammadex-amomed-100-mg-ml-z-trhu",
 "title": "Stiahnutie lieku Sugammadex Amomed 100 mg/ml z trhu",
-"date": "2025-03-28"
+"date": "2025-03-28",
+"trieda": "II",
+"kody": [
+"2689E"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-azacitidine-accord-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-azacitidine-accord-z-trhu",
 "title": "Stiahnutie lieku Azacitidine Accord z trhu",
-"date": "2025-02-04"
+"date": "2025-02-04",
+"trieda": "III",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-atomoxetine-sandoz-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-atomoxetine-sandoz-z-trhu",
 "title": "Stiahnutie lieku Atomoxetine Sandoz z trhu",
-"date": "2024-07-31"
+"date": "2024-07-31",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-atofab-10-mg-tvrde-kapsuly-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-atofab-10-mg-tvrde-kapsuly-z-trhu",
 "title": "Stiahnutie lieku Atofab 10 mg tvrdé kapsuly z trhu",
-"date": "2024-07-24"
+"date": "2024-07-24",
+"trieda": "II",
+"kody": [
+"7983C"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-cinacalcet-reddy-30-mg-filmom-obalene-tablety-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-cinacalcet-reddy-30-mg-filmom-obalene-tablety-z-trhu",
 "title": "Stiahnutie lieku Cinacalcet Reddy 30 mg filmom obalené tablety z trhu",
-"date": "2024-06-20"
+"date": "2024-06-20",
+"trieda": "II",
+"kody": [
+"8929D"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku je nedostatok v kvalite lieku – prítomnosť nitrózoamínovej nečistoty v liečive nad povolený limit.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-metfogamma-500-tbl-flm-120x500-mg-blis.pvc-al-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-metfogamma-500-tbl-flm-120x500-mg-blis.pvc-al-z-trhu",
 "title": "Stiahnutie lieku Metfogamma 500 tbl flm 120x500 mg (blis.PVC/Al) z trhu",
-"date": "2024-05-16"
+"date": "2024-05-16",
+"trieda": "I",
+"kody": [
+"33922"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-acc-20-mg-ml-peroralny-roztok-pre-deti-a-dospelych",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-acc-20-mg-ml-peroralny-roztok-pre-deti-a-dospelych",
 "title": "Stiahnutie lieku ACC 20 mg/ml perorálny roztok pre deti a dospelých",
-"date": "2024-03-22"
+"date": "2024-03-22",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku je nedostatok v kvalite – potenciálna prítomnosť častíc v lieku z tesniaceho uzáveru.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-cinacalcet-heaton-30-mg-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-cinacalcet-heaton-30-mg-z-trhu",
 "title": "Stiahnutie lieku Cinacalcet Heaton 30 mg z trhu",
-"date": "2024-01-30"
+"date": "2024-01-30",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku je nedostatok v kvalite lieku – nesúlad v špecifikácii lieku v parametri disolúcie.",
+"detail": true
 },
 {
 "id": "stiahnutie-liekov-amikacin-b.-braun-5-mg-ml-gentamicin-b.-braun-3-mg-ml-infuzny-roztok-ibuprofen-b.-braun-400-mg-ibuprofen-b.-braun-600-mg-a-metronidazol-b.-braun-5-mg-ml-z-trhu",
@@ -178,85 +352,223 @@
 "id": "stiahnutie-lieku-sabril-tbl-flm-100x500-mg-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-sabril-tbl-flm-100x500-mg-z-trhu",
 "title": "Stiahnutie lieku SABRIL, TBL FLM 100x500 mg z trhu",
-"date": "2023-07-14"
+"date": "2023-07-14",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku je prítomnosť stopového množstva nečistoty.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-luxfen-2-mg-ml",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-luxfen-2-mg-ml",
 "title": "Stiahnutie lieku LUXFEN 2 mg/ml",
-"date": "2023-07-13"
+"date": "2023-07-13",
+"trieda": "I",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-phacebonate-50-mg-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-phacebonate-50-mg-z-trhu",
 "title": "Stiahnutie lieku Phacebonate 50 mg z trhu",
-"date": "2023-03-09"
+"date": "2023-03-09",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-fraxiparine-9-500-iu-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-fraxiparine-9-500-iu-z-trhu",
 "title": "Stiahnutie lieku Fraxiparine 9 500 IU z trhu",
-"date": "2023-02-07"
+"date": "2023-02-07",
+"trieda": "I",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-diprophos-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-diprophos-z-trhu",
 "title": "Stiahnutie lieku Diprophos z trhu",
-"date": "2023-01-26"
+"date": "2023-01-26",
+"trieda": "II",
+"kody": [
+"24865"
+],
+"sarze": [
+"W030209",
+"W025177",
+"W014612",
+"W005636",
+"W001990",
+"U034871"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-neurol-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-neurol-z-trhu",
 "title": "Stiahnutie lieku Neurol z trhu",
-"date": "2022-12-07"
+"date": "2022-12-07",
+"trieda": "II",
+"kody": [
+"91788"
+],
+"sarze": [
+"2130921",
+"2140921"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu sú výsledky mimo špecifikáciu v parametri obsah neznámej nečistoty.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-stoptussin-sirup-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-stoptussin-sirup-z-trhu",
 "title": "Stiahnutie lieku Stoptussin sirup z trhu",
-"date": "2022-11-28"
+"date": "2022-11-28",
+"trieda": "II",
+"kody": [
+"5569B"
+],
+"sarze": [
+"100020705",
+"100029187",
+"100029217",
+"100033950"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesprávne uvedená informácia v texte, ktorý sa nachádza na sekundárnom obale lieku.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-paxeladine-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-paxeladine-z-trhu",
 "title": "Stiahnutie lieku PAXELADINE z trhu",
-"date": "2022-10-13"
+"date": "2022-10-13",
+"trieda": "II",
+"kody": [
+"33582"
+],
+"sarze": [
+"T00447",
+"T00448",
+"T00451",
+"U06945",
+"U06946"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so schválenou špecifikáciou v parametri obsah neznámej nečistoty.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-haloperidol-richter-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-haloperidol-richter-z-trhu",
 "title": "Stiahnutie lieku Haloperidol-Richter z trhu",
-"date": "2022-08-26"
+"date": "2022-08-26",
+"trieda": "II",
+"kody": [
+"02538"
+],
+"sarze": [
+"A1A070B"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je nesúlad so špecifikáciou v parametri označenie primárneho obalu.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-elenium-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-elenium-z-trhu-1",
 "title": "Stiahnutie lieku ELENIUM z trhu",
-"date": "2022-07-25"
+"date": "2022-07-25",
+"trieda": "II",
+"kody": [
+"40564"
+],
+"sarze": [
+"31120",
+"41120"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so špecifikáciou v parametri uvoľňovanie účinnej látky.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-amiodaron-hameln-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-amiodaron-hameln-z-trhu",
 "title": "Stiahnutie lieku Amiodaron hameln z trhu",
-"date": "2022-07-18"
+"date": "2022-07-18",
+"trieda": "II",
+"kody": [
+"6935C"
+],
+"sarze": [
+"139503A"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je zistený nesúlad so špecifikáciou v parametri vzhľad.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-angusta-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-angusta-z-trhu",
 "title": "Stiahnutie lieku Angusta z trhu",
-"date": "2022-06-24"
+"date": "2022-06-24",
+"trieda": "II",
+"kody": [
+"6896C"
+],
+"sarze": [
+"B26789"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je prítomnosť neznámej nečistoty.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-isoprinosine-50-mg-ml-sirup-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-isoprinosine-50-mg-ml-sirup-z-trhu",
 "title": "Stiahnutie lieku Isoprinosine 50 mg/ml sirup z trhu",
-"date": "2022-05-06"
+"date": "2022-05-06",
+"trieda": "II",
+"kody": [
+"85044"
+],
+"sarze": [
+"21KQ151"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je zistenie, že k baleniu sirupovej liekovej formy je priložená nesprávna informácia pre používateľa (PIL), ktorá je určená pre Isoprinosine 1000 mg granulát na perorálny roztok vo vrecku.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-vigantol-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-vigantol-z-trhu",
 "title": "Stiahnutie lieku Vigantol z trhu",
-"date": "2022-04-26"
+"date": "2022-04-26",
+"trieda": "II",
+"kody": [
+"12023"
+],
+"sarze": [
+"19KQ042"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je riziko nesúladu so schválenou špecifikáciou v parametri obsah účinnej látky.",
+"detail": true
 },
 {
 "id": "stiahnutie-liekov-accupro-z-trhu",
@@ -310,175 +622,471 @@
 "id": "stiahnutie-lieku-vigantol-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-vigantol-z-trhu-1",
 "title": "Stiahnutie lieku Vigantol z trhu",
-"date": "2022-03-08"
+"date": "2022-03-08",
+"trieda": "II",
+"kody": [
+"12023"
+],
+"sarze": [
+"19KQ193",
+"241276"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so schválenou špecifikáciou v parametri obsah účinnej látky .",
+"detail": true
 },
 {
 "id": "stiahnutie-liekov-everio-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-liekov-everio-z-trhu",
 "title": "Stiahnutie liekov Everio z trhu",
-"date": "2022-02-11"
+"date": "2022-02-11",
+"trieda": "II",
+"kody": [
+"0925D",
+"0926D",
+"0927D"
+],
+"sarze": [
+"1071021",
+"1801121",
+"1062621"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je potenciálne riziko neintegrity primárneho obalu (mikro únik hnacieho plynu).",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-cholagol-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-cholagol-z-trhu",
 "title": "Stiahnutie lieku Cholagol z trhu",
-"date": "2022-01-31"
+"date": "2022-01-31",
+"trieda": "III",
+"kody": [
+"00699"
+],
+"sarze": [
+"100018756B",
+"100022449",
+"100023810"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so schválenou špecifikáciou v parametri obsah účinnej látky.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-imbruvica-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-imbruvica-z-trhu",
 "title": "Stiahnutie lieku Imbruvica z trhu",
-"date": "2021-12-16"
+"date": "2021-12-16",
+"trieda": "I",
+"kody": [
+"2189B"
+],
+"sarze": [
+"KIS0400"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia danej šarže z trhu je výskyt falšovaných balení predmetnej šarže v legálnom distribučnom reťazci.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-losartan-hydrochlorothiazid-stada-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-losartan-hydrochlorothiazid-stada-z-trhu",
 "title": "Stiahnutie lieku Losartan/Hydrochlorothiazid STADA z trhu",
-"date": "2021-11-26"
+"date": "2021-11-26",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke losartan nad povolený limit.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-losartan-stada-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-losartan-stada-z-trhu",
 "title": "Stiahnutie lieku Losartan STADA z trhu",
-"date": "2021-11-26"
+"date": "2021-11-26",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-diabetan-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-diabetan-z-trhu",
 "title": "Stiahnutie lieku Diabetan z trhu",
-"date": "2021-11-04"
+"date": "2021-11-04",
+"trieda": "II",
+"kody": [
+"01918"
+],
+"sarze": [
+"21"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia šarže lieku z trhu je podozrenie na prítomnosť cudzorodých častíc.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-urapidil-stragen-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-urapidil-stragen-z-trhu",
 "title": "Stiahnutie lieku Urapidil Stragen z trhu",
-"date": "2021-11-02"
+"date": "2021-11-02",
+"trieda": "II",
+"kody": [
+"6659B",
+"6663B"
+],
+"sarze": [
+"F1448-01",
+"F2449-01"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je podozrenie na nedostatok v kvalite lieku – nesúlad so špecifikáciou v parametri disolúcia liečiva.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-lozap-h-z-trhu-aktualizacia",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-lozap-h-z-trhu-aktualizacia",
 "title": "Stiahnutie lieku Lozap H z trhu - AKTUALIZÁCIA",
-"date": "2021-10-06"
+"date": "2021-10-06",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-losartan-zentiva-z-trhu-aktualizacia",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-losartan-zentiva-z-trhu-aktualizacia",
 "title": "Stiahnutie lieku Losartan Zentiva z trhu - AKTUALIZÁCIA",
-"date": "2021-10-06"
+"date": "2021-10-06",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-unilat-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-unilat-z-trhu",
 "title": "Stiahnutie lieku UNILAT z trhu",
-"date": "2021-09-17"
+"date": "2021-09-17",
+"trieda": "II",
+"kody": [
+"80249"
+],
+"sarze": [
+"4422191",
+"4429191"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je zistený výsledok skúšky mimo schválenej špecifikácie v parametri obsah liečiva .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-mitomycin-medac-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-mitomycin-medac-z-trhu",
 "title": "Stiahnutie lieku Mitomycin medac z trhu",
-"date": "2021-08-27"
+"date": "2021-08-27",
+"trieda": "II",
+"kody": [
+"9703B"
+],
+"sarze": [
+"L200688GB"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri viditeľné častice.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-uniclophen-01-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-uniclophen-01-z-trhu",
 "title": "Stiahnutie lieku UNICLOPHEN 0,1 % z trhu",
-"date": "2021-07-30"
+"date": "2021-07-30",
+"trieda": "II",
+"kody": [
+"33187"
+],
+"sarze": [
+"0601191",
+"0601195",
+"0607193",
+"0607197",
+"0607198"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah neznámej nečistoty .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-irbesartan-hydrochlorothiazide-zentiva-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-irbesartan-hydrochlorothiazide-zentiva-z-trhu",
 "title": "Stiahnutie lieku Irbesartan Hydrochlorothiazide Zentiva z trhu",
-"date": "2021-07-27"
+"date": "2021-07-27",
+"trieda": "II",
+"kody": [
+"38102"
+],
+"sarze": [
+"0R821"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-irbesartan-zentiva-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-irbesartan-zentiva-z-trhu",
 "title": "Stiahnutie lieku Irbesartan Zentiva z trhu",
-"date": "2021-07-27"
+"date": "2021-07-27",
+"trieda": "II",
+"kody": [
+"38273",
+"38270"
+],
+"sarze": [
+"0R859",
+"0R1VX",
+"9R917"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-uniclophen-01-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-uniclophen-01-z-trhu-1",
 "title": "Stiahnutie lieku UNICLOPHEN 0,1 % z trhu",
-"date": "2021-07-12"
+"date": "2021-07-12",
+"trieda": "II",
+"kody": [
+"33187"
+],
+"sarze": [
+"0601201",
+"0601203",
+"0601205",
+"0601206",
+"0605201",
+"0605202"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah neznámej nečistoty .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-betalmic-05-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-betalmic-05-z-trhu",
 "title": "Stiahnutie lieku Betalmic 0,5 % z trhu",
-"date": "2021-07-06"
+"date": "2021-07-06",
+"trieda": "II",
+"kody": [
+"90415"
+],
+"sarze": [
+"3901208",
+"3902204"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah nečistôt.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-uniclophen-01-z-trhu-2",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-uniclophen-01-z-trhu-2",
 "title": "Stiahnutie lieku Uniclophen 0,1 % z trhu",
-"date": "2021-06-30"
+"date": "2021-06-30",
+"trieda": "II",
+"kody": [
+"33187"
+],
+"sarze": [
+"0608201"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah neznámej nečistoty .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-telviran-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-telviran-z-trhu",
 "title": "Stiahnutie lieku Telviran z trhu",
-"date": "2021-05-07"
+"date": "2021-05-07",
+"trieda": "II",
+"kody": [
+"14759"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-cefimed-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-cefimed-z-trhu",
 "title": "Stiahnutie lieku CEFIMED z trhu",
-"date": "2021-04-29"
+"date": "2021-04-29",
+"trieda": "II",
+"kody": [
+"7204C"
+],
+"sarze": [
+"EXMTI0001B"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-agomelatin-teva-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-agomelatin-teva-z-trhu",
 "title": "Stiahnutie lieku Agomelatín Teva z trhu",
-"date": "2021-03-26"
+"date": "2021-03-26",
+"trieda": "II",
+"kody": [
+"8543C",
+"8545C"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-olfen-teva-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-olfen-teva-z-trhu",
 "title": "Stiahnutie lieku Olfen TEVA z trhu",
-"date": "2021-02-11"
+"date": "2021-02-11",
+"trieda": "II",
+"kody": [
+"14127"
+],
+"sarze": [
+"V16713D",
+"U07547B"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-cinacalcet-teva-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-cinacalcet-teva-z-trhu",
 "title": "Stiahnutie lieku Cinacalcet Teva z trhu",
-"date": "2020-12-22"
+"date": "2020-12-22",
+"trieda": "II",
+"kody": [
+"8028B"
+],
+"sarze": [
+"106311"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-acnatac-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-acnatac-z-trhu",
 "title": "Stiahnutie lieku Acnatac z trhu",
-"date": "2020-12-17"
+"date": "2020-12-17",
+"trieda": "II",
+"kody": [
+"8009A"
+],
+"sarze": [
+"D2001978"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-zerbaxa-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-zerbaxa-z-trhu",
 "title": "Stiahnutie lieku Zerbaxa z trhu",
-"date": "2020-12-17"
+"date": "2020-12-17",
+"trieda": "II",
+"kody": [
+"5963B"
+],
+"sarze": [
+"T022705",
+"T024353",
+"T024535"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-losartan-zentiva-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-losartan-zentiva-z-trhu",
 "title": "Stiahnutie lieku Losartan Zentiva z trhu",
-"date": "2020-12-03"
+"date": "2020-12-03",
+"trieda": "I",
+"kody": [
+"49527",
+"49530"
+],
+"sarze": [
+"2140420"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia lieku z trhu je zámena blistrov v balení lieku .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-adrenalin-bradex-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-adrenalin-bradex-z-trhu",
 "title": "Stiahnutie lieku Adrenalin Bradex z trhu",
-"date": "2020-10-14"
+"date": "2020-10-14",
+"trieda": "II",
+"kody": [
+"5363C"
+],
+"sarze": [
+"1905877"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia je možný výskyt poškodenia primárneho obalu.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-hlohovy-caj-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-hlohovy-caj-z-trhu",
 "title": "Stiahnutie lieku Hlohový čaj z trhu",
-"date": "2020-09-25"
+"date": "2020-09-25",
+"trieda": "II",
+"kody": [
+"76436"
+],
+"sarze": [
+"221022020"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia šarže lieku z trhu je nevyhovujúci výsledok skúšky v parametri mikrobiologická čistota lieku .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-minirin-spray-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-minirin-spray-z-trhu",
 "title": "Stiahnutie lieku Minirin spray z trhu",
-"date": "2020-07-10"
+"date": "2020-07-10",
+"trieda": "II",
+"kody": [
+"34533"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom stiahnutia všetkých šarží lieku z trhu je nedostatok v kvalite lieku v parametri obsah liečiva (dezmopresín) a obsah pomocnej látky (benzalkónium chlorid).",
+"detail": true
 },
 {
 "id": "stiahnutie-lieciva-metronidazolum-az-z-urovne-pacientov",
@@ -498,19 +1106,44 @@
 "id": "stiahnutie-lieku-esmya-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-esmya-z-trhu",
 "title": "Stiahnutie lieku Esmya z trhu",
-"date": "2020-03-20"
+"date": "2020-03-20",
+"trieda": "II",
+"kody": [
+"0086A"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom pre stiahnutie lieku z trhu je zastavenie jeho používania.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-ornibel-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ornibel-z-trhu",
 "title": "Stiahnutie lieku Ornibel z trhu",
-"date": "2020-03-03"
+"date": "2020-03-03",
+"trieda": "II",
+"kody": [
+"4800C",
+"4801C"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom pre stiahnutie lieku z trhu je nedostatok v kvalite lieku - možnosť prasknutia alebo zlomenia vaginálneho krúžku.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-teyla-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-teyla-z-trhu",
 "title": "Stiahnutie lieku Teyla z trhu",
-"date": "2020-03-03"
+"date": "2020-03-03",
+"trieda": "II",
+"kody": [
+"5117C"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom pre stiahnutie lieku z trhu je nedostatok v kvalite lieku - možnosť prasknutia alebo zlomenia vaginálneho krúžku.",
+"detail": true
 },
 {
 "id": "sartany",
@@ -534,217 +1167,546 @@
 "id": "stiahnutie-lieku-ranisan-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ranisan-z-trhu",
 "title": "Stiahnutie lieku Ranisan z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"96056",
+"58292"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom pre stiahnutie z trhu je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-ranital-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ranital-z-trhu",
 "title": "Stiahnutie lieku Ranital z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"91280",
+"24108",
+"93969"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom stiahnutia predmetných liekov je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-ranisan-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ranisan-z-trhu-1",
 "title": "Stiahnutie lieku Ranisan z trhu",
-"date": ""
+"date": "",
+"trieda": "",
+"kody": [
+"96056",
+"58292"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom pre pozastavenie výdaja je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-arnetin-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-arnetin-z-trhu",
 "title": "Stiahnutie lieku Arnetin z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"55423"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom stiahnutia predmetných liekov je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-endiex-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-endiex-z-trhu",
 "title": "Stiahnutie lieku Endiex z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"6350C"
+],
+"sarze": [
+"2060519"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-conoxia-stlaceny-medicinalny-plyn-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-conoxia-stlaceny-medicinalny-plyn-z-trhu",
 "title": "Stiahnutie lieku CONOXIA, stlačený medicinálny plyn z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"64771"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných fliaš z trhu je potenciálne riziko vznietenia počas prípravy na použitie.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-elotrace-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-elotrace-z-trhu",
 "title": "Stiahnutie lieku Elotrace z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"33729",
+"65317"
+],
+"sarze": [
+"16LA6467",
+"16LF7906",
+"16MC0321"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesprávne označenie exspirácie.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-adrenalin-bradex-ztrhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-adrenalin-bradex-ztrhu",
 "title": "Stiahnutie lieku Adrenalin Bradex z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"5363C"
+],
+"sarze": [
+"1802389"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia je nesúlad so špecifikáciou v parametri farba injekčného roztoku.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-egilok-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-egilok-z-trhu",
 "title": "Stiahnutie lieku Egilok z trhu",
-"date": ""
+"date": "",
+"trieda": "I",
+"kody": [
+"2552C"
+],
+"sarze": [
+"2230N0518"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia danej šarže z trhu je podozrenie na výskyt tabliet Egilok 50 mg v balení lieku Egilok 25 mg .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-elotrace-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-elotrace-z-trhu-1",
 "title": "Stiahnutie lieku Elotrace z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"65317"
+],
+"sarze": [
+"16NB3298"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia je prítomnosť častíc v roztoku.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-pleumolysin-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-pleumolysin-z-trhu",
 "title": "Stiahnutie lieku Pleumolysin z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"4799C"
+],
+"sarze": [
+"100009532",
+"100008138",
+"100008139"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží je možné riziko netesniaceho uzáveru na lieku .",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-conoxia-stlaceny-medicinalny-plyn-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-conoxia-stlaceny-medicinalny-plyn-z-trhu-1",
 "title": "Stiahnutie lieku CONOXIA, stlačený medicinálny plyn z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"64771"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-omeprazol-mylan-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-omeprazol-mylan-z-trhu",
 "title": "Stiahnutie lieku Omeprazol Mylan z trhu",
-"date": ""
+"date": "",
+"trieda": "III",
+"kody": [
+"06658"
+],
+"sarze": [
+"ZC17030BA"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-lopridam-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-lopridam-z-trhu",
 "title": "Stiahnutie lieku Lopridam z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"7287C"
+],
+"sarze": [
+"2251018"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-irbesartan-actavis-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-irbesartan-actavis-z-trhu",
 "title": "Stiahnutie lieku Irbesartan Actavis z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"80013"
+],
+"sarze": [
+"015418"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže je nedostatok v kvalite – prítomnosť nedeklarovanej častice v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-olynth-ha-01-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-olynth-ha-01-z-trhu",
 "title": "Stiahnutie lieku OLYNTH HA 0,1% z trhu",
-"date": ""
+"date": "",
+"trieda": "I",
+"kody": [
+"36097"
+],
+"sarze": [
+"F144450A"
+],
+"vsetky": true,
+"dovod": "Dôvodom stiahnutia je riziko mikrobiálnej kontaminácie.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-irbesartan-actavis-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-irbesartan-actavis-z-trhu-1",
 "title": "Stiahnutie lieku Irbesartan Actavis z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"80003"
+],
+"sarze": [
+"136918"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetnej šarže je nedostatok v kvalite – možná prítomnosť nedeklarovanej častice v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-vitamin-c-injektopas-75-g-sol-inf-liek.inj.skl.hneda-1x50-ml",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-vitamin-c-injektopas-75-g-sol-inf-liek.inj.skl.hneda-1x50-ml",
 "title": "Stiahnutie lieku Vitamin C-Injektopas 7,5 g sol inf (liek.inj.skl.hnedá) 1x50 ml",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"89145"
+],
+"sarze": [
+"9035"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží je nedodržanie požiadaviek správnej výrobnej praxe pri plnení ampúl.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-pleumolysin-z-trhu-1",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-pleumolysin-z-trhu-1",
 "title": "Stiahnutie lieku PLEUMOLYSIN z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"4799C"
+],
+"sarze": [
+"100006752",
+"100007295"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží je zistený nedostatok v kvalite v parametroch obsah etanolu a hustota.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-ozurdex-z-trhu-aktualizacia",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ozurdex-z-trhu-aktualizacia",
 "title": "Stiahnutie lieku OZURDEX z trhu - aktualizácia",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"21707"
+],
+"sarze": [],
+"vsetky": true,
+"dovod": "Dôvodom stiahnutia je zistený nedostatok v kvalite všetkých šarží nachádzajúcich sa na slovenskom trhu.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-ozurdex-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ozurdex-z-trhu",
 "title": "Stiahnutie lieku OZURDEX z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"21707"
+],
+"sarze": [
+"E77959",
+"E80787"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných šarží je zistený nedostatok v kvalite.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-thiopental-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-thiopental-z-trhu",
 "title": "Stiahnutie lieku THIOPENTAL z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných liekov je zistený nedostatok v kvalite.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-valzap-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-valzap-z-trhu",
 "title": "Stiahnutie lieku VALZAP z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"81771",
+"81830"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-vapress-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-vapress-z-trhu",
 "title": "Stiahnutie lieku VAPRESS z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"0890A"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-valsartan-actavis-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-valsartan-actavis-z-trhu",
 "title": "Stiahnutie lieku VALSARTAN ACTAVIS z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"51633",
+"66180"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-vasopentol-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-vasopentol-z-trhu",
 "title": "Stiahnutie lieku VASOPENTOL z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [
+"82981",
+"64617"
+],
+"sarze": [],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-infadolan-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-infadolan-z-trhu",
 "title": "Stiahnutie lieku INFADOLAN z trhu",
-"date": ""
+"date": "",
+"trieda": "I",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-bondulc-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-bondulc-z-trhu",
 "title": "Stiahnutie lieku BONDULC z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"1TR280817A"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-zoledronat-stada-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-zoledronat-stada-z-trhu",
 "title": "Stiahnutie lieku Zoledronat STADA z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"PO0984",
+"PP1440",
+"PQ0776",
+"PQ1135"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-chamomilla-teva-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-chamomilla-teva-z-trhu",
 "title": "Stiahnutie lieku CHAMOMILLA TEVA z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"100002099",
+"100002781"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-ciprofloxacin-kabi-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ciprofloxacin-kabi-z-trhu",
 "title": "Stiahnutie lieku CIPROFLOXACIN KABI z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-beloderm-lotion-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-beloderm-lotion-z-trhu",
 "title": "Stiahnutie lieku BELODERM lotion z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"28206087"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-velcade-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-velcade-z-trhu",
 "title": "Stiahnutie lieku VELCADE z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"GJZT700"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-synjardy-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-synjardy-z-trhu",
 "title": "Stiahnutie lieku Synjardy z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"744827"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-stopangin-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-stopangin-z-trhu",
 "title": "Stiahnutie lieku STOPANGIN z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"3A607019",
+"3A602058"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 },
 {
 "id": "stiahnutie-lieku-ventilastin-novolizer-z-trhu",
 "url": "https://www.sukl.sk/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov/stiahnutie-lieku-ventilastin-novolizer-z-trhu",
 "title": "Stiahnutie lieku VENTILASTIN Novolizer z trhu",
-"date": ""
+"date": "",
+"trieda": "II",
+"kody": [],
+"sarze": [
+"5K045L"
+],
+"vsetky": false,
+"dovod": "",
+"detail": true
 }
 ],
 "dhpc": [
