@@ -6,10 +6,28 @@
 "title": "Stiahnutie liekov Plenvu a Moviprep z trhu",
 "date": "2026-09-25",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"7161C",
+"04241"
+],
+"sarze": [
+"470643"
+],
+"vsetky": false,
+"dovod": "Dôvodom stiahnutia dotknutých šarží liekov Plenvu a Moviprep je zistený nedostatok vo výrobe liekov – nesúlad so správnou výrobnou praxou.",
+"per": {
+"7161C": {
+"vsetky": false,
+"sarze": [
+"470643"
+]
+},
+"04241": {
 "vsetky": true,
-"dovod": "",
+"sarze": []
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -18,10 +36,16 @@
 "title": "Stiahnutie lieku Tyverb 250 mg z trhu",
 "date": "2026-09-10",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"07339"
+],
+"sarze": [
+"RD6172"
+],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -30,10 +54,14 @@
 "title": "Stiahnutie lieku Rowatinex z trhu",
 "date": "2026-08-18",
 "trieda": "II",
-"kody": [],
+"kody": [
+"26808"
+],
 "sarze": [],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -42,10 +70,16 @@
 "title": "Stiahnutie lieku Fingolimod Zentiva z trhu",
 "date": "2026-08-18",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"6403D"
+],
+"sarze": [
+"4L01372P"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia dotknutej šarže lieku Fingolimod Zentiva 0,5 mg, cps dur 28x0,5 mg je nesúlad s požiadavkami správnej výrobnej praxe.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -54,10 +88,16 @@
 "title": "Stiahnutie lieku Zoely z trhu",
 "date": "2026-08-13",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"09745"
+],
+"sarze": [
+"50921D"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia dotknutej šarže lieku Zoely 2,5 mg/1,5 mg filmom obalené tablety je chybné vyradenie balení v systéme overovania pravosti liekov.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -66,10 +106,16 @@
 "title": "Stiahnutie lieku LIBTAYO 350 mg koncentrát na infúzny roztok z trhu",
 "date": "2026-07-24",
 "trieda": "III",
-"kody": [],
-"sarze": [],
+"kody": [
+"2200D"
+],
+"sarze": [
+"8496700006"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia dotknutej šarže lieku LIBTAYO 350 mg koncentrát na infúzny roztok je zistený nedostatok v kvalite lieku a to možné neúplné zalisovanie uzáveru lieku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -78,10 +124,16 @@
 "title": "Stiahnutie lieku Levosimendan FMK z trhu",
 "date": "2026-07-17",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"0166F"
+],
+"sarze": [
+"10825"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia dotknutej šarže lieku Levosimendan FMK 2,5 mg/ml koncentrát na infúzny roztok je zistený nedostatok v kvalite lieku –prítomnosť častíc v roztoku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -90,10 +142,16 @@
 "title": "Stiahnutie lieku Bendamustine Glenmark z trhu",
 "date": "2026-07-14",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"6402B"
+],
+"sarze": [
+"2500143B"
+],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -102,10 +160,17 @@
 "title": "Stiahnutie lieku Nitrofurantoin Pharmevid z trhu",
 "date": "2026-07-13",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"8087E"
+],
+"sarze": [
+"8250243",
+"8250235"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia dotknutých šarží lieku Nitrofurantoin Pharmevid tvrdé kapsuly 100 mg je zistený nedostatok v kvalite lieku - výsledok mimo limitu špecifikácie lieku v skúške disolúcie.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -114,10 +179,39 @@
 "title": "Stiahnutie lieku Usymro z trhu",
 "date": "2026-06-18",
 "trieda": "III",
-"kody": [],
-"sarze": [],
+"kody": [
+"1182F",
+"1183F",
+"1184F"
+],
+"sarze": [
+"17EA25002",
+"17EC25003",
+"17EB25001"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom preventívneho stiahnutia predmetných šarží lieku Usymro je zistený nedostatok vo výrobe lieku - nesúlad so správnou výrobnou praxou.",
+"per": {
+"1182F": {
+"vsetky": false,
+"sarze": [
+"17EA25002"
+]
+},
+"1183F": {
+"vsetky": false,
+"sarze": [
+"17EC25003"
+]
+},
+"1184F": {
+"vsetky": false,
+"sarze": [
+"17EB25001"
+]
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -126,10 +220,16 @@
 "title": "Stiahnutie lieku Imuldosa z trhu",
 "date": "2026-06-04",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"8469E"
+],
+"sarze": [
+"G2500672"
+],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -138,10 +238,16 @@
 "title": "Stiahnutie lieku Veral z trhu",
 "date": "2026-05-26",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"25556"
+],
+"sarze": [
+"K51013A"
+],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -153,7 +259,9 @@
 "kody": [],
 "sarze": [],
 "vsetky": true,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia všetkých šarží lieku Egoropal je zistený nedostatok vo výrobe lieku - nesúlad so správnou výrobnou praxou.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -162,10 +270,25 @@
 "title": "Stiahnutie lieku Clarithromycin hameln z trhu",
 "date": "2025-12-10",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"6221D"
+],
+"sarze": [
+"25D685",
+"24J259",
+"24F130"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku Clarithromycin hameln je zistený nedostatok, a to nesúlad so správnou výrobnou praxou.",
+"per": {
+"6221D": {
+"vsetky": false,
+"sarze": [
+"24F130"
+]
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -174,10 +297,16 @@
 "title": "Stiahnutie lieku Zaditen z trhu",
 "date": "2025-07-04",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"33168"
+],
+"sarze": [
+"4V64"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku Zaditen je zistená anomália počas výroby, ktorá by mohla viesť k mikrobiálnej kontaminácii lieku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -186,10 +315,16 @@
 "title": "Stiahnutie lieku ANTALERG z trhu",
 "date": "2025-07-03",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"13435"
+],
+"sarze": [
+"3301255"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku ANTALERG 0,05% je prítomnosť nesprávnej príbalovej informácie pre používateľa ( „ príbalový leták”) v balení.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -201,9 +336,13 @@
 "kody": [
 "00392"
 ],
-"sarze": [],
+"sarze": [
+"5V5032A"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku ATROPIN BBP 0,5 mg/ml je zistený nedostatok v kvalite lieku - výsledok mimo limitu špecifikácie lieku v parametri obsah účinnej látky.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -212,10 +351,31 @@
 "title": "Stiahnutie lieku Cefixím STADA z trhu",
 "date": "2025-04-15",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"0835D",
+"0855D"
+],
+"sarze": [
+"TCTC24002",
+"SCTD24001"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku Cefixím STADA je zistený nedostatok vo výrobe - nesúlad so správnou výrobnou praxou.",
+"per": {
+"0835D": {
+"vsetky": false,
+"sarze": [
+"TCTC24002"
+]
+},
+"0855D": {
+"vsetky": false,
+"sarze": [
+"SCTD24001"
+]
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -225,11 +385,36 @@
 "date": "2025-04-11",
 "trieda": "II",
 "kody": [
-"40564"
+"40564",
+"20323",
+"20122"
 ],
-"sarze": [],
+"sarze": [
+"20323",
+"20122",
+"tbl obd 20x10 mg"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku ELENIUM je zistený nedostatok v kvalite lieku - nesúlad v špecifikácii lieku v parametri disolúcie.",
+"per": {
+"40564": {
+"vsetky": false,
+"sarze": [
+"20122"
+]
+},
+"20323": {
+"vsetky": false,
+"sarze": [
+"tbl obd 20x10 mg"
+]
+},
+"20122": {
+"vsetky": false,
+"sarze": []
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -241,9 +426,13 @@
 "kody": [
 "2689E"
 ],
-"sarze": [],
+"sarze": [
+"SX2302A"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku Sugammadex Amomed 100 mg/ml je možná prítomnosť častíc v injekčnom roztoku .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -252,10 +441,23 @@
 "title": "Stiahnutie lieku Azacitidine Accord z trhu",
 "date": "2025-02-04",
 "trieda": "III",
-"kody": [],
-"sarze": [],
+"kody": [
+"3851D"
+],
+"sarze": [
+"P2300110"
+],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku Azacitidine Accord je zistený nedostatok v kvalite lieku - výsledok mimo limitu špecifikácie v parametri nečistôt.",
+"per": {
+"3851D": {
+"vsetky": false,
+"sarze": [
+"P2300110"
+]
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -264,10 +466,39 @@
 "title": "Stiahnutie lieku Atomoxetine Sandoz z trhu",
 "date": "2024-07-31",
 "trieda": "II",
-"kody": [],
+"kody": [
+"2061C",
+"2071C",
+"2081C",
+"2091C",
+"2101C"
+],
 "sarze": [],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží liekov Atomoxetine Sandoz je zistený nedostatok v kvalite lieku - nesúlad so schválenou špecifikáciou v parametri obsah účinnej látky.",
+"per": {
+"2061C": {
+"vsetky": false,
+"sarze": []
+},
+"2071C": {
+"vsetky": false,
+"sarze": []
+},
+"2081C": {
+"vsetky": false,
+"sarze": []
+},
+"2091C": {
+"vsetky": false,
+"sarze": []
+},
+"2101C": {
+"vsetky": false,
+"sarze": []
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -282,6 +513,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -296,6 +529,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže lieku je nedostatok v kvalite lieku – prítomnosť nitrózoamínovej nečistoty v liečive nad povolený limit.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -310,6 +545,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -322,6 +559,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží lieku je nedostatok v kvalite – potenciálna prítomnosť častíc v lieku z tesniaceho uzáveru.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -334,6 +573,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží lieku je nedostatok v kvalite lieku – nesúlad v špecifikácii lieku v parametri disolúcie.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -346,6 +587,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu, je zistená prítomnosť nečistoty súvisiaca s výrobným procesom.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -358,6 +601,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže lieku je prítomnosť stopového množstva nečistoty.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -370,6 +615,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -382,6 +629,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -394,6 +643,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -415,6 +666,8 @@
 ],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -432,6 +685,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu sú výsledky mimo špecifikáciu v parametri obsah neznámej nečistoty.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -451,6 +706,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesprávne uvedená informácia v texte, ktorý sa nachádza na sekundárnom obale lieku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -471,6 +728,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so schválenou špecifikáciou v parametri obsah neznámej nečistoty.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -487,6 +746,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je nesúlad so špecifikáciou v parametri označenie primárneho obalu.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -504,6 +765,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so špecifikáciou v parametri uvoľňovanie účinnej látky.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -520,6 +783,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je zistený nesúlad so špecifikáciou v parametri vzhľad.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -536,6 +801,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je prítomnosť neznámej nečistoty.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -552,6 +819,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže z trhu je zistenie, že k baleniu sirupovej liekovej formy je priložená nesprávna informácia pre používateľa (PIL), ktorá je určená pre Isoprinosine 1000 mg granulát na perorálny roztok vo vrecku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -568,6 +837,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je riziko nesúladu so schválenou špecifikáciou v parametri obsah účinnej látky.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -585,6 +856,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -599,6 +872,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetného lieku z trhu je prekročený limit v parametri obsah liečiva.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -616,6 +891,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -633,6 +910,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so schválenou špecifikáciou v parametri obsah účinnej látky .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -653,6 +932,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je potenciálne riziko neintegrity primárneho obalu (mikro únik hnacieho plynu).",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -671,6 +952,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesúlad so schválenou špecifikáciou v parametri obsah účinnej látky.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -687,6 +970,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia danej šarže z trhu je výskyt falšovaných balení predmetnej šarže v legálnom distribučnom reťazci.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -695,10 +980,149 @@
 "title": "Stiahnutie lieku Losartan/Hydrochlorothiazid STADA z trhu",
 "date": "2021-11-26",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"51948",
+"00812",
+"02954",
+"10505",
+"10506",
+"11922",
+"84533",
+"51951",
+"00702",
+"10507",
+"51955",
+"11908",
+"02811",
+"02510",
+"00802",
+"00801",
+"84609",
+"51958",
+"03512"
+],
+"sarze": [
+"00812",
+"02954",
+"10505",
+"10506",
+"11922",
+"84533",
+"00702",
+"01628V",
+"10507",
+"11908",
+"5 mg",
+"10502V",
+"10401V",
+"02811",
+"02510",
+"00802",
+"00801",
+"84609",
+"03512"
+],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke losartan nad povolený limit.",
+"per": {
+"51948": {
+"vsetky": false,
+"sarze": [
+"84533"
+]
+},
+"00812": {
+"vsetky": false,
+"sarze": []
+},
+"02954": {
+"vsetky": false,
+"sarze": []
+},
+"10505": {
+"vsetky": false,
+"sarze": []
+},
+"10506": {
+"vsetky": false,
+"sarze": []
+},
+"11922": {
+"vsetky": false,
+"sarze": []
+},
+"84533": {
+"vsetky": false,
+"sarze": []
+},
+"51951": {
+"vsetky": false,
+"sarze": [
+"10507"
+]
+},
+"00702": {
+"vsetky": false,
+"sarze": []
+},
+"10507": {
+"vsetky": false,
+"sarze": []
+},
+"51955": {
+"vsetky": false,
+"sarze": [
+"84609"
+]
+},
+"11908": {
+"vsetky": false,
+"sarze": [
+"5 mg"
+]
+},
+"02811": {
+"vsetky": false,
+"sarze": [
+"5 mg"
+]
+},
+"02510": {
+"vsetky": false,
+"sarze": [
+"5 mg"
+]
+},
+"00802": {
+"vsetky": false,
+"sarze": [
+"5 mg"
+]
+},
+"00801": {
+"vsetky": false,
+"sarze": [
+"5 mg"
+]
+},
+"84609": {
+"vsetky": false,
+"sarze": []
+},
+"51958": {
+"vsetky": false,
+"sarze": [
+"84609"
+]
+},
+"03512": {
+"vsetky": false,
+"sarze": [
+"5 mg"
+]
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -707,10 +1131,100 @@
 "title": "Stiahnutie lieku Losartan STADA z trhu",
 "date": "2021-11-26",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"44180",
+"84846",
+"44176",
+"00510",
+"01419",
+"02136",
+"02948",
+"02949",
+"10313",
+"12615",
+"13237"
+],
+"sarze": [
+"84846",
+"Losartan STADA 50 mg",
+"00510",
+"01419",
+"02136",
+"02948",
+"02949",
+"10313",
+"12615",
+"13237"
+],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"per": {
+"44180": {
+"vsetky": false,
+"sarze": [
+"13237"
+]
+},
+"84846": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"44176": {
+"vsetky": false,
+"sarze": [
+"13237"
+]
+},
+"00510": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"01419": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"02136": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"02948": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"02949": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"10313": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"12615": {
+"vsetky": false,
+"sarze": [
+"Losartan STADA 50 mg"
+]
+},
+"13237": {
+"vsetky": false,
+"sarze": []
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -727,6 +1241,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia šarže lieku z trhu je podozrenie na prítomnosť cudzorodých častíc.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -745,6 +1261,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je podozrenie na nedostatok v kvalite lieku – nesúlad so špecifikáciou v parametri disolúcia liečiva.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -753,10 +1271,37 @@
 "title": "Stiahnutie lieku Lozap H z trhu - AKTUALIZÁCIA",
 "date": "2021-10-06",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"41863",
+"41864"
+],
+"sarze": [
+"2070220",
+"2930820",
+"2660321",
+"2831219",
+"2841219",
+"2860720",
+"2870720",
+"2590321"
+],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"per": {
+"41863": {
+"vsetky": false,
+"sarze": [
+"2660321"
+]
+},
+"41864": {
+"vsetky": false,
+"sarze": [
+"2590321"
+]
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -765,10 +1310,71 @@
 "title": "Stiahnutie lieku Losartan Zentiva z trhu - AKTUALIZÁCIA",
 "date": "2021-10-06",
 "trieda": "II",
-"kody": [],
-"sarze": [],
+"kody": [
+"49505",
+"49507",
+"49511",
+"49527",
+"49530"
+],
+"sarze": [
+"2610620",
+"2590420",
+"2620620",
+"2600421",
+"2660621",
+"2651119",
+"2530120",
+"2630820",
+"2540121",
+"2610521",
+"2011120",
+"2021119",
+"2341019",
+"2200620",
+"2341120",
+"2120321",
+"2451119",
+"2351019",
+"2150620",
+"2311020",
+"2180421"
+],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"per": {
+"49505": {
+"vsetky": false,
+"sarze": [
+"2651119"
+]
+},
+"49507": {
+"vsetky": false,
+"sarze": [
+"2610521"
+]
+},
+"49511": {
+"vsetky": false,
+"sarze": [
+"2021119"
+]
+},
+"49527": {
+"vsetky": false,
+"sarze": [
+"2451119"
+]
+},
+"49530": {
+"vsetky": false,
+"sarze": [
+"2180421"
+]
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -786,6 +1392,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je zistený výsledok skúšky mimo schválenej špecifikácie v parametri obsah liečiva .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -802,6 +1410,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri viditeľné častice.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -822,6 +1432,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah neznámej nečistoty .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -831,13 +1443,46 @@
 "date": "2021-07-27",
 "trieda": "II",
 "kody": [
-"38102"
+"38102",
+"0R821",
+"38273",
+"0R859",
+"38270"
 ],
 "sarze": [
-"0R821"
+"0R821",
+"38273",
+"38270"
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"per": {
+"38102": {
+"vsetky": false,
+"sarze": []
+},
+"0R821": {
+"vsetky": false,
+"sarze": [
+"38273"
+]
+},
+"38273": {
+"vsetky": false,
+"sarze": []
+},
+"0R859": {
+"vsetky": false,
+"sarze": [
+"38270"
+]
+},
+"38270": {
+"vsetky": false,
+"sarze": []
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -848,15 +1493,47 @@
 "trieda": "II",
 "kody": [
 "38273",
-"38270"
+"38270",
+"38102",
+"0R821",
+"0R859"
 ],
 "sarze": [
 "0R859",
 "0R1VX",
-"9R917"
+"9R917",
+"38273",
+"38270"
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je prítomnosť azidovej nečistoty v účinnej látke nad povolený limit.",
+"per": {
+"38102": {
+"vsetky": false,
+"sarze": []
+},
+"0R821": {
+"vsetky": false,
+"sarze": [
+"38273"
+]
+},
+"38273": {
+"vsetky": false,
+"sarze": []
+},
+"0R859": {
+"vsetky": false,
+"sarze": [
+"38270"
+]
+},
+"38270": {
+"vsetky": false,
+"sarze": []
+}
+},
+"pv": 2,
 "detail": true
 },
 {
@@ -878,6 +1555,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah neznámej nečistoty .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -895,6 +1574,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah nečistôt.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -911,6 +1592,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia z trhu je výsledok skúšky mimo schválenú špecifikáciu v parametri obsah neznámej nečistoty .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -925,6 +1608,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -941,6 +1626,8 @@
 ],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -956,6 +1643,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -973,6 +1662,8 @@
 ],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -989,6 +1680,8 @@
 ],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1005,6 +1698,8 @@
 ],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1023,6 +1718,8 @@
 ],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1040,6 +1737,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia lieku z trhu je zámena blistrov v balení lieku .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1056,6 +1755,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia je možný výskyt poškodenia primárneho obalu.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1072,6 +1773,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia šarže lieku z trhu je nevyhovujúci výsledok skúšky v parametri mikrobiologická čistota lieku .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1086,6 +1789,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom stiahnutia všetkých šarží lieku z trhu je nedostatok v kvalite lieku v parametri obsah liečiva (dezmopresín) a obsah pomocnej látky (benzalkónium chlorid).",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1100,6 +1805,8 @@
 ],
 "vsetky": false,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1114,6 +1821,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom pre stiahnutie lieku z trhu je zastavenie jeho používania.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1129,6 +1838,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom pre stiahnutie lieku z trhu je nedostatok v kvalite lieku - možnosť prasknutia alebo zlomenia vaginálneho krúžku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1143,6 +1854,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom pre stiahnutie lieku z trhu je nedostatok v kvalite lieku - možnosť prasknutia alebo zlomenia vaginálneho krúžku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1161,6 +1874,8 @@
 ],
 "vsetky": true,
 "dovod": "",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1176,6 +1891,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom pre stiahnutie z trhu je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1192,6 +1909,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom stiahnutia predmetných liekov je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1207,6 +1926,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom pre pozastavenie výdaja je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1221,6 +1942,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom stiahnutia predmetných liekov je nedostatok v kvalite – prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1236,7 +1959,9 @@
 "2060519"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je nesprávny EAN kód na vonkajšom obale lieku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1251,6 +1976,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných fliaš z trhu je potenciálne riziko vznietenia počas prípravy na použitie.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1270,6 +1997,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží z trhu je nesprávne označenie exspirácie.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1286,6 +2015,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia je nesúlad so špecifikáciou v parametri farba injekčného roztoku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1302,6 +2033,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia danej šarže z trhu je podozrenie na výskyt tabliet Egilok 50 mg v balení lieku Egilok 25 mg .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1318,6 +2051,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia je prítomnosť častíc v roztoku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1336,6 +2071,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží je možné riziko netesniaceho uzáveru na lieku .",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1349,7 +2086,9 @@
 ],
 "sarze": [],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku z trhu sú technické problémy na zostave ventil + tlaková fľaša.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1365,7 +2104,9 @@
 "ZC17030BA"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je nedostatok v kvalite zistený pri testoch stability.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1381,7 +2122,9 @@
 "2251018"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je nedostatok v kvalite zistený pri testoch stability.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1398,6 +2141,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže je nedostatok v kvalite – prítomnosť nedeklarovanej častice v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1414,6 +2159,8 @@
 ],
 "vsetky": true,
 "dovod": "Dôvodom stiahnutia je riziko mikrobiálnej kontaminácie.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1430,6 +2177,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetnej šarže je nedostatok v kvalite – možná prítomnosť nedeklarovanej častice v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1446,6 +2195,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží je nedodržanie požiadaviek správnej výrobnej praxe pri plnení ampúl.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1463,6 +2214,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží je zistený nedostatok v kvalite v parametroch obsah etanolu a hustota.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1477,6 +2230,8 @@
 "sarze": [],
 "vsetky": true,
 "dovod": "Dôvodom stiahnutia je zistený nedostatok v kvalite všetkých šarží nachádzajúcich sa na slovenskom trhu.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1494,6 +2249,8 @@
 ],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných šarží je zistený nedostatok v kvalite.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1506,6 +2263,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných liekov je zistený nedostatok v kvalite.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1521,6 +2280,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1535,6 +2296,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1550,6 +2313,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1565,6 +2330,8 @@
 "sarze": [],
 "vsetky": false,
 "dovod": "Dôvodom stiahnutia predmetných liekov je podozrenie na nedostatok v kvalite – možná prítomnosť nedeklarovanej nečistoty v účinnej látke.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1576,7 +2343,9 @@
 "kody": [],
 "sarze": [],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je možná prítomnosť cudzorodej častice.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1590,7 +2359,9 @@
 "1TR280817A"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku z trhu je možný výskyt chybného balenia (netesniace liekovky).",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1607,7 +2378,9 @@
 "PQ1135"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku z trhu je nesúlad so špecifikáciou lieku v parametri – príbuzné látky (nečistoty).",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1622,7 +2395,9 @@
 "100002781"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je prekročený doporučený limit pre obsah pyrrolizidínových alkaloidov, stanovený Európskou agentúrou pre lieky (EMA).",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1634,7 +2409,9 @@
 "kody": [],
 "sarze": [],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží liekov z trhu je nesúlad so schválenou registračnou dokumentáciou – nesprávny údaj o exspirácii lieku.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1648,7 +2425,9 @@
 "28206087"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je nesúlad so špecifikáciou lieku v parametri – pH.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1662,7 +2441,9 @@
 "GJZT700"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku z trhu sú hlásené reklamácie lieku z trhov EÚ súvisiace s otáčajúcim sa/voľným lemovacím uzáverom injekčnej liekovky.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1676,7 +2457,9 @@
 "744827"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je podľa oznámenia držiteľa omylom poslané cudzojazyčné balenie v slovinsko - chorvátskom jazyku z centrálneho skladu výrobcu.",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1691,7 +2474,9 @@
 "3A602058"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetných šarží lieku z trhu je nesúlad so špecifikáciou lieku, klesajúca tendencia v parametri – obsah liečiva (hexetidín).",
+"per": {},
+"pv": 2,
 "detail": true
 },
 {
@@ -1705,7 +2490,9 @@
 "5K045L"
 ],
 "vsetky": false,
-"dovod": "",
+"dovod": "Dôvodom stiahnutia predmetnej šarže lieku z trhu je nesúlad so špecifikáciou lieku v parametri – jemné častice pod 5µm.",
+"per": {},
+"pv": 2,
 "detail": true
 }
 ],
