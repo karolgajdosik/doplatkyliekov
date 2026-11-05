@@ -1,4 +1,5 @@
-/* Lekárne v okolí: zoznam z OpenStreetMap (/lekarne.json), vzdialenosť podľa polohy alebo hľadania obce.
+/* Lekárne, výdajne pomôcok, optiky a pobočky poisťovní v okolí: /lekarne.json (OSM), /miesta.json (OSM + weby poisťovní).
+   Druh sa vyberá prepínačom alebo adresou ?typ=pomocky|optiky|poistovne; vzdialenosť podľa polohy alebo hľadania obce.
    Poloha sa nikam neposiela; mapa (dlaždice OpenStreetMap) sa načíta až po kliknutí. */
 (function () {
   'use strict';
@@ -6,11 +7,41 @@
   if (!root) return;
   var listEl = document.getElementById('lek-list'), msg = document.getElementById('lek-msg'), q = document.getElementById('lek-q');
   var mapBtn = document.getElementById('lek-map-btn'), mapEl = document.getElementById('lek-map');
-  var all = null, here = null, shown = [], map = null, layer = null;
+  var here = null, shown = [], map = null, layer = null, cache = {}, lastQ = null;
+  var TYP = {
+    lekarne: { one: 'lekáreň', many: 'Lekárne', near: 'Najbližšie lekárne', color: '#087a5f' },
+    pomocky: { one: 'výdajňu pomôcok', many: 'Výdajne zdravotníckych pomôcok', near: 'Najbližšie výdajne pomôcok', color: '#0b6b8a', f: ['zp'] },
+    optiky: { one: 'optiku', many: 'Optiky a načúvacie prístroje', near: 'Najbližšie optiky a načúvacie prístroje', color: '#6a4bb3', f: ['opt', 'sluch'] },
+    poistovne: { one: 'pobočku', many: 'Pobočky poisťovní', near: 'Najbližšie pobočky poisťovní', color: '#b34700', f: ['vszp', 'dovera', 'union'] }
+  };
+  var typ = (/[?&]typ=(\w+)/.exec(location.search) || [])[1];
+  if (!TYP[typ]) typ = 'lekarne';
+  var radios = root.querySelectorAll('input[name="lek-typ"]');
+  radios.forEach(function (r) {
+    r.checked = r.value === typ;
+    r.addEventListener('change', function () {
+      if (!r.checked) return;
+      typ = r.value;
+      try { history.replaceState(null, '', typ === 'lekarne' ? location.pathname : '?typ=' + typ); } catch (e) { /* bez histórie */ }
+      intro();
+      if (here) nearest(here).then(function (l) { render(l, here); say(TYP[typ].near + ' k vašej polohe.'); });
+      else if (lastQ) search(lastQ); else render([], null, true);
+    });
+  });
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function say(t, err) { msg.textContent = t; msg.className = 'form-msg ' + (err ? 'err' : 'ok'); }
-  function load() { if (!all) all = fetch('/lekarne.json').then(function (r) { return r.json(); }).then(function (j) { return j.lekarne; }); return all; }
+  var miesta = null;
+  function load() {
+    if (!cache[typ]) {
+      var t = TYP[typ];
+      cache[typ] = t.f ? (miesta = miesta || fetch('/miesta.json').then(function (r) { return r.json(); })).then(function (j) {
+        return j.m.filter(function (x) { return t.f.indexOf(x[7]) >= 0; });
+      }) : fetch('/lekarne.json').then(function (r) { return r.json(); }).then(function (j) { return j.lekarne; });
+    }
+    return cache[typ];
+  }
+  var INS = { vszp: 'VšZP', dovera: 'Dôvera', union: 'Union' };
   function dist(a, b) {
     var R = 6371, dLat = (b[0] - a[0]) * Math.PI / 180, dLon = (b[1] - a[1]) * Math.PI / 180;
     var x = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
@@ -47,10 +78,10 @@
   }
   function skHours(oh) { return oh.replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH)\b/g, function (x) { return SKD[x]; }).replace(/\boff\b/g, 'zatvorené'); }
 
-  function render(items, center) {
+  function render(items, center, quiet) {
     shown = items;
     listEl.replaceChildren();
-    if (!items.length) { listEl.append(el('li', 'tr-empty', 'Nenašli sme žiadnu lekáreň.')); return; }
+    if (!items.length) { if (!quiet) listEl.append(el('li', 'tr-empty', 'Nenašli sme žiadnu ' + TYP[typ].one + '.')); if (map) drawMap(); return; }
     items.forEach(function (x) {
       var li = el('li'), g = el('div', 'gline');
       var name = el('strong', null, x[2]);
@@ -63,6 +94,8 @@
       var nav = el('a', null, 'Navigovať'); nav.href = 'https://www.google.com/maps/dir/?api=1&destination=' + x[0] + ',' + x[1]; nav.target = '_blank'; nav.rel = 'noopener';
       acts.append(nav);
       if (x[6]) { var tel = el('a', null, x[6]); tel.href = 'tel:' + x[6].replace(/[^\d+]/g, ''); acts.append(' · ', tel); }
+      if (x[8]) { var det = el('a', null, 'Stránka pobočky'); det.href = x[8]; det.rel = 'noopener'; det.target = '_blank'; acts.append(' · ', det); }
+      if (x[7] === 'sluch') g.append(el('small', null, 'Načúvacie prístroje'));
       g.append(acts); li.append(g); listEl.append(li);
     });
     if (map) drawMap();
@@ -78,7 +111,7 @@
     say('Zisťujem polohu…');
     navigator.geolocation.getCurrentPosition(function (p) {
       here = [p.coords.latitude, p.coords.longitude];
-      nearest(here).then(function (l) { render(l, here); say('Najbližšie lekárne k vašej polohe. Poloha zostáva len vo vašom zariadení.'); });
+      nearest(here).then(function (l) { render(l, here); say(TYP[typ].near + ' k vašej polohe. Poloha zostáva len vo vašom zariadení.'); });
     }, function () { say('Polohu sa nepodarilo zistiť alebo ste ju nepovolili. Napíšte názov obce alebo ulice.', true); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
   });
   var tmr = null;
@@ -86,6 +119,10 @@
     clearTimeout(tmr);
     tmr = setTimeout(function () {
       var t = norm(q.value.trim()); if (t.length < 2) return;
+      lastQ = t; here = null; search(t);
+    }, 250);
+  });
+  function search(t) {
       load().then(function (l) {
         var hits = l.filter(function (x) { return norm(x[4] + ' ' + x[3] + ' ' + x[2]).indexOf(t) >= 0; });
         if (!hits.length) { render([], null); return say('Nič sme nenašli. Skúste názov obce bez skratiek.', true); }
@@ -93,10 +130,9 @@
         var c = [hits.reduce(function (s, x) { return s + x[0]; }, 0) / hits.length, hits.reduce(function (s, x) { return s + x[1]; }, 0) / hits.length];
         hits.forEach(function (x) { x.d = dist(c, x); });
         render(hits.sort(function (a, b) { return a.d - b.d; }).slice(0, 40), null);
-        say('Lekárne: ' + hits.length + (hits.length > 40 ? ' (zobrazených 40)' : ''));
+        say(TYP[typ].many + ': ' + hits.length + (hits.length > 40 ? ' (zobrazených 40)' : ''));
       });
-    }, 250);
-  });
+  }
   function drawMap() {
     if (!window.L) return;
     if (!map) {
@@ -107,7 +143,7 @@
     layer.clearLayers();
     var pts = [];
     shown.forEach(function (x) {
-      var mk = L.circleMarker([x[0], x[1]], { radius: 8, color: '#ffffff', weight: 2, fillColor: '#087a5f', fillOpacity: 1 });
+      var mk = L.circleMarker([x[0], x[1]], { radius: 8, color: '#ffffff', weight: 2, fillColor: TYP[typ].color, fillOpacity: 1 });
       var box = document.createElement('div'); box.append(el('b', null, x[2]), document.createElement('br'), [x[3], x[4]].filter(Boolean).join(', '));
       mk.bindPopup(box); layer.addLayer(mk); pts.push([x[0], x[1]]);
     });
@@ -119,5 +155,9 @@
     var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/vendor/leaflet/leaflet.css'; document.head.append(css);
     var s = document.createElement('script'); s.src = '/vendor/leaflet/leaflet.js'; s.onload = drawMap; document.body.append(s);
   });
-  load().then(function (l) { say('V zozname je ' + l.length + ' lekární. Nájdite najbližšie podľa polohy alebo obce.'); }).catch(function () { say('Zoznam lekární sa nepodarilo načítať.', true); });
+  function intro() {
+    load().then(function (l) { say(TYP[typ].many + ' v zozname: ' + l.length + '. Nájdite najbližšie podľa polohy alebo obce.'); })
+      .catch(function () { say('Zoznam sa nepodarilo načítať. Skúste obnoviť stránku.', true); });
+  }
+  intro();
 })();

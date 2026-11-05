@@ -177,12 +177,18 @@ await check('Ochranný limit – kalkulačka', async () => {
   return 'výsledok zobrazený';
 });
 
-await check('Lekárne v okolí – hľadanie obce', async () => {
+await check('Lekárne a pobočky v okolí – hľadanie obce', async () => {
   await page.goto(BASE + '/lekarne/');
-  await page.waitForFunction(() => /V zozname je \d+/.test(document.querySelector('#lek-msg')?.textContent || ''));
+  await page.waitForFunction(() => /v zozname: \d+/.test(document.querySelector('#lek-msg')?.textContent || ''));
   await page.fill('#lek-q', 'Žilina');
   await page.waitForFunction(() => document.querySelectorAll('#lek-list li .gline').length > 3);
-  return (await page.locator('#lek-list li').count()) + ' lekární';
+  let out = (await page.locator('#lek-list li').count()) + ' lekární';
+  if (await page.locator('input[name="lek-typ"][value="poistovne"]').count()) {
+    await page.check('input[name="lek-typ"][value="poistovne"]');
+    await page.waitForFunction(() => /Pobočky poisťovní: \d+/.test(document.querySelector('#lek-msg')?.textContent || ''), null, { timeout: 15000 });
+    out += ', ' + (await page.locator('#lek-list li .gline').count()) + ' pobočiek poisťovní';
+  }
+  return out;
 });
 
 await check('Zdravotnícke pomôcky a oznamy ŠÚKL', async () => {

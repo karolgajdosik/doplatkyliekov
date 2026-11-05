@@ -33,6 +33,13 @@ jobs:
           python scripts/build_lekarne.py 2>&1 | tee lek.log; code=${PIPESTATUS[0]}
           echo "::notice title=lekarne::$(tail -n 4 lek.log | tr '\n' ' ' | head -c 900)"
           exit $code
+      - name: Pobočky zdravotných poisťovní
+        continue-on-error: true
+        run: |
+          set +e
+          python scripts/build_pobocky.py 2>&1 | tee pob.log; code=${PIPESTATUS[0]}
+          echo "::notice title=pobocky::$(tail -n 4 pob.log | tr '\n' ' ' | head -c 900)"
+          exit $code
       - name: Príbalové letáky zo ŠÚKL
         if: ${{ !inputs.bez_letakov }}
         continue-on-error: true
@@ -49,5 +56,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898237+github-actions[bot]@users.noreply.github.com"
-          git add data/lekarne.json data/pil data/pil_map.json 2>/dev/null || true
+          git add data/lekarne.json data/vydajne.json data/pobocky.json data/pil data/pil_map.json 2>/dev/null || true
           if git diff --cached --quiet; then echo "Bez zmien."; else git commit -m "Mesačné dáta: letáky a lekárne" && git pull --rebase -q && git push; fi

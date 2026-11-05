@@ -98,7 +98,8 @@ def build_zp_pages(c):
   <section class="card"><h2>Pomôcky a doplatky</h2><ul class="glist">{''.join(item_li(x) for x in items)}</ul>
   <p class="hint">Doplatok je maximálny, výdajňa ho môže znížiť. Cena a úhrada sú uvedené {esc(UNIT.get(items[0].get('mj', ''), 'za jednotku'))}, ako ich uvádza ministerstvo.</p></section>
   {lim}
-  <section class="card"><h2>Ako pomôcku dostať</h2><p>Pomôcku predpisuje lekár s odbornosťou uvedenou pri pomôcke, zvyčajne na poukaz. Vydá ju lekáreň alebo výdajňa zdravotníckych pomôcok. Ak doplácate, opýtajte sa na pomôcku z rovnakej skupiny bez doplatku, poisťovňa na ne prispieva rovnako.</p></section>
+  <section class="card"><h2>Ako pomôcku dostať</h2><p>Pomôcku predpisuje lekár s odbornosťou uvedenou pri pomôcke, zvyčajne na poukaz. Vydá ju lekáreň alebo výdajňa zdravotníckych pomôcok. Ak doplácate, opýtajte sa na pomôcku z rovnakej skupiny bez doplatku, poisťovňa na ne prispieva rovnako.</p>
+  <p><a href="/lekarne/?typ={'optiky' if letter in ('N', 'O') else 'pomocky'}">Kde ju vydajú: {'optiky a načúvacie prístroje' if letter in ('N', 'O') else 'výdajne pomôcok'} v okolí</a> · <a href="/lekarne/">lekárne v okolí</a>{'' if not g.get('lim') else ' · schválenie nad limit vybavíte na <a href="/lekarne/?typ=poistovne">pobočke poisťovne</a>'}</p></section>
   <p class="hint">Zdroj: {esc(platnost)}. <a href="/pomocky/">Všetky skupiny pomôcok</a></p>"""
         desc = f"{g['name']}: {summary} Podľa zoznamu ministerstva zdravotníctva platného od {od}."
         write(f"/pomocky/{g['slug']}/", page(f"{g['name']} – doplatky za zdravotnícke pomôcky", desc,

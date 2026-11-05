@@ -315,7 +315,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, výdajne a pobočky"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"), ("/statistiky/", "Doplatky v číslach")]),
@@ -761,6 +761,10 @@ details.io .code { display: block; margin-top: 8px; font-family: var(--font-mono
 .glist .gline a { min-width: 0; overflow-wrap: anywhere; text-decoration: none; color: var(--ink); font-weight: 500; }
 .glist .gline a:hover { color: var(--accent); }
 .glist .gline .mono { white-space: nowrap; font-weight: 600; }
+.lek-typ { border: 0; padding: 0; margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.lek-typ .chip { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.lek-typ .chip:has(input:checked) { background: var(--accent); color: #fff; border-color: var(--accent); }
+.lek-typ input { accent-color: var(--accent); }
 .glist .gline .zn { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
 .glist .gline .zn .tag { margin-left: 6px; vertical-align: middle; white-space: nowrap; }
 ul.plain { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
@@ -2873,25 +2877,41 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
     lek_src = DATA / "lekarne.json"
     if lek_src.exists():
         shutil.copyfile(lek_src, SITE / "lekarne.json")
-        crumb_items = [("Domov", "/"), ("Lekárne v okolí", None)]
+        # výdajne pomôcok a optiky (OSM, build_lekarne.py) + pobočky poisťovní (build_pobocky.py) → /miesta.json
+        miesta, n_vyd, n_pob = [], 0, 0
+        if (DATA / "vydajne.json").exists():
+            vy = json.loads((DATA / "vydajne.json").read_text(encoding="utf-8"))["vydajne"]
+            miesta += vy
+            n_vyd = len(vy)
+        if (DATA / "pobocky.json").exists():
+            pb = json.loads((DATA / "pobocky.json").read_text(encoding="utf-8"))["pobocky"]
+            miesta += pb
+            n_pob = len(pb)
+        (SITE / "miesta.json").write_text(json.dumps({"m": miesta}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        typ_opts = [("lekarne", "Lekárne")] + ([("pomocky", "Výdajne pomôcok"), ("optiky", "Optiky a načúvacie prístroje")] if n_vyd else []) \
+            + ([("poistovne", "Pobočky poisťovní")] if n_pob else [])
+        typ_html = "".join(f'<label class="chip"><input type="radio" name="lek-typ" value="{v}"{" checked" if v == "lekarne" else ""}> {t}</label>'
+                           for v, t in typ_opts)
+        crumb_items = [("Domov", "/"), ("Lekárne, výdajne a pobočky", None)]
         body = f"""{crumbs(crumb_items)}
   <section class="intro">
-    <p class="eyebrow">Mapa lekární</p>
-    <h1 class="page-h1">Lekárne v okolí</h1>
-    <p class="page-sub">Nájdite najbližšiu lekáreň podľa svojej polohy alebo obce. Uvidíte adresu, otváracie hodiny, ak sú známe, a navigáciu.</p>
+    <p class="eyebrow">Mapa v okolí</p>
+    <h1 class="page-h1">Lekárne, výdajne pomôcok a pobočky poisťovní</h1>
+    <p class="page-sub">Nájdite najbližšiu lekáreň, výdajňu zdravotníckych pomôcok, optiku alebo pobočku zdravotnej poisťovne podľa svojej polohy alebo obce. Uvidíte adresu, otváracie hodiny, ak sú známe, a navigáciu.</p>
   </section>
   <section class="card" id="lek-root">
+    <fieldset class="lek-typ chips"><legend class="lbl">Čo hľadáte</legend>{typ_html}</fieldset>
     <div class="lek-find">
-      <button type="button" id="lek-geo" class="pharm-btn">{IC["search"]}<span>Lekárne pri mne</span></button>
+      <button type="button" id="lek-geo" class="pharm-btn">{IC["search"]}<span>Hľadať pri mne</span></button>
       <label class="lek-q">alebo obec či ulica <input type="search" id="lek-q" placeholder="napr. Trnava, Hlavná" autocomplete="off"></label>
     </div>
     <p class="form-msg" id="lek-msg" aria-live="polite"></p>
     <button type="button" class="linkish" id="lek-map-btn">Zobraziť na mape</button>
     <div id="lek-map" class="lek-map" hidden></div>
     <ul class="glist lek-list" id="lek-list"></ul>
-    <p class="hint">Údaje o lekárňach pochádzajú z OpenStreetMap (© prispievatelia OpenStreetMap, licencia ODbL) a nemusia byť úplné ani aktuálne. Otváracie hodiny a pohotovostné služby si pred cestou overte telefonicky alebo na stránke vášho samosprávneho kraja. Vaša poloha sa nikam neposiela; mapové podklady sa načítajú zo serverov OpenStreetMap až po kliknutí na „Zobraziť na mape“.</p>
+    <p class="hint">Údaje o lekárňach, výdajniach pomôcok a optikách pochádzajú z OpenStreetMap (© prispievatelia OpenStreetMap, licencia ODbL) a nemusia byť úplné ani aktuálne; pomôcky vydávajú aj mnohé lekárne. Pobočky poisťovní a ich otváracie hodiny sú z webov VšZP, Dôvery a Union, aktualizujeme ich mesačne. Otváracie hodiny a pohotovostné služby si pred cestou overte telefonicky alebo na stránke vášho samosprávneho kraja. Vaša poloha sa nikam neposiela; mapové podklady sa načítajú zo serverov OpenStreetMap až po kliknutí na „Zobraziť na mape“.</p>
   </section>"""
-        write("/lekarne/", page("Lekárne v okolí – mapa lekární na Slovensku", "Najbližšie lekárne podľa polohy alebo obce: adresa, otváracie hodiny a navigácia. Údaje z OpenStreetMap.",
+        write("/lekarne/", page("Lekárne, výdajne pomôcok a pobočky poisťovní v okolí – mapa", "Najbližšie lekárne, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union podľa polohy alebo obce: adresa, otváracie hodiny a navigácia.",
                                 "/lekarne/", body, breadcrumb_ld(crumb_items), '<script src="/lekarne.js" defer></script>'))
         urls.append(("/lekarne/", "0.6"))
 
