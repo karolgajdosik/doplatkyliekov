@@ -1,48 +1,29 @@
-# Dočasné: stiahne vzorky zdrojov do raw/ (ŠÚKL stiahnutia, DHPC, MZ SR pomôcky)
-import re, urllib.request, pathlib, time, json
+# Dočasné: zoznam kategorizovaných zdravotníckych pomôcok MZ SR
+import re, urllib.request, pathlib
 R = pathlib.Path('raw'); R.mkdir(exist_ok=True)
 UA = {'User-Agent': 'doplatkyliekov.sk data updater'}
 log = []
-def get(u, t=60):
-    try:
-        with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=t) as r:
-            return r.read()
-    except Exception as e:
-        log.append(f'ERR {u} {e}'); return None
-def save(name, data):
-    if data is not None:
-        (R / name).write_bytes(data); log.append(f'OK {name} {len(data)}')
-S = 'https://www.sukl.sk'
-for i, path in enumerate(['/pre-odbornikov-a-firmy/dostupnost-a-kvalita-liekov/kvalita-liekov/oznamy-o-stiahnuti-liekov',
-                          '/pre-odbornikov-a-firmy/bezpecnost-liekov/oznamy-drzitelov-dhpc']):
-    h = get(S + path); save(f'sukl_list_{i}.html', h)
-    if h:
-        links = sorted(set(re.findall(r'href="(' + re.escape(S + path) + r'/[^"#?]+)"', h.decode('utf-8', 'replace'))))
-        log.append(f'{path}: {len(links)} detailov')
-        for j, l in enumerate(links[:6]):
-            save(f'sukl_det_{i}_{j}.html', get(l)); time.sleep(1)
-        # stránkovanie
-        pg = sorted(set(re.findall(r'href="([^"]*(?:page|strana|stranka)=\d+[^"]*)"', h.decode('utf-8', 'replace'))))
-        log.append(f'strankovanie {i}: {pg[:5]}')
-        if pg:
-            u = pg[0] if pg[0].startswith('http') else S + pg[0].replace('&amp;', '&')
-            save(f'sukl_list_{i}_p2.html', get(u))
+def get(u, t=180):
+    for k in range(4):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=t) as r:
+                return r.read()
+        except Exception as e:
+            log.append(f'ERR {k} {u} {e}')
+    return None
 H = 'https://www.health.gov.sk'
-h = get(H + '/?zoznam-kategorizovanych-liekov'); save('mz_zkl.html', h)
-cand = set()
+p = '/odbornik/kategorizacia-a-cenotvorba/zoznam-kategorizovanych-zdravotnickych-pomocok/'
+h = get(H + p)
 if h:
+    (R / 'mz_zp.html').write_bytes(h)
     t = h.decode('utf-8', 'replace')
-    cand |= set(re.findall(r'href="(\?[^"]*(?:pomoc|zdravotnick|dietet|zp)[^"]*)"', t, re.I))
-log.append(f'kandidati stranok: {sorted(cand)}')
-for c in sorted(cand)[:6]:
-    hh = get(H + '/' + c); save('mz_' + re.sub(r'\W+', '_', c)[:60] + '.html', hh)
-    if hh:
-        files = sorted(set(re.findall(r'href="([^"]*(?:zkzp|zkdp)[^"]*\.(?:xlsx|xls|docx|pdf|zip))"', hh.decode('utf-8', 'replace'), re.I)))
-        log.append(f'subory {c}: {files[:40]}')
-        for f in [f for f in files if '2026' in f or '2611' in f][:8]:
-            u = f if f.startswith('http') else H + ('' if f.startswith('/') else '/') + f
-            save('zp_' + f.split('/')[-1], get(u, 120))
-for d in ('zkzp', 'zkdp'):
-    save(f'mz_dir_{d}.html', get(f'{H}/Zdroje?/Sources/kategorizacia/{d}/202611/'))
-(R / 'log.txt').write_text('\n'.join(log), encoding='utf-8')
-print('\n'.join(log))
+    files = re.findall(r'href="([^"]+\.(?:xlsx|xls|docx|pdf|zip))"', t, re.I)
+    log.append('SUBORY:\n' + '\n'.join(files[:60]))
+    pick = [f for f in files if re.search(r'2026|202611|202612', f)][:10]
+    for f in pick:
+        u = f if f.startswith('http') else H + ('' if f.startswith('/') else '/') + f
+        d = get(u)
+        if d:
+            n = 'zp_' + re.sub(r'[^\w.-]+', '_', u.split('/')[-2] + '_' + u.split('/')[-1])[-90:]
+            (R / n).write_bytes(d); log.append(f'OK {n} {len(d)}')
+(R / 'log.txt').write_text('\n'.join(log), encoding='utf-8'); print('\n'.join(log))
