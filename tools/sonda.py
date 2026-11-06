@@ -16,8 +16,13 @@ def save(name, u, kw):
     hit = [l for l in links if re.search(kw, l, re.I)]
     log.append(f'== {name} {u} -> {f} len={len(t or "")}\n   ' + '\n   '.join(hit[:40]))
     return t
-for q in ['Lopridam', 'Actelsar HCT', 'Benoxi', 'Aboxoma', 'Acnatac', 'Norditropin FlexPro', 'Accofil', 'Abiraterone G.L.', 'Carzap HCT']:
-    f, t2 = get('https://www.sukl.sk/rozsirene-vyhladavanie?search_type=drugs&drug_fulltext=' + urllib.parse.quote(q))
-    rows = re.findall(r'<a href="https://www\.sukl\.sk/([^"]+)">[^<]*</a>\s*</td>\s*<td>\s*<label>Kód</label>\s*(\w+)\s*</td>\s*<td>\s*<label>Liek / Účinná látka</label>\s*([^<]+?)\s*</td>', t2 or '')
-    log.append(f'{q}: ' + ' | '.join(f'{a} <= {c.strip()} [{b}]' for a, b, c in rows[:4]))
+ok = 0; urls = json.load(open('tools/spc_urls.json'))
+for u in urls:
+    f, t = get(u); ok += bool(t)
+    if not t: log.append(f'ERR {u}')
+log.append(f'SPC slug ok {ok}/{len(urls)}')
+for y in (2025, 2024, 2023):
+    u = f'https://data.nczisk.sk/statisticke_vystupy/top_100_liekov/spotreba_liekov/Spotreba_liekov_a_zdravotnickych_pomocok_v_SR_{y}.xlsx'
+    f, b = get(u, binary=True); log.append(f'spotreba {y}: {len(b or b"")}')
+    if b: (R / f'spotreba_{y}.xlsx').write_bytes(b)
 (R / 'log.txt').write_text('\n'.join(log), encoding='utf-8'); print('\n'.join(log))
