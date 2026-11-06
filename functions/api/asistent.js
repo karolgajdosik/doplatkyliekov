@@ -256,7 +256,8 @@ export async function onRequestPost({ request, env }) {
     const only = CF_MODELS.includes(body.m) ? body.m : null;
     return json(withRefs(await viaWorkersAI(env, request, sys, msgs, q, kod, only, refs, lang), refs, lang));
   } catch (e) {
-    return json({ error: 'Asistent teraz neodpovedá. Skúste to prosím o chvíľu.' }, 502);
+    // stručný technický dôvod pre strážcu webu (bez údajov o používateľovi)
+    return json({ error: 'Asistent teraz neodpovedá. Skúste to prosím o chvíľu.', detail: String((e && (e.detail || e.message)) || e).slice(0, 500) }, 502);
   }
 }
 
@@ -312,12 +313,15 @@ async function viaWorkersAI(env, request, system, messages, q, kod, only, refs, 
   const msgs = [{ role: 'system', content: sys }, ...messages.map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : '' }))];
   const list = only ? [only] : (env.AI_CF_MODEL ? [env.AI_CF_MODEL] : CF_MODELS);
   let lastErr;
+  const errs = [];
   for (const model of list) {
     try {
       const res = await env.AI.run(model, { messages: msgs, max_tokens: 700, temperature: 0.2 });
       const text = String((res && (res.response ?? res.result?.response ?? res.choices?.[0]?.message?.content)) || '').trim();
       if (text) return { answer: text, model };
-    } catch (e) { lastErr = e; }
+    } catch (e) { lastErr = e; errs.push(model.split('/').pop() + ': ' + String((e && e.message) || e).slice(0, 160)); }
   }
-  throw lastErr || new Error('bez odpovede');
+  const err = lastErr || new Error('bez odpovede');
+  err.detail = errs.join(' | ');
+  throw err;
 }

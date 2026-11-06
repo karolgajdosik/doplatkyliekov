@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.request
 
 SITE = "https://doplatkyliekov.sk"
@@ -69,7 +70,14 @@ def main():
         return "7 adries vrátane náhľadového obrázka"
 
     def assistant():
-        s, body, sec = get(SITE + "/api/asistent", {"q": "Koľko doplatím za Concor 10 mg?"}, timeout=90)
+        try:
+            s, body, sec = get(SITE + "/api/asistent", {"q": "Koľko doplatím za Concor 10 mg?"}, timeout=90)
+        except urllib.error.HTTPError as e:
+            try:
+                det = json.loads(e.read()).get("detail", "")
+            except Exception:  # noqa: BLE001
+                det = ""
+            raise AssertionError(f"HTTP {e.code}" + (f" ({det})" if det else "")) from None
         j = json.loads(body)
         ans = j.get("answer") or ""
         assert s == 200 and "Concor" in ans and "€" in ans, f"odpoveď je podozrivá: {ans[:120] or j}"
