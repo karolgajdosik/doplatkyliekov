@@ -1,4 +1,4 @@
-import re, urllib.request, pathlib, time, html
+import re, urllib.request, urllib.parse, pathlib, time, json
 UA = {'User-Agent': 'doplatkyliekov.sk (kontakt@doplatkyliekov.sk)'}
 R = pathlib.Path('raw'); R.mkdir(exist_ok=True)
 log = []
@@ -9,22 +9,22 @@ def get(u):
             return r.read().decode('utf-8', 'replace')
     except Exception as e:
         log.append(f'ERR {u} {e}'); return ''
-def links(t):
-    return [(u, re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', n))).strip()) for u, n in
-            re.findall(r"<tr\s+onclick=\"window\.location = '([^']+)'\".*?<a [^>]*>(.*?)</a>", t, re.S)]
 H = 'https://www.e-vuc.sk'
-jobs = [('lp_bsk', '/bsk/zdravotnictvo/lekarenska-pohotovostna-sluzba-v-bsk.html?page_id=51147', 2),
-        ('lp_zsk', '/zsk/zdravotnictvo/lekarenska-pohotovostna-sluzba-v-zsk.html?page_id=40490', 2),
-        ('uz_bsk', '/bsk/zdravotnictvo/ustavne-zdravotnicke-zariadenia.html?page_id=60143', 2),
-        ('ob_bsk', '/bsk/zdravotnictvo/kto-je-moj-lekar-zdravotne-obvody.html?page_id=64903', 3),
-        ('mo_bsk', '/bsk/zdravotnictvo/mobilne-odberove-miesta.html?page_id=135367', 2)]
-for name, path, depth in jobs:
-    t = get(H + path); (R / f'{name}_0.html').write_text(t)
-    L = links(t); log.append(f'{name}_0 len={len(t)} rows={len(L)} {L[:4]}')
-    pdf = re.findall(r'href="([^"]+\.pdf)"', t); log.append(f'  pdf {pdf[:5]}')
-    for d in range(1, depth + 1):
-        if not L: break
-        t = get(L[0][0]); (R / f'{name}_{d}.html').write_text(t)
-        L2 = links(t); log.append(f'{name}_{d} {L[0][1][:60]} len={len(t)} rows={len(L2)} {L2[:3]} gps={bool(re.search(r"maps.google.com/.q=4", t))}')
-        L = L2
+for name, u in [('lp_ba1', H + '/bsk/zdravotnictvo/lekarenska-pohotovostna-sluzba-v-bsk.html?page_id=51147&okres=Okres+Bratislava+I'),
+                ('lp_za', H + '/zsk/zdravotnictvo/lekarenska-pohotovostna-sluzba-v-zsk.html?page_id=40490&okres=Okres+%C5%BDilina'),
+                ('lp_bb', H + '/bbsk/zdravotnictvo/lekarenska-pohotovostna-sluzba-v-bbsk.html?page_id=92808')]:
+    t = get(u); (R / f'{name}.html').write_text(t); log.append(f'{name} len={len(t)} rows={t.count("window.location")}')
+for term in ['Malacky', 'Žilina']:
+    for pid in ['64903', '55563']:
+        t = get(H + '/e-vuc/ajax-zdravotne-obvody-mesto.html?page_id=122990&' + urllib.parse.urlencode({'term': term, 'current_page_id': pid}))
+        log.append(f'ajax {term} {pid}: {t[:600]}')
+        try:
+            j = json.loads(t)
+            if j:
+                mid = j[0].get('mesto_id')
+                base = H + ('/bsk/zdravotnictvo/kto-je-moj-lekar-zdravotne-obvody.html' if pid == '64903' else '/zsk/zdravotnictvo/kto-je-moj-lekar-zdravotne-obvody.html')
+                q = urllib.parse.urlencode({'page_id': pid, 'odbornost': 1, 'mesto': j[0].get('value') or j[0].get('label'), 'mesto_id': mid, 'current_page_id': pid, 'mesto_search_url': '', 'https': '', 'iframe': ''})
+                r = get(base + '?' + q); (R / f'ob_{pid}_{mid}.html').write_text(r); log.append(f'  vysledok len={len(r)} rows={r.count("data-row")} url={base}?{q}')
+        except Exception as e:
+            log.append(f'  json err {e}')
 (R / 'log.txt').write_text('\n'.join(log), encoding='utf-8'); print('\n'.join(log))
