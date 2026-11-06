@@ -2994,12 +2994,15 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             "optiky": '<path d="M2 12.5a4.5 4.5 0 0 0 9 0h2a4.5 4.5 0 0 0 9 0V11h-1.2L18.5 6H17l2 5h-5.1a2 2 0 0 0-3.8 0H5l2-5H5.5L3.2 11H2zm4.5 2.5A2.5 2.5 0 0 1 4 12.5h5A2.5 2.5 0 0 1 6.5 15zm11 0a2.5 2.5 0 0 1-2.5-2.5h5a2.5 2.5 0 0 1-2.5 2.5z"/>',
             "poistovne": '<path d="M12 2 3 6v2h18V6zM5 10h2v7H5zm4 0h2v7H9zm4 0h2v7h-2zm4 0h2v7h-2zM3 19h18v2H3z"/>',
         }
+        n_lek = len(json.loads(lek_src.read_text(encoding="utf-8"))["lekarne"])
+        n_of = {"lekarne": n_lek, "pomocky": sum(1 for x in (vy if n_vyd else []) if x[7] == "zp"),
+                "optiky": sum(1 for x in (vy if n_vyd else []) if x[7] in ("opt", "sluch")), "poistovne": n_pob}
         typ_opts = [("lekarne", "Lekárne", "#087a5f")] + ([("pomocky", "Pomôcky", "#0b6b8a"), ("optiky", "Optiky", "#6a4bb3")] if n_vyd else []) \
             + ([("poistovne", "Poisťovne", "#b34700")] if n_pob else [])
         cats_html = "".join(
             f'<button type="button" role="radio" class="mapa-cat" data-typ="{v}" aria-checked="{"true" if v == "lekarne" else "false"}" style="--c:{c}">'
             f'<span class="mapa-cap"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">{ICONS_MAP[v]}</svg></span>'
-            f'<span class="mapa-cl-t">{t}</span><span class="mapa-n"></span></button>' for v, t, c in typ_opts)
+            f'<span class="mapa-cl-t">{t}</span><span class="mapa-n">{n_of[v]}</span></button>' for v, t, c in typ_opts)
         crumb_items = [("Domov", "/"), ("Lekárne a pobočky v okolí", None)]
         body = f"""{crumbs(crumb_items)}
   <header class="mapa-head">
@@ -3032,7 +3035,9 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
     </div>
   </section>
   <p class="hint mapa-src">Lekárne, výdajne pomôcok a optiky: © prispievatelia OpenStreetMap (ODbL), nemusia byť úplné; pomôcky vydávajú aj mnohé lekárne. Pobočky a ich hodiny: weby VšZP, Dôvery a Union, aktualizované mesačne. Hodiny si pred cestou overte. Mapové podklady sa načítavajú zo serverov OpenStreetMap; vaša poloha sa nikam neposiela.</p>
-  <style>{MAPA_CSS}</style>"""
+  <style>{MAPA_CSS}</style>
+  <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
+  <link rel="preload" href="/vendor/leaflet/leaflet.js" as="script">"""
         write("/lekarne/", page("Lekárne, výdajne pomôcok a pobočky poisťovní v okolí – mapa", "Najbližšie lekárne, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union podľa polohy alebo obce: adresa, otváracie hodiny a navigácia.",
                                 "/lekarne/", body, breadcrumb_ld(crumb_items), '<script src="/lekarne.js" defer></script>'))
         urls.append(("/lekarne/", "0.6"))

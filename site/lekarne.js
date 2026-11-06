@@ -105,7 +105,6 @@
   }
   cats.forEach(function (b, i) {
     var t = b.getAttribute('data-typ');
-    load(t).then(function (l) { var c = b.querySelector('.mapa-n'); if (c) c.textContent = l.length; });
     b.addEventListener('click', function () { setTyp(t); });
     b.addEventListener('keydown', function (e) {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -411,5 +410,5 @@
     leaflet().then(function () { initMap(); refresh(); })
       .catch(function () { mapEl.classList.add('fail'); say('Mapu sa nepodarilo načítať, zoznam funguje aj bez nej.'); });
   };
-  if (document.readyState === 'complete') setTimeout(start, 50); else window.addEventListener('load', function () { setTimeout(start, 50); });
+  start();
 })();
