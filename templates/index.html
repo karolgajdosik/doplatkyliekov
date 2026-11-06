@@ -210,7 +210,8 @@ function search(term) {
     .slice(0, 30);
   active = -1;
   results.replaceChildren();
-  if (!hits.length) results.append(el('div', 'empty', 'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'));
+  if (!hits.length) results.append(el('div', 'empty', 'Nenašli sme liek s týmto názvom v zozname liekov, ktoré hradí poisťovňa.'));
+  if (hits.length < 3 && t.length >= 3) nehradene(t, term);
   hits.forEach((x, i) => {
     const b = el('button'); b.type = 'button'; b.setAttribute('role', 'option');
     b.append(el('span', 'rn', x.name), el('span', 'rd mono', eur(x.dop)), el('span', 'rp', x.pack));
@@ -219,6 +220,30 @@ function search(term) {
     results.append(b);
   });
   results.hidden = false; q.setAttribute('aria-expanded', 'true');
+}
+// registrované lieky mimo zoznamu hradených (register ŠÚKL, /neh.json) – načíta sa len keď hradený liek chýba
+let NEH = null, nehLoad = null;
+function nehradene(t, term) {
+  if (!nehLoad) nehLoad = fetch('/neh.json').then(r => r.json()).then(d => { d.i.forEach(x => { x.k = norm(x[0] + ' ' + x[2]); }); NEH = d; return d; }).catch(() => null);
+  nehLoad.then(d => {
+    if (!d || norm(q.value.trim()) !== t) return;
+    const words = t.split(/\s+/);
+    const m = d.i.filter(x => words.every(w => x.k.includes(w)))
+      .sort((a, b) => (norm(a[0]).startsWith(words[0]) ? 0 : 1) - (norm(b[0]).startsWith(words[0]) ? 0 : 1) || a[0].localeCompare(b[0], 'sk')).slice(0, 6);
+    if (!m.length) return;
+    const box = el('div', 'neh');
+    box.append(el('p', 'neh-h', 'Poisťovňa nehradí – platíte plnú cenu'));
+    m.forEach(x => {
+      const row = el(x[3] ? 'a' : 'div', 'neh-row');
+      if (x[3]) { row.href = '/latka/' + x[3] + '/'; row.onmousedown = e => e.preventDefault(); }
+      row.append(el('span', 'rn', x[0]), el('span', 'neh-v', x[1] === 'F' ? 'bez receptu' : 'na predpis'),
+        el('span', 'rp', x[2] + (x[3] ? ' · hradené lieky s látkou →' : '')));
+      box.append(row);
+    });
+    const empty = results.querySelector('.empty'); if (empty) empty.remove();
+    results.append(box);
+    results.hidden = false; q.setAttribute('aria-expanded', 'true');
+  });
 }
 function pick(x) { results.hidden = true; q.setAttribute('aria-expanded', 'false'); q.value = x.name; render(x); slip.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
 q.addEventListener('input', () => search(q.value));

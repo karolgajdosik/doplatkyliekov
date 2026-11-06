@@ -102,6 +102,12 @@ h1 em { font-style: normal; color: var(--accent); text-shadow: 0 0 28px var(--gl
 .results .rp { font-size: 16px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
 .results .rd { grid-row: span 2; align-self: center; font-size: 17px; color: var(--accent); }
 .results .empty { padding: 12px; color: var(--muted); }
+.results .neh { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 6px; }
+.results .neh:first-child { border-top: 0; margin-top: 0; }
+.results .neh-h { margin: 4px 12px 6px; font-size: 15px; font-weight: 600; color: var(--save); text-transform: uppercase; letter-spacing: .04em; }
+.results .neh-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; padding: 9px 12px; border-radius: 12px; color: inherit; text-decoration: none; }
+.results a.neh-row:hover { background: var(--accent-soft); }
+.results .neh-v { grid-row: span 2; align-self: center; font-size: 15px; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 99px; padding: 2px 10px; }
 .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .chip {
   font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); cursor: pointer;

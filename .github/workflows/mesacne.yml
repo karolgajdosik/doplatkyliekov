@@ -26,6 +26,14 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - run: pip install openpyxl==3.1.5
+      - name: Register liekov ŠÚKL (výdaj, nehradené lieky)
+        continue-on-error: true
+        run: |
+          set +e
+          python scripts/build_register.py 2>&1 | tee reg.log; code=${PIPESTATUS[0]}
+          echo "::notice title=register::$(tail -n 3 reg.log | tr '\n' ' ' | head -c 900)"
+          exit $code
       - name: Lekárne z OpenStreetMap
         continue-on-error: true
         run: |
@@ -56,5 +64,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898237+github-actions[bot]@users.noreply.github.com"
-          for f in data/lekarne.json data/vydajne.json data/pobocky.json data/pil data/pil_map.json; do [ -e "$f" ] && git add "$f"; done
+          for f in data/lekarne.json data/vydajne.json data/pobocky.json data/pil data/pil_map.json data/register.json; do [ -e "$f" ] && git add "$f"; done
           if git diff --cached --quiet; then echo "Bez zmien."; else git commit -m "Mesačné dáta: letáky, lekárne, výdajne a pobočky" && git pull --rebase -q && git push; fi

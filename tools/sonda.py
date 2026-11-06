@@ -1,26 +1,26 @@
-import re, urllib.request, pathlib
-UA = {'User-Agent': 'Mozilla/5.0 (doplatkyliekov.sk data updater)'}
+import re, urllib.request, pathlib, subprocess, shutil
+UA = {'User-Agent': 'doplatkyliekov.sk data updater'}
 R = pathlib.Path('raw'); R.mkdir(exist_ok=True)
 log = []
-def get(u, binary=False, t=150):
-    for k in range(2):
-        try:
-            with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=t) as r:
-                d = r.read(); return d if binary else d.decode('utf-8', 'replace')
-        except Exception as e:
-            log.append(f'ERR {k} {u[:140]} {e}')
-    return b'' if binary else ''
-for n, u in [('dp_A', 'https://cloud.health.gov.sk/s/WTj7b7fCXoms9H8/download'), ('dp_C', 'https://cloud.health.gov.sk/s/QP9g8d4acKCX6pZ/download')]:
-    d = get(u, True, 200); (R / n).write_bytes(d); log.append(f'{n} {len(d)}')
-for n, u in [('union_ben', 'https://www.union.sk/vyhody-pre-poistencov/'), ('dov_home', 'https://www.dovera.sk/'), ('vszp_ben', 'https://www.vszp.sk/poistenci/benefity-celu-rodinu/'),
-             ('vszp_pen', 'https://www.vszp.sk/poistenci/penazenka-zdravia/')]:
-    t = get(u); (R / f'{n}.html').write_text(t, encoding='utf-8'); log.append(f'{n} {len(t)}')
-for k in ['bsk', 'ttsk', 'tsk', 'nsk', 'zsk', 'bbsk', 'psk', 'ksk']:
-    t = get(f'https://www.e-vuc.sk/{k}/')
-    z = sorted(set(re.findall(r'href="(https://www\.e-vuc\.sk/' + k + r'/zdravotnictvo[^"]*)"', t)))
-    log.append(f'{k}: {len(t)} zdrav {z[:3]}')
-    if z:
-        t2 = get(z[0].replace('&amp;', '&'))
-        menu = sorted(set(re.findall(r'href="(https://www\.e-vuc\.sk/' + k + r'/zdravotnictvo/[a-z0-9-]+\.html\?page_id=\d+)"', t2)))
-        log.append(f'  menu {menu[:12]}')
+def get(u):
+    try:
+        with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=60) as r:
+            return r.geturl(), r.read().decode('utf-8', 'replace')
+    except Exception as e:
+        return 'ERR ' + str(e), ''
+for u in ['https://www.e-vuc.sk/bsk/x.html?page_id=156278', 'https://www.e-vuc.sk/bsk/?page_id=156278',
+          'https://www.e-vuc.sk/index.php?page_id=156278', 'https://www.e-vuc.sk/?page_id=156278']:
+    f, t = get(u)
+    log.append(f'{u} -> {f[:160]} len={len(t)} gps={bool(re.search(r"maps.google.com/.q=48.50", t))} title={re.findall(r"<title>(.*?)</title>", t, re.S)[:1]}')
+def run(cmd):
+    p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=3000)
+    log.append('$ ' + cmd + '\n' + (p.stdout + p.stderr)[-2500:])
+run('pip install -q openpyxl==3.1.5')
+run('python3 scripts/build_ambulancie.py --kraj bsk --max 40 --delay 0.1')
+run('python3 scripts/build_vyhody.py')
+run('python3 scripts/build_dp.py')
+run('python3 scripts/build_register.py')
+for f in ['data/lekari.json', 'data/lekari_gps.json', 'data/vyhody.json', 'data/dp.json', 'data/register.json', 'vyhody_zmena.md']:
+    p = pathlib.Path(f)
+    if p.exists(): shutil.copy(p, R / p.name)
 (R / 'log.txt').write_text('\n'.join(log), encoding='utf-8'); print('\n'.join(log))

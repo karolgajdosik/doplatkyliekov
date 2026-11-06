@@ -203,7 +203,8 @@ HU = {
         "' · poisťovňa hradí '": "' · a biztosító fizeti: '",
         "'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek otvoríte jeho stránku s podrobnosťami.'":
             "'A térítési díj a gyógyszertárban fizetendő legmagasabb összeg. A biztosító a csoport minden gyógyszerére azonos vagy hasonló összeget fizet. Kattintson egy gyógyszerre a részletes adatokért.'",
-        "'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'": "'Nem találtunk ilyen nevű gyógyszert. Próbálja a hatóanyag nevével.'",
+        "'Nenašli sme liek s týmto názvom v zozname liekov, ktoré hradí poisťovňa.'": "'Nem találtunk ilyen nevű gyógyszert a biztosító által támogatott gyógyszerek között.'",
+        "'Poisťovňa nehradí – platíte plnú cenu'": "'A biztosító nem téríti – teljes árat fizet'", "'bez receptu'": "'vény nélkül'", "'na predpis'": "'vényre'", "' · hradené lieky s látkou →'": "' · támogatott gyógyszerek ezzel a hatóanyaggal →'",
         "el('small', null, 'na balení')": "el('small', null, 'csomagonként')",
         "'pharm-btn', 'Ukázať v lekárni'": "'pharm-btn', 'Megmutatni a gyógyszertárban'",
         "Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.": "A gyógyszeradatokat nem sikerült betölteni. Frissítse az oldalt.",
@@ -410,7 +411,8 @@ UK = {
         "' · poisťovňa hradí '": "' · страхова сплачує '",
         "'Doplatok je maximálna suma v lekárni. Poisťovňa hradí pri všetkých liekoch v skupine rovnakú alebo podobnú sumu. Kliknutím na liek otvoríte jeho stránku s podrobnosťami.'":
             "'Доплата – максимальна сума в аптеці. Страхова компанія сплачує за всі ліки в групі однакову або подібну суму. Натисніть на ліки, щоб відкрити їхню сторінку з подробицями.'",
-        "'Nenašli sme liek s týmto názvom. Skúste názov účinnej látky.'": "'Ліків з такою назвою не знайдено. Спробуйте назву діючої речовини латиницею.'",
+        "'Nenašli sme liek s týmto názvom v zozname liekov, ktoré hradí poisťovňa.'": "'Ліків з такою назвою немає серед тих, що компенсує страхова. Спробуйте назву діючої речовини латиницею.'",
+        "'Poisťovňa nehradí – platíte plnú cenu'": "'Страхова не компенсує – ви платите повну ціну'", "'bez receptu'": "'без рецепта'", "'na predpis'": "'за рецептом'", "' · hradené lieky s látkou →'": "' · компенсовані ліки з цією речовиною →'",
         "el('small', null, 'na balení')": "el('small', null, 'на упаковці')",
         "'pharm-btn', 'Ukázať v lekárni'": "'pharm-btn', 'Показати в аптеці'",
         "Údaje o liekoch sa nepodarilo načítať. Obnovte stránku.": "Не вдалося завантажити дані про ліки. Оновіть сторінку.",

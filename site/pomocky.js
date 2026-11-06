@@ -3,11 +3,12 @@
   'use strict';
   var q = document.getElementById('zp-q'), out = document.getElementById('zp-out');
   if (!q || !out) return;
+  var SRC = q.getAttribute('data-src') || '/pomocky.json', BASE = q.getAttribute('data-base') || '/pomocky/';
   var data = null, loading = null, timer = null;
   function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function load() {
     if (data) return Promise.resolve(data);
-    if (!loading) loading = fetch('/pomocky.json').then(function (r) { return r.json(); }).then(function (d) {
+    if (!loading) loading = fetch(SRC).then(function (r) { return r.json(); }).then(function (d) {
       d.i.forEach(function (x) { x.k = norm(x[0] + ' ' + d.g[x[1]][1] + ' ' + x[3]); });
       data = d; return d;
     });
@@ -32,12 +33,12 @@
       var items = d.i.filter(function (x) { return words.every(function (w) { return x.k.indexOf(w) >= 0; }); })
         .sort(function (a, b) { return (a[2] == null ? 9e9 : a[2]) - (b[2] == null ? 9e9 : b[2]); }).slice(0, 25);
       out.replaceChildren();
-      groups.forEach(function (g) { out.appendChild(li('/pomocky/' + d.g[g[0]][0] + '/', d.g[g[0]][1], '– celá skupina')); });
+      groups.forEach(function (g) { out.appendChild(li(BASE + d.g[g[0]][0] + '/', d.g[g[0]][1], '– celá skupina')); });
       items.forEach(function (x) {
-        out.appendChild(li('/pomocky/' + d.g[x[1]][0] + '/#' + encodeURIComponent(x[3]), x[0], '· doplatok ' + eur(x[2]) + ' · ' + d.g[x[1]][1]));
+        out.appendChild(li(BASE + d.g[x[1]][0] + '/#' + encodeURIComponent(x[3]), x[0], '· doplatok ' + eur(x[2]) + ' · ' + d.g[x[1]][1]));
       });
-      if (!groups.length && !items.length) out.appendChild(li('/pomocky/', 'Nič sme nenašli. Skúste iné slovo alebo prejdite skupiny nižšie.'));
-    }).catch(function () { out.appendChild(li('/pomocky/', 'Vyhľadávanie sa nepodarilo načítať. Skúste obnoviť stránku.')); });
+      if (!groups.length && !items.length) out.appendChild(li(BASE, 'Nič sme nenašli. Skúste iné slovo alebo prejdite skupiny nižšie.'));
+    }).catch(function () { out.appendChild(li(BASE, 'Vyhľadávanie sa nepodarilo načítať. Skúste obnoviť stránku.')); });
   }
   q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 180); });
   q.addEventListener('focus', load, { once: true });

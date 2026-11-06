@@ -1,0 +1,43 @@
+name: Lekári a pohotovosti (e-VÚC)
+
+on:
+  schedule:
+    # každý pondelok: zoznamy ambulancií a neprítomností, súradnice z detailov postupne
+    - cron: "41 2 * * 1"
+  workflow_dispatch:
+    inputs:
+      max:
+        description: "Najviac detailov (súradníc) za beh"
+        default: "9000"
+      kraj:
+        description: "Len vybrané kraje (napr. bsk,tsk), prázdne = všetky"
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lekari
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Ambulancie a pohotovosti
+        run: |
+          set +e
+          python scripts/build_ambulancie.py --max "${{ inputs.max || '9000' }}" ${{ inputs.kraj && format('--kraj {0}', inputs.kraj) || '' }} 2>&1 | tee lek.log; code=${PIPESTATUS[0]}
+          echo "::notice title=lekari::$(grep -E '^[a-z]+:|lekari.json|bez súradníc' lek.log | tr '\n' ' ' | head -c 1500)"
+          exit $code
+      - name: Uložiť zmeny
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898237+github-actions[bot]@users.noreply.github.com"
+          git add data/lekari.json data/lekari_gps.json
+          if git diff --cached --quiet; then echo "Bez zmien."; else git commit -m "Lekári a pohotovosti z registrov VÚC" && git pull --rebase -q && git push; fi

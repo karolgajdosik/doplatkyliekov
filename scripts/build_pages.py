@@ -33,7 +33,7 @@ SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
-             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky"]
+             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky", "dieteticke-potraviny"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
@@ -313,7 +313,7 @@ NAV_TOP = [("/", "Vyhľadať", "", ""), ("/choroby/", "Ochorenia", "", ""),
 
 MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
-               ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky")]),
+               ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky"), ("/dieteticke-potraviny/", "Dietetické potraviny")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
                  ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne a pobočky v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
@@ -1367,6 +1367,17 @@ def build():
             sl += "-x"
         subst_slug[s] = sl
 
+    # register ŠÚKL: spôsob výdaja pre naše lieky a nehradené registrované lieky pre vyhľadávanie (/neh.json)
+    reg = load("register.json", {}) or {}
+    reg_vydaj = reg.get("vydaj", {})
+    if reg.get("neh"):
+        atc_slug = {}
+        for g in groups:
+            atc_slug.setdefault(g["a"], subst_slug.get(g["s"]))
+        (SITE / "neh.json").write_text(json.dumps(
+            {"d": reg.get("datum", ""), "i": [[n, v, l, atc_slug.get(a) or atc_slug.get(a[:5]) or ""] for n, v, l, a in reg["neh"]]},
+            ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
     def atc_chain(code):
         """[(kód, názov)] pre ATC úroveň 1 a 2, ktoré máme v číselníku."""
         out = []
@@ -1520,6 +1531,14 @@ def build():
                           "spravidla len na odporúčanie špecialistu.</small>"))
         elif "kod" in p and "po" in p:
             facts.append(("Kto môže predpísať", "Ktorýkoľvek lekár, aj všeobecný<small>Liek nemá preskripčné obmedzenie.</small>"))
+        vy = reg_vydaj.get(p["kod"])
+        if vy == "F":
+            facts.append(("Výdaj", "Aj bez lekárskeho predpisu<small>Bez receptu zaplatíte v lekárni plnú cenu. "
+                          "S receptom poisťovňa uhradí svoju časť. Podľa registra liekov ŠÚKL.</small>"))
+        elif vy == "Rx":
+            facts.append(("Výdaj", "Na lekársky predpis s obmedzením predpisovania<small>Podľa registra liekov ŠÚKL.</small>"))
+        elif vy in ("R", "Rb"):
+            facts.append(("Výdaj", "Len na lekársky predpis<small>Podľa registra liekov ŠÚKL.</small>"))
         io_flag = p.get("io", "")
         if io_flag:
             zp = "ZP" in io_flag
@@ -2607,12 +2626,25 @@ def build():
 
     # --- výhody poisťovní (overené ručne, treba pravidelne aktualizovať) ---
     VYHODY_OVERENE = "25. 10. 2026"
+    # automatická denná kontrola zdrojových stránok (scripts/build_vyhody.py)
+    vk = load("vyhody.json", {}) or {}
+    vk_note = ""
+    if vk.get("kontrola"):
+        zm = [z for z in vk.get("zdroje", []) if z.get("stav") in ("zmena", "zmazana")]
+        if zm:
+            vk_note = ('<div class="alert warn" role="status"><strong>Poisťovňa upravila stránku s podmienkami</strong><p>'
+                       + ", ".join(esc(z["nazov"]) for z in zm) + ": zmenu preverujeme. Kým prehľad aktualizujeme, overte si sumy "
+                       'priamo na <a href="' + esc(zm[0]["url"]) + '" rel="nofollow">stránke poisťovne</a>.</p></div>')
+        else:
+            vk_note = (f'<p class="hint">Zdrojové stránky poisťovní automaticky kontrolujeme každý deň, naposledy {sk_date(vk["kontrola"])}: '
+                       'sumy na nich sa od nášho overenia nezmenili.</p>')
     crumb_items = [("Domov", "/"), ("Výhody poisťovní", None)]
     body = f"""{crumbs(crumb_items)}
   <section class="intro">
     <p class="eyebrow">Nad rámec zákona · overené {VYHODY_OVERENE}</p>
     <h1 class="page-h1">Ktorá poisťovňa vám vráti doplatky za lieky</h1>
     <p class="page-sub">Všetky tri zdravotné poisťovne preplácajú časť doplatkov za lieky na predpis ako dobrovoľný benefit. Podmienky sa líšia: kto má nárok, koľko a čo treba splniť. Tu je prehľad podľa ich oficiálnych stránok.</p>
+    {vk_note}
   </section>
   <section class="card">
     <h2>Porovnanie</h2>
@@ -2972,6 +3004,9 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
     from build_zp_pages import build_zp_pages
     build_zp_pages({"esc": esc, "eur": eur, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
                     "urls": urls, "SITE": SITE, "DATA": DATA, "slugify": slugify, "plural": plural, "odb": odb})
+    from build_dp_pages import build_dp_pages
+    build_dp_pages({"esc": esc, "eur": eur, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
+                    "urls": urls, "SITE": SITE, "DATA": DATA, "slugify": slugify, "odb": odb})
 
     # --- lekárne v okolí (OpenStreetMap) ---
     lek_src = DATA / "lekarne.json"

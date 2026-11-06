@@ -213,6 +213,25 @@ await check('Zdravotnícke pomôcky a oznamy ŠÚKL', async () => {
   return `${n} výsledkov pre „prúžky“, ${rows} pomôcok v skupine, ${oz} oznamov ŠÚKL`;
 });
 
+await check('Dietetické potraviny a nehradené lieky', async () => {
+  await page.goto(BASE + '/dieteticke-potraviny/');
+  await page.fill('#zp-q', 'nutridrink');
+  await page.waitForSelector('#zp-out li a', { timeout: 15000 });
+  const n = await page.$$eval('#zp-out li', (l) => l.length);
+  assert(n >= 2, `vyhľadávanie dietetických potravín vrátilo ${n} výsledkov`);
+  const href = await page.$eval('#zp-out li a', (a) => a.getAttribute('href'));
+  assert(href.startsWith('/dieteticke-potraviny/'), `zlý odkaz ${href}`);
+  await page.goto(BASE + href.split('#')[0]);
+  const rows = await page.$$eval('ul.glist li', (l) => l.length);
+  assert(rows >= 1, 'stránka skupiny potravín je prázdna');
+  await page.goto(BASE + '/');
+  await page.waitForFunction(() => document.querySelectorAll('#chips .chip').length > 0, null, { timeout: 15000 });
+  await page.fill('#q', 'ibalgin');
+  await page.waitForSelector('#results .neh-row', { timeout: 15000 });
+  const neh = await page.$$eval('#results .neh-row', (l) => l.length);
+  return `${n} výsledkov pre „nutridrink“, ${rows} potravín v skupine, ${neh} nehradených liekov pre „ibalgin“`;
+});
+
 await check('Ďalšie jazyky a podstránky', async () => {
   const paths = ['/hu/', '/uk/', '/asistent/', '/bez-doplatku/', '/na-vytlacenie/', '/clanky/', '/statistiky/', '/pristupnost/',
     '/sitemap.xml', '/manifest.webmanifest', '/sw.js', '/ai/search.json', '/lekarne.json'];
