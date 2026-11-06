@@ -259,7 +259,12 @@ await check('Odkazy z úvodnej stránky', async () => {
   await page.goto(BASE + '/');
   const links = [...new Set(await page.$$eval('a[href^="/"]', (as) => as.map((a) => a.getAttribute('href').split('#')[0])))].filter(Boolean).slice(0, 60);
   const bad = [];
-  for (const l of links) { const r = await page.request.get(BASE + l, { maxRedirects: 3 }); if (r.status() >= 400) bad.push(`${l} ${r.status()}`); }
+  for (const l of links) {
+    // jedno opakovanie pri výpadku spojenia (ECONNRESET), aby test nezlyhal na náhodnej chybe siete
+    let r;
+    try { r = await page.request.get(BASE + l, { maxRedirects: 3 }); } catch { r = await page.request.get(BASE + l, { maxRedirects: 3 }); }
+    if (r.status() >= 400) bad.push(`${l} ${r.status()}`);
+  }
   assert(!bad.length, bad.join(', '));
   return `${links.length} odkazov`;
 });
