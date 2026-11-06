@@ -33,11 +33,28 @@ SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
-             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky", "dieteticke-potraviny", "kto-je-moj-lekar"]
+             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky", "dieteticke-potraviny", "kto-je-moj-lekar", "kupele", "cakacie-lehoty"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
-SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
-           "vyhladavanie-liekov-zdravotnickych-pomocok-a-zmien-v-liekovej-databaze?page_id=235")
+SUKL_DB = "https://www.sukl.sk/rozsirene-vyhladavanie?search_type=drugs"
+_SUKL_NAMES = None
+
+
+def sukl_url(kod):
+    """Stránka lieku na novom webe ŠÚKL (SPC, príbalový leták, oznamy): /<názov z registra>-<kód>.
+    Pravidlo overené na 135 liekoch vrátane lomiek, desatinných čiarok, % a +; bez názvu vyhľadávanie podľa kódu."""
+    global _SUKL_NAMES
+    if _SUKL_NAMES is None:
+        f = Path(__file__).resolve().parent.parent / "data" / "register.json"
+        _SUKL_NAMES = json.loads(f.read_text(encoding="utf-8")).get("nazov", {}) if f.exists() else {}
+    nm = _SUKL_NAMES.get(kod)
+    if not nm:
+        return f"{SUKL_DB}&drug_fulltext={kod}"
+    s = unicodedata.normalize("NFD", nm.lower())
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    s = re.sub(r"[\s/]+", "-", s)
+    s = re.sub(r"-+", "-", re.sub(r"[^a-z0-9.\-]", "", s)).strip("-")
+    return f"https://www.sukl.sk/{s}-{kod.lower()}"
 SUKL_VYPADKY = "https://portal.sukl.sk/PreruseniePublic/?act=PrerusenieOznList"
 MESIACE = ["jan", "feb", "mar", "apr", "máj", "jún", "júl", "aug", "sep", "okt", "nov", "dec"]
 MESIACE_GEN = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra",
@@ -315,7 +332,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky"), ("/dieteticke-potraviny/", "Dietetické potraviny")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, lekári a pohotovosti"), ("/kto-je-moj-lekar/", "Kto je môj obvodný lekár"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, lekári a pohotovosti"), ("/kto-je-moj-lekar/", "Kto je môj obvodný lekár"), ("/kupele/", "Kúpele"), ("/cakacie-lehoty/", "Čakanie na operáciu"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"), ("/statistiky/", "Doplatky v číslach")]),
@@ -1058,7 +1075,7 @@ def letak_card(p):
     <p class="page-sub">Na čo sa liek používa, ako ho užívať, kedy nie a na aké vedľajšie účinky si dať pozor. Zhrnutie z oficiálneho letáka pripraví umelá inteligencia.</p>
     <div class="mine-tools"><button type="button" data-letak="{esc(p['kod'])}">Zhrnúť príbalový leták</button></div>
     <div class="letak-out" aria-live="polite" hidden></div>
-    <p class="hint">Zhrnutie môže byť nepresné a nenahrádza leták ani radu lekára či lekárnika. Celé znenie nájdete v balení lieku a v <a href="{SUKL_DB}" rel="nofollow">databáze ŠÚKL</a>.</p>
+    <p class="hint">Zhrnutie môže byť nepresné a nenahrádza leták ani radu lekára či lekárnika. Celé znenie nájdete v balení lieku a na <a href="{esc(sukl_url(p['kod']))}" rel="nofollow">stránke lieku v databáze ŠÚKL</a>.</p>
   </section>"""
 
 
@@ -1603,8 +1620,8 @@ def build():
             about.append(("Štandardných dávok v balení", f'{p["sdl"]:g}<small>Počet dávok podľa zoznamu ministerstva.</small>'))
         about.append(("Kód ŠÚKL", f'<span class="mono">{esc(p["kod"])}</span>'))
         about.append(("ATC kód", f'<span class="mono">{esc(g["a"])}</span>'))
-        about.append(("Príbalový leták", f'<a href="{SUKL_DB}" rel="nofollow">Databáza liekov ŠÚKL</a>'
-                      f'<small>Vyhľadajte kód {esc(p["kod"])} alebo názov lieku.</small>'))
+        about.append(("Leták a SPC", f'<a href="{esc(sukl_url(p["kod"]))}" rel="nofollow">Liek v databáze ŠÚKL</a>'
+                      '<small>Príbalový leták pre pacientov a súhrn charakteristických vlastností lieku (SPC) pre lekárov a lekárnikov.</small>'))
         about_html = f"""
   <section class="card">
     <h2>O lieku</h2>
@@ -3007,6 +3024,9 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
     from build_zp_pages import build_zp_pages
     build_zp_pages({"esc": esc, "eur": eur, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
                     "urls": urls, "SITE": SITE, "DATA": DATA, "slugify": slugify, "plural": plural, "odb": odb})
+    from build_info_pages import build_info_pages
+    build_info_pages({"esc": esc, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
+                      "urls": urls, "DATA": DATA})
     from build_dp_pages import build_dp_pages
     build_dp_pages({"esc": esc, "eur": eur, "page": page, "write": write, "crumbs": crumbs, "breadcrumb_ld": breadcrumb_ld,
                     "urls": urls, "SITE": SITE, "DATA": DATA, "slugify": slugify, "odb": odb})

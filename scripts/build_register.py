@@ -5,6 +5,7 @@ Zdroj: verejné úložisko ŠÚKL, Zoznam_liekov/zoznam_liekov_aktualny.zip (zoz
 Ukladá:
   vydaj: kód ŠÚKL → spôsob výdaja (R na predpis, Rx na predpis s obmedzením, Rb osobitné tlačivo, F bez predpisu)
          len pre lieky v zozname kategorizovaných liekov (data/full.json),
+  nazov: kód ŠÚKL → názov v registri (z neho sa skladá adresa stránky lieku na sukl.sk so SPC a letákom),
   neh:   registrované lieky mimo zoznamu kategorizovaných (poisťovňa ich nehradí): [názov, výdaj, látka, ATC].
 Spúšťa sa mesačne (mesacne.yml).
 
@@ -63,7 +64,7 @@ def parse(blob):
     full = DATA / "full.json"
     if full.exists():
         our = {x["kod"] for g in json.loads(full.read_text(encoding="utf-8"))["groups"] for x in g["i"]}
-    vydaj, neh, seen_names, n = {}, {}, set(), 0
+    vydaj, nazov, neh, seen_names, n = {}, {}, {}, set(), 0
     for r in rows:
         kod, nm = clean(r[i_kod]), clean(r[i_n])
         if not kod or not nm:
@@ -74,6 +75,7 @@ def parse(blob):
         if kod in our:
             if v in VYDAJ:
                 vydaj[kod] = v
+            nazov[kod] = nm
             seen_names.add(nm.lower())
             continue
         if atc.startswith(SKIP_ATC) or v not in VYDAJ:
@@ -87,7 +89,7 @@ def parse(blob):
         raise RuntimeError(f"podozrivo málo liekov v registri: {n}")
     # názvy, ktoré sú v zozname kategorizovaných (iné balenie), nevynechávame: hľadanie ich nájde ako hradené
     items = sorted((x for k, x in neh.items() if k[0] not in seen_names), key=lambda x: x[0].lower())
-    return {"datum": dt.date.today().isoformat(), "pocet": n, "vydaj": vydaj, "neh": items}
+    return {"datum": dt.date.today().isoformat(), "pocet": n, "vydaj": vydaj, "nazov": nazov, "neh": items}
 
 
 def main():
