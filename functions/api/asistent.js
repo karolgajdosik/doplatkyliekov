@@ -227,7 +227,16 @@ function limited(ip) {
   return h.n > 60;
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost(ctx) {
+  // posledná poistka: aj neočakávaná chyba vráti JSON s dôvodom, nie holú chybu platformy
+  try {
+    return await handlePost(ctx);
+  } catch (e) {
+    return json({ error: 'Asistent teraz neodpovedá. Skúste to prosím o chvíľu.', detail: 'neočakávaná chyba: ' + String((e && (e.stack || e.message)) || e).slice(0, 400) }, 502);
+  }
+}
+
+async function handlePost({ request, env }) {
   if (!env.ANTHROPIC_API_KEY && !env.AI) return json({ error: 'Asistent sa práve spúšťa. Skúste to prosím neskôr.' }, 503);
   let body;
   try { body = await request.json(); } catch { return json({ error: 'Neplatná požiadavka.' }, 400); }
