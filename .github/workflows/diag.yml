@@ -8,7 +8,11 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
     steps:
       - run: |
-          (timeout 70 npx -y wrangler@4 pages deployment tail --project-name doplatkyliekov --environment production --format json > tail.txt 2> tail.err &)
+          npx -y wrangler@4 pages deployment list --project-name doplatkyliekov --environment production --json > dl.json 2> dl.err || true
+          head -c 600 dl.err; head -c 800 dl.json; echo
+          DEP=$(python3 -c "import json;d=json.load(open('dl.json'));print(d[0].get('Id') or d[0].get('id') or '')" 2>/dev/null)
+          echo "DEP=$DEP"
+          (timeout 70 npx -y wrangler@4 pages deployment tail "$DEP" --project-name doplatkyliekov --format json > tail.txt 2> tail.err &)
           sleep 30
           for i in 1 2 3; do curl -sS -o /dev/null -w "POST %{http_code}\n" -H 'content-type: application/json' -d '{"q":"ahoj, aký je doplatok za concor 10"}' https://doplatkyliekov.sk/api/asistent; sleep 3; done
           sleep 35
