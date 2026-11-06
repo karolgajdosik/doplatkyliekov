@@ -234,7 +234,7 @@ await check('Dietetické potraviny a nehradené lieky', async () => {
 
 await check('Ďalšie jazyky a podstránky', async () => {
   const paths = ['/hu/', '/uk/', '/asistent/', '/bez-doplatku/', '/na-vytlacenie/', '/clanky/', '/statistiky/', '/pristupnost/',
-    '/sitemap.xml', '/manifest.webmanifest', '/sw.js', '/ai/search.json', '/lekarne.json'];
+    '/sitemap.xml', '/manifest.webmanifest', '/sw.js', '/ai/search.json', '/lekarne.json', '/lekari.json', '/neh.json', '/dp.json'];
   const bad = [];
   for (const p of paths) { const r = await page.request.get(BASE + p); if (r.status() !== 200) bad.push(`${p} ${r.status()}`); }
   assert(!bad.length, bad.join(', '));

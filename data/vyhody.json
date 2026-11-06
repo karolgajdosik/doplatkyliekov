@@ -1,0 +1,77 @@
+{
+ "kontrola": "2026-11-06",
+ "zdroje": [
+  {
+   "id": "union",
+   "nazov": "Union – doplatky pre všetkých",
+   "url": "https://www.union.sk/doplatky-za-lieky-pre-vsetkych/",
+   "stav": "ok",
+   "sumy": [
+    "20",
+    "50",
+    "250",
+    "285",
+    "300",
+    "2500"
+   ],
+   "kontrola": "2026-11-06",
+   "zmena_od": ""
+  },
+  {
+   "id": "union-deti",
+   "nazov": "Union – doplatky pre deti",
+   "url": "https://www.union.sk/vratenie-doplatkov-za-lieky-pre-deti/",
+   "stav": "ok",
+   "sumy": [
+    "250"
+   ],
+   "kontrola": "2026-11-06",
+   "zmena_od": ""
+  },
+  {
+   "id": "dovera",
+   "nazov": "Dôvera – 400 € za lieky",
+   "url": "https://www.dovera.sk/poistenec/benefity/vsetky/400-eur-za-lieky",
+   "stav": "ok",
+   "sumy": [
+    "3",
+    "100",
+    "400",
+    "1600"
+   ],
+   "kontrola": "2026-11-06",
+   "zmena_od": ""
+  },
+  {
+   "id": "vszp",
+   "nazov": "VšZP – Peňaženka zdravia",
+   "url": "https://www.vszp.sk/o-nas/informacie-media/tlacove-spravy/az-450-eur-doplatky-za-lieky-dieteticke-potraviny-vszp-historicky-navysuje-financne-prispevky-penazenke-zdravia.html",
+   "stav": "ok",
+   "sumy": [
+    "20",
+    "100",
+    "200",
+    "450"
+   ],
+   "kontrola": "2026-11-06",
+   "zmena_od": ""
+  },
+  {
+   "id": "vszp-podmienky",
+   "nazov": "VšZP – podmienky Peňaženky zdravia",
+   "url": "https://www.vszp.sk/o-nas/podmienky-pouzivania-elektronickych-sluzieb/vseobecne-podmienky-k-produktu-penazenka-zdravia.html",
+   "stav": "ok",
+   "sumy": [
+    "20",
+    "30",
+    "40",
+    "45",
+    "50",
+    "100",
+    "450"
+   ],
+   "kontrola": "2026-11-06",
+   "zmena_od": ""
+  }
+ ]
+}

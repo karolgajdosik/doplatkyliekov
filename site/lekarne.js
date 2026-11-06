@@ -1,4 +1,5 @@
-/* Mapa v okolí: lekárne (/lekarne.json, OSM), výdajne pomôcok, optiky a pobočky poisťovní (/miesta.json).
+/* Mapa v okolí: lekárne (/lekarne.json, OSM), výdajne pomôcok, optiky a pobočky poisťovní (/miesta.json),
+   ambulancie lekárov a pohotovosti z registrov VÚC (/lekari.json, načíta sa až pri výbere kategórie).
    Mapa na celú plochu, vyhľadávanie s návrhmi obcí, kategórie, zoznam vo vysúvacom paneli, ktorý sleduje výrez mapy.
    Riadok miesta: [lat, lon, názov, adresa, obec, hodiny OSM, telefón, druh, odkaz]. Poloha sa nikam neposiela. */
 (function () {
@@ -7,12 +8,14 @@
   if (!root) return;
   var $ = function (id) { return document.getElementById(id); };
   var mapEl = $('lek-map'), listEl = $('lek-list'), msg = $('lek-msg'), q = $('lek-q'), sug = $('lek-sug');
-  var sheet = $('lek-sheet'), grip = $('lek-grip'), openBtn = $('lek-open'), insBox = $('lek-ins');
+  var sheet = $('lek-sheet'), grip = $('lek-grip'), openBtn = $('lek-open'), insBox = $('lek-ins'), odbSel = $('lek-odb');
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var desktop = window.matchMedia ? matchMedia('(min-width: 900px)') : { matches: false };
 
   var TYP = {
     lekarne: { color: '#087a5f', forms: ['lekáreň', 'lekárne', 'lekární'], none: 'žiadna lekáreň' },
+    pohotovost: { color: '#c0262d', forms: ['pohotovosť', 'pohotovosti', 'pohotovostí'], none: 'žiadna pohotovosť', src: 'p' },
+    lekari: { color: '#1d5fbf', forms: ['ambulancia', 'ambulancie', 'ambulancií'], none: 'žiadna ambulancia', src: 'l' },
     pomocky: { color: '#0b6b8a', forms: ['výdajňa pomôcok', 'výdajne pomôcok', 'výdajní pomôcok'], none: 'žiadna výdajňa pomôcok', f: ['zp'] },
     optiky: { color: '#6a4bb3', forms: ['optika', 'optiky', 'optík'], none: 'žiadna optika', f: ['opt', 'sluch'] },
     poistovne: { color: '#b34700', forms: ['pobočka poisťovne', 'pobočky poisťovní', 'pobočiek poisťovní'], none: 'žiadna pobočka poisťovne', f: ['vszp', 'dovera', 'union'] }
@@ -20,6 +23,8 @@
   var LABEL = { zp: 'Zdravotnícke potreby', opt: 'Optika', sluch: 'Načúvacie prístroje', vszp: 'VšZP', dovera: 'Dôvera', union: 'Union' };
   var ICON = {
     lekarne: '<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/>',
+    pohotovost: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.6 4.8h3.2v3.6h3.6v3.2h-3.6v3.6h-3.2v-3.6H6.8v-3.2h3.6z"/>',
+    lekari: '<path d="M5 3h3v2H7v5a3 3 0 0 0 6 0V5h-1V3h3v7a5 5 0 0 1-4 4.9V16a3 3 0 0 0 6 0v-2.2a2.5 2.5 0 1 1 2 0V16a5 5 0 0 1-10 0v-1.1A5 5 0 0 1 5 10z"/>',
     pomocky: '<path d="M7 3h4v2H9v5.2l5.7 7.3H17v2h-3.3L9 13.4V21H7z"/><circle cx="16.5" cy="6.5" r="2.5"/>',
     optiky: '<path d="M2 12.5a4.5 4.5 0 0 0 9 0h2a4.5 4.5 0 0 0 9 0V11h-1.2L18.5 6H17l2 5h-5.1a2 2 0 0 0-3.8 0H5l2-5H5.5L3.2 11H2zm4.5 2.5A2.5 2.5 0 0 1 4 12.5h5A2.5 2.5 0 0 1 6.5 15zm11 0a2.5 2.5 0 0 1-2.5-2.5h5a2.5 2.5 0 0 1-2.5 2.5z"/>',
     poistovne: '<path d="M12 2 3 6v2h18V6zM5 10h2v7H5zm4 0h2v7H9zm4 0h2v7h-2zm4 0h2v7h-2zM3 19h18v2H3z"/>'
@@ -29,18 +34,57 @@
   var typ = (/[?&]typ=(\w+)/.exec(location.search) || [])[1];
   if (!TYP[typ]) typ = 'lekarne';
   var openOnly = false, ins = '', here = null, selected = null, map = null, layer = null, meMarker = null;
-  var cache = {}, miesta = null, lek = null, places = null;
+  var cache = {}, miesta = null, lek = null, places = null, lekari = null, odb = '';
+  var today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function plural(n, f) { return n === 1 ? f[0] : n >= 2 && n <= 4 ? f[1] : f[2]; }
   function say(t) { msg.textContent = t; }
   function getLek() { return lek || (lek = fetch('/lekarne.json').then(function (r) { return r.json(); }).then(function (j) { return j.lekarne; })); }
+  function skd(iso) { return +iso.slice(8, 10) + '. ' + +iso.slice(5, 7) + '.'; }
+  function splitAddr(a) {
+    var m = /^(.*?),?\s*(\d{3}\s?\d{2})\s+(.+)$/.exec(a || '');
+    return m ? [m[1], m[3]] : [a || '', ''];
+  }
+  function evuc(kraj, pid) { return 'https://www.e-vuc.sk/index.php?page_id=' + pid; }
+  function apsKind(n) { n = norm(n); return /zubn/.test(n) ? 'Zubná pohotovosť' : /deti/.test(n) ? 'Pre deti a dorast' : 'Pre dospelých'; }
+  /* ambulancie: [lat, lon, názov, adresa, odbornosť, neprítomnosť, kraj, page_id]; pohotovosti: [lat, lon, názov, adresa, čas, druh, kraj, page_id] */
+  function getLekari() {
+    return lekari || (lekari = fetch('/lekari.json').then(function (r) { return r.json(); }).then(function (j) {
+      var out = { o: j.o, l: [], p: [] };
+      j.l.forEach(function (r) {
+        var a = splitAddr(r[3]), x = [r[0], r[1], r[2], a[0], a[1], '', '', 'amb', evuc(r[6], r[7])];
+        x.odb = r[4]; x.abs = r[5] || null; out.l.push(x);
+      });
+      j.p.forEach(function (r) {
+        var a = splitAddr(r[3]), x = [r[0], r[1], r[2], a[0], a[1], '', '', 'aps', evuc(r[6], r[7])];
+        x.cas = r[4]; x.kind = apsKind(r[2]); out.p.push(x);
+      });
+      fillOdb(out);
+      lekari._d = out;
+      return out;
+    }));
+  }
+  function fillOdb(d) {
+    if (!odbSel || odbSel.options.length > 1) return;
+    var cnt = {};
+    d.l.forEach(function (x) { cnt[x.odb] = (cnt[x.odb] || 0) + 1; });
+    var idx = Object.keys(cnt).filter(function (k) { return k >= 0 && d.o[k]; });
+    var top = idx.slice().sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 8);
+    function grp(label, keys) {
+      var g = document.createElement('optgroup'); g.label = label;
+      keys.forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = d.o[k] + ' (' + cnt[k] + ')'; g.append(o); });
+      odbSel.append(g);
+    }
+    grp('Najčastejšie', top);
+    grp('Všetky odbornosti', idx.sort(function (a, b) { return d.o[a].localeCompare(d.o[b], 'sk'); }));
+  }
   function load(t) {
     t = t || typ;
     if (!cache[t]) {
       var T = TYP[t];
-      cache[t] = (T.f ? (miesta = miesta || fetch('/miesta.json').then(function (r) { return r.json(); })).then(function (j) {
+      cache[t] = (T.src ? getLekari().then(function (d) { return d[T.src]; }) : T.f ? (miesta = miesta || fetch('/miesta.json').then(function (r) { return r.json(); })).then(function (j) {
         return j.m.filter(function (x) { return T.f.indexOf(x[7]) >= 0; });
       }) : getLek()).then(function (l) { l.forEach(function (x, i) { x.id = t + i; x.t = t; }); return l; });
     }
@@ -101,7 +145,11 @@
       b.tabIndex = on ? 0 : -1;
     });
     insBox.hidden = typ !== 'poistovne';
+    if (odbSel) odbSel.parentNode.hidden = typ !== 'lekari';
+    openBtn.hidden = !!TYP[typ].src;
     root.style.setProperty('--cat', TYP[typ].color);
+    var on = root.querySelector('[data-typ="' + typ + '"]'), row = on && on.parentNode;
+    if (row && row.scrollWidth > row.clientWidth) row.scrollLeft = Math.max(0, on.offsetLeft - row.offsetLeft - 12);
   }
   cats.forEach(function (b, i) {
     var t = b.getAttribute('data-typ');
@@ -115,7 +163,7 @@
   });
   function setTyp(t) {
     if (t === typ) return;
-    typ = t; selected = null; ins = '';
+    typ = t; selected = null; ins = ''; if (TYP[t].src) openOnly = false;
     insBox.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-ins') === '' ? 'true' : 'false'); });
     try { history.replaceState(null, '', typ === 'lekarne' ? location.pathname : '?typ=' + typ); } catch (e) { /* bez histórie */ }
     syncCats(); refresh();
@@ -130,9 +178,11 @@
       refresh();
     });
   });
+  if (odbSel) odbSel.addEventListener('change', function () { odb = odbSel.value; selected = null; refresh(); });
   function filtered(l) {
     return l.filter(function (x) {
       if (ins && x[7] !== ins) return false;
+      if (typ === 'lekari' && odb !== '' && String(x.odb) !== odb) return false;
       if (openOnly) { var s = status(x[5]); if (!s || !s.open) return false; }
       return true;
     });
@@ -168,7 +218,8 @@
     map.setView(map.unproject(p, z), z, { animate: !reduce });
   }
   function pinIcon(x, sel) {
-    var t = x.t, extra = t === 'poistovne' ? '<b>' + (x[7] === 'vszp' ? 'V' : x[7] === 'dovera' ? 'D' : 'U') + '</b>' : '';
+    var t = x.t, extra = t === 'poistovne' ? '<b>' + (x[7] === 'vszp' ? 'V' : x[7] === 'dovera' ? 'D' : 'U') + '</b>'
+      : t === 'pohotovost' ? '<b>' + (x.kind === 'Zubná pohotovosť' ? 'Z' : x.kind === 'Pre deti a dorast' ? 'D' : 'A') + '</b>' : '';
     var s = status(x[5]);
     return L.divIcon({
       className: 'mapa-pin-wrap',
@@ -263,8 +314,16 @@
       body.append(el('span', 'mapa-name', x[2]));
       var s = status(x[5]);
       var meta = el('span', 'mapa-meta');
-      if (LABEL[x[7]] && x.t !== 'lekarne') meta.append(el('span', 'mapa-kind', LABEL[x[7]]));
-      meta.append(el('span', 'mapa-st ' + (s ? (s.open ? 'on' : 'off') : 'na'), s ? s.text : 'Hodiny neuvedené'));
+      if (x.t === 'lekari') {
+        if (lekariOdb(x)) meta.append(el('span', 'mapa-kind', lekariOdb(x)));
+        if (x.abs && x.abs[1] >= today) meta.append(el('span', 'mapa-st off', x.abs[0] <= today ? 'Neprítomnosť do ' + skd(x.abs[1]) : 'Neprítomnosť ' + skd(x.abs[0]) + '–' + skd(x.abs[1])));
+      } else if (x.t === 'pohotovost') {
+        meta.append(el('span', 'mapa-kind', x.kind));
+        meta.append(el('span', 'mapa-st na', x.cas ? 'Ordinačný čas ' + x.cas.replace(/ - /g, '–') : 'Čas neuvedený'));
+      } else {
+        if (LABEL[x[7]] && x.t !== 'lekarne') meta.append(el('span', 'mapa-kind', LABEL[x[7]]));
+        meta.append(el('span', 'mapa-st ' + (s ? (s.open ? 'on' : 'off') : 'na'), s ? s.text : 'Hodiny neuvedené'));
+      }
       body.append(meta, el('span', 'mapa-addr', [x[3], x[4]].filter(Boolean).join(', ') || 'Adresa neuvedená'));
       main.append(ic, body);
       if (!noDist && x.d != null) main.append(el('span', 'mapa-dist', km(x.d)));
@@ -274,7 +333,7 @@
       var nav = el('a', 'mapa-btn pri', 'Navigovať'); nav.href = 'https://www.google.com/maps/dir/?api=1&destination=' + x[0] + ',' + x[1]; nav.target = '_blank'; nav.rel = 'noopener';
       acts.append(nav);
       if (x[6]) { var tel = el('a', 'mapa-btn', 'Zavolať'); tel.href = 'tel:' + x[6].replace(/[^\d+]/g, ''); acts.append(tel); }
-      if (x[8]) { var w = el('a', 'mapa-btn', 'Web'); w.href = x[8]; w.target = '_blank'; w.rel = 'noopener'; acts.append(w); }
+      if (x[8]) { var w = el('a', 'mapa-btn', x.t === 'lekari' || x.t === 'pohotovost' ? 'Detail v registri' : 'Web'); w.href = x[8]; w.target = '_blank'; w.rel = 'noopener'; acts.append(w); }
       if (x[5]) {
         var d = el('details', 'mapa-hours'), su = el('summary', null, 'Otváracie hodiny');
         d.append(su, el('pre', null, skHours(x[5]))); acts.append(d);
@@ -283,6 +342,7 @@
       listEl.append(li);
     });
   }
+  function lekariOdb(x) { var d = lekari && lekari._d; return d && x.odb >= 0 ? d.o[x.odb] : ''; }
   function select(x, fromMap) {
     selected = x.id;
     if (!desktop.matches && sheetState === 'peek') setSheet('half');

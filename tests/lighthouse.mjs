@@ -6,7 +6,7 @@ import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 
 const BASE = (process.env.BASE || 'https://doplatkyliekov.sk').replace(/\/$/, '');
-const PAGES = ['/', '/liek/concor-10-mg-94163/', '/moje-lieky/', '/lekarne/', '/asistent/'];
+const PAGES = (process.env.PAGES || '/,/liek/concor-10-mg-94163/,/moje-lieky/,/lekarne/,/asistent/').split(',');
 const MIN = { performance: 70, accessibility: 95 };
 const RUNS = 3;
 const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless=new', '--no-sandbox'] });

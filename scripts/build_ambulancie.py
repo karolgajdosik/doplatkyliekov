@@ -14,6 +14,7 @@ import json
 import re
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -29,12 +30,12 @@ for i, a in enumerate(sys.argv[1:-1], 1):
     if a.startswith("--") and "=" not in a:
         ARG[a] = sys.argv[i + 1]
 MAX = int(ARG.get("--max", 4000))
-DELAY = float(ARG.get("--delay", 0.15))
+DELAY = float(ARG.get("--delay", 0.8))
 ONLY = [k for k in ARG.get("--kraj", "").split(",") if k]
 n_req = 0
 
 
-def get(url, tries=3):
+def get(url, tries=4):
     global n_req
     for k in range(tries):
         try:
@@ -43,6 +44,12 @@ def get(url, tries=3):
                 d = r.read().decode("utf-8", "replace")
             time.sleep(DELAY)
             return d
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return ""
+            wait = 60 * (k + 1) if e.code == 429 else 3 + 3 * k
+            print(f"  pokus {k + 1}: {url}: {e}, čakám {wait} s")
+            time.sleep(wait)
         except Exception as e:  # noqa: BLE001
             print(f"  pokus {k + 1}: {url}: {e}")
             time.sleep(3 + 3 * k)
@@ -65,7 +72,22 @@ def okresy(kraj, kind, page_id):
 
 
 def rows(url):
+    """Všetky strany zoznamu zariadení v okrese (po 150, stránkovanie ?page=N)."""
     h = get(url)
+    last = re.search(r'title="Posledná strana"[^>]*href="[^"]*[?&]page=(\d+)', h) or \
+        re.search(r'href="[^"]*[?&]page=(\d+)[^"]*"[^>]*>&gt;&gt;', h)
+    pages = [h]
+    if last:
+        sep = "&" if "?" in url else "?"
+        for n in range(2, min(int(last.group(1)), 60) + 1):
+            pages.append(get(f"{url}{sep}page={n}"))
+    out = []
+    for h in pages:
+        out += rows_of(h)
+    return out
+
+
+def rows_of(h):
     out = []
     for u, body in ROW.findall(h):
         a = re.search(r"<a\s[^>]*>(.*?)</a>", body, re.S)

@@ -56,3 +56,6 @@ site/dieteticke-potraviny/
 site/dp.json
 site/neh.json
 vyhody_zmena.md
+site/lekari.json
+lh/
+node_modules

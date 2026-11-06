@@ -315,7 +315,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky"), ("/dieteticke-potraviny/", "Dietetické potraviny")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne a pobočky v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, lekári a pohotovosti"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"), ("/statistiky/", "Doplatky v číslach")]),
@@ -750,6 +750,9 @@ MAPA_CSS = """.mapa-head{margin:4px 0 14px}
 .mapa-filters{display:flex;flex-wrap:wrap;gap:8px}
 .mapa-ins{display:contents}
 .mapa-ins[hidden]{display:none}
+.mapa-odb select{font:inherit;font-size:16px;min-height:40px;max-width:100%;padding:6px 34px 6px 14px;border-radius:999px;border:1.5px solid #cfdad5;background:#fff;color:#12211d;cursor:pointer}
+.mapa-odb{min-width:0;max-width:100%}
+.mapa-odb[hidden],.mapa-chip[hidden]{display:none!important}
 .mapa-chip{display:inline-flex;align-items:center;gap:7px;min-height:40px!important;padding:6px 14px!important;border-radius:999px;border:1.5px solid #cfdad5!important;background:#fff;color:#12211d;font:inherit;font-size:16px;font-weight:500;cursor:pointer}
 .mapa-chip[aria-pressed="true"]{background:#12211d;border-color:#12211d!important;color:#fff}
 .mapa-dot{width:9px;height:9px;border-radius:50%;background:#1f9d55}
@@ -3023,28 +3026,39 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             miesta += pb
             n_pob = len(pb)
         (SITE / "miesta.json").write_text(json.dumps({"m": miesta}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        # ambulancie a pohotovosti z registrov VÚC (build_ambulancie.py) → /lekari.json (načíta sa až pri výbere kategórie)
+        n_amb = n_aps = 0
+        if (DATA / "lekari.json").exists():
+            lk = json.loads((DATA / "lekari.json").read_text(encoding="utf-8"))
+            n_amb, n_aps = len(lk["lekari"]), len(lk["pohotovosti"])
+            (SITE / "lekari.json").write_text(json.dumps({"d": lk["datum"], "o": lk["odbory"], "l": lk["lekari"], "p": lk["pohotovosti"]},
+                                                         ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         ICONS_MAP = {
             "lekarne": '<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/>',
             "pomocky": '<path d="M7 3h4v2H9v5.2l5.7 7.3H17v2h-3.3L9 13.4V21H7z"/><circle cx="16.5" cy="6.5" r="2.5"/>',
             "optiky": '<path d="M2 12.5a4.5 4.5 0 0 0 9 0h2a4.5 4.5 0 0 0 9 0V11h-1.2L18.5 6H17l2 5h-5.1a2 2 0 0 0-3.8 0H5l2-5H5.5L3.2 11H2zm4.5 2.5A2.5 2.5 0 0 1 4 12.5h5A2.5 2.5 0 0 1 6.5 15zm11 0a2.5 2.5 0 0 1-2.5-2.5h5a2.5 2.5 0 0 1-2.5 2.5z"/>',
             "poistovne": '<path d="M12 2 3 6v2h18V6zM5 10h2v7H5zm4 0h2v7H9zm4 0h2v7h-2zm4 0h2v7h-2zM3 19h18v2H3z"/>',
+            "pohotovost": '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.6 4.8h3.2v3.6h3.6v3.2h-3.6v3.6h-3.2v-3.6H6.8v-3.2h3.6z"/>',
+            "lekari": '<path d="M5 3h3v2H7v5a3 3 0 0 0 6 0V5h-1V3h3v7a5 5 0 0 1-4 4.9V16a3 3 0 0 0 6 0v-2.2a2.5 2.5 0 1 1 2 0V16a5 5 0 0 1-10 0v-1.1A5 5 0 0 1 5 10z"/>',
         }
         n_lek = len(json.loads(lek_src.read_text(encoding="utf-8"))["lekarne"])
         n_of = {"lekarne": n_lek, "pomocky": sum(1 for x in (vy if n_vyd else []) if x[7] == "zp"),
-                "optiky": sum(1 for x in (vy if n_vyd else []) if x[7] in ("opt", "sluch")), "poistovne": n_pob}
-        typ_opts = [("lekarne", "Lekárne", "#087a5f")] + ([("pomocky", "Pomôcky", "#0b6b8a"), ("optiky", "Optiky", "#6a4bb3")] if n_vyd else []) \
+                "optiky": sum(1 for x in (vy if n_vyd else []) if x[7] in ("opt", "sluch")), "poistovne": n_pob,
+                "pohotovost": n_aps, "lekari": n_amb}
+        typ_opts = [("lekarne", "Lekárne", "#087a5f")] + ([("pohotovost", "Pohotovosť", "#c0262d")] if n_aps else []) \
+            + ([("lekari", "Lekári", "#1d5fbf")] if n_amb else []) + ([("pomocky", "Pomôcky", "#0b6b8a"), ("optiky", "Optiky", "#6a4bb3")] if n_vyd else []) \
             + ([("poistovne", "Poisťovne", "#b34700")] if n_pob else [])
         cats_html = "".join(
             f'<button type="button" role="radio" class="mapa-cat" data-typ="{v}" aria-checked="{"true" if v == "lekarne" else "false"}" style="--c:{c}">'
             f'<span class="mapa-cap"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">{ICONS_MAP[v]}</svg></span>'
             f'<span class="mapa-cl-t">{t}</span><span class="mapa-n">{n_of[v]}</span></button>' for v, t, c in typ_opts)
-        crumb_items = [("Domov", "/"), ("Lekárne a pobočky v okolí", None)]
+        crumb_items = [("Domov", "/"), ("Lekárne, lekári a pohotovosti", None)]
         body = f"""{crumbs(crumb_items)}
   <header class="mapa-head">
-    <h1 class="mapa-h1">Lekárne a pobočky v okolí</h1>
-    <p class="mapa-sub">Lekárne, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union na jednej mape.</p>
+    <h1 class="mapa-h1">Lekárne, lekári a pohotovosti v okolí</h1>
+    <p class="mapa-sub">Lekárne, ambulantné pohotovosti, ambulancie lekárov podľa odbornosti, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union na jednej mape.</p>
   </header>
-  <section class="mapa" id="lek-root" aria-label="Mapa lekární a pobočiek">
+  <section class="mapa" id="lek-root" aria-label="Mapa lekární, lekárov a pobočiek">
     <div class="mapa-map" id="lek-map" aria-label="Mapa"></div>
     <div class="mapa-top">
       <form class="mapa-search" id="lek-form" role="search">
@@ -3061,6 +3075,7 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
         <p id="lek-msg" class="mapa-count" aria-live="polite">Načítavam miesta…</p>
         <div class="mapa-filters">
           <button type="button" class="mapa-chip" id="lek-open" aria-pressed="false"><span class="mapa-dot"></span>Otvorené teraz</button>
+          <label class="mapa-odb" hidden><span class="sr-only">Odbornosť lekára</span><select id="lek-odb"><option value="">Všetky odbornosti</option></select></label>
           <div class="mapa-ins" id="lek-ins" hidden>
             <button type="button" class="mapa-chip" data-ins="" aria-pressed="true">Všetky</button><button type="button" class="mapa-chip" data-ins="vszp" aria-pressed="false">VšZP</button><button type="button" class="mapa-chip" data-ins="dovera" aria-pressed="false">Dôvera</button><button type="button" class="mapa-chip" data-ins="union" aria-pressed="false">Union</button>
           </div>
@@ -3069,11 +3084,11 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
       <ol class="mapa-list" id="lek-list" aria-label="Miesta v oblasti mapy"></ol>
     </div>
   </section>
-  <p class="hint mapa-src">Lekárne, výdajne pomôcok a optiky: © prispievatelia OpenStreetMap (ODbL), nemusia byť úplné; pomôcky vydávajú aj mnohé lekárne. Pobočky a ich hodiny: weby VšZP, Dôvery a Union, aktualizované mesačne. Hodiny si pred cestou overte. Mapové podklady sa načítavajú zo serverov OpenStreetMap; vaša poloha sa nikam neposiela.</p>
+  <p class="hint mapa-src">Lekárne, výdajne pomôcok a optiky: © prispievatelia OpenStreetMap (ODbL), nemusia byť úplné; pomôcky vydávajú aj mnohé lekárne. Pobočky a ich hodiny: weby VšZP, Dôvery a Union, aktualizované mesačne. Ambulancie, neprítomnosti lekárov a pohotovosti: registre zdravotníckych zariadení samosprávnych krajov (e-VÚC), aktualizované týždenne; Košický kraj register v e-VÚC nezverejňuje. Hodiny si pred cestou overte. Mapové podklady sa načítavajú zo serverov OpenStreetMap; vaša poloha sa nikam neposiela.</p>
   <style>{MAPA_CSS}</style>
   <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
   <link rel="preload" href="/vendor/leaflet/leaflet.js" as="script">"""
-        write("/lekarne/", page("Lekárne, výdajne pomôcok a pobočky poisťovní v okolí – mapa", "Najbližšie lekárne, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union podľa polohy alebo obce: adresa, otváracie hodiny a navigácia.",
+        write("/lekarne/", page("Lekárne, lekári a pohotovosti v okolí – mapa", "Najbližšie lekárne, ambulantné pohotovosti, lekári podľa odbornosti, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union podľa polohy alebo obce: adresa, hodiny, neprítomnosti a navigácia.",
                                 "/lekarne/", body, breadcrumb_ld(crumb_items), '<script src="/lekarne.js" defer></script>'))
         urls.append(("/lekarne/", "0.6"))
 
@@ -3140,6 +3155,7 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             return 0
     m_lek, m_zp = _cnt("lekarne.json", "lekarne"), _cnt("vydajne.json", "vydajne", ("zp",))
     m_opt, m_pob = _cnt("vydajne.json", "vydajne", ("opt", "sluch")), _cnt("pobocky.json", "pobocky")
+    m_amb, m_aps = _cnt("lekari.json", "lekari"), _cnt("lekari.json", "pohotovosti")
     pin = lambda x, y, c, ic: (f'<g transform="translate({x} {y})"><rect x="-17" y="-10" width="34" height="20" rx="10" fill="#fff"/>'
                                f'<rect x="-15" y="-8" width="15" height="16" rx="8" fill="{c}"/><rect x="-8" y="-8" width="8" height="16" fill="{c}"/>'
                                f'<path d="{ic}" fill="#fff" transform="translate(-12.5 -5.5) scale(.45)"/><circle cx="7.5" cy="0" r="2.6" fill="#1f9d55"/></g>')
@@ -3152,11 +3168,12 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
                 + pin(86, 44, "#087a5f", cross) + pin(206, 68, "#087a5f", cross) + pin(130, 104, "#0b6b8a", cross)
                 + pin(262, 112, "#b34700", cross) + pin(52, 142, "#6a4bb3", cross)
                 + '<circle cx="164" cy="74" r="16" fill="#1a73e8" opacity=".18"/><circle cx="164" cy="74" r="7" fill="#1a73e8" stroke="#fff" stroke-width="3"/></svg>')
-    cats_links = [("", "Lekárne", m_lek, "#087a5f"), ("?typ=pomocky", "Pomôcky", m_zp, "#0b6b8a"),
+    cats_links = [("", "Lekárne", m_lek, "#087a5f"), ("?typ=pohotovost", "Pohotovosť", m_aps, "#c0262d"), ("?typ=lekari", "Lekári", m_amb, "#1d5fbf"),
+                  ("?typ=pomocky", "Pomôcky", m_zp, "#0b6b8a"),
                   ("?typ=optiky", "Optiky", m_opt, "#6a4bb3"), ("?typ=poistovne", "Poisťovne", m_pob, "#b34700")]
     mapa_html = (f'<section class="mapa-promo" aria-labelledby="mp-h"><a class="mp-main" href="/lekarne/">{mapa_svg}'
-                 f'<span class="mp-txt"><strong id="mp-h">Lekárne a pobočky v okolí</strong>'
-                 f'<span>Najbližšia lekáreň, výdajňa pomôcok, optika alebo pobočka poisťovne. Kto má otvorené a ako sa tam dostať.</span>'
+                 f'<span class="mp-txt"><strong id="mp-h">Lekárne, lekári a pohotovosti v okolí</strong>'
+                 f'<span>Najbližšia lekáreň, pohotovosť, lekár podľa odbornosti, výdajňa pomôcok, optika alebo pobočka poisťovne. Kto má otvorené a ako sa tam dostať.</span>'
                  f'<span class="mp-go">Otvoriť mapu</span></span></a>'
                  f'<nav class="mp-cats" aria-label="Mapa podľa druhu">'
                  + "".join(f'<a href="/lekarne/{q}" style="--c:{c}"><i></i>{t}<b>{n}</b></a>' for q, t, n, c in cats_links if n)

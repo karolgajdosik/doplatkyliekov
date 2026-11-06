@@ -1,0 +1,10 @@
+name: Dočasné upratanie
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  u:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: git push origin --delete sonda-data || true
