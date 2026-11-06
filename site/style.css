@@ -446,6 +446,22 @@ body.sheet-open { overflow: hidden; }
 .tile span { font-size: 16px; color: var(--muted); line-height: 1.45; }
 .tile.warn svg { color: var(--save); }
 @media (max-width: 760px) { .tiles { grid-template-columns: 1fr 1fr; } .tile { grid-template-columns: 1fr; padding: 16px; } .tile svg { grid-row: auto; } }
+/* karta s odkazom na mapu na úvodnej stránke */
+.mapa-promo { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
+.mp-main { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 22px; align-items: center; padding: 14px; color: var(--ink); text-decoration: none; }
+.mp-art { width: 100%; height: auto; display: block; border-radius: 14px; }
+.mp-txt { display: grid; gap: 8px; }
+.mp-txt strong { font-size: clamp(22px, 3vw, 28px); line-height: 1.15; letter-spacing: -.01em; font-weight: 700; }
+.mp-txt > span { color: var(--muted); font-size: 17px; line-height: 1.5; }
+.mp-txt .mp-go { justify-self: start; margin-top: 4px; background: var(--accent); color: #fff; font-weight: 600; font-size: 17px; padding: 10px 20px; border-radius: 999px; }
+.mp-main:hover .mp-go { filter: brightness(1.08); }
+.mp-main:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; border-radius: var(--r-lg); }
+.mp-cats { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 14px; }
+.mp-cats a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px 6px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 16px; background: var(--surface); }
+.mp-cats a:hover { border-color: var(--c); }
+.mp-cats i { width: 26px; height: 16px; border-radius: 999px; background: linear-gradient(90deg, var(--c) 55%, color-mix(in srgb, var(--c) 20%, #fff) 55%); }
+.mp-cats b { font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .mp-main { grid-template-columns: 1fr; gap: 14px; } .mp-art { height: 130px; } .mp-txt .mp-go { justify-self: stretch; text-align: center; } }
 .faq { display: grid; gap: 10px; }
 .faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 0 18px; }
 .faq summary { cursor: pointer; padding: 16px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }

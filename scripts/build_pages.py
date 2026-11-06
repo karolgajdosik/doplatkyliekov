@@ -3096,8 +3096,38 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
     ]
     tiles_html = "".join(f'<a class="tile{cls}" href="{h}">{IC[ic]}<strong>{esc(t)}</strong><span>{esc(sub)}</span></a>'
                          for h, ic, t, sub, cls in tiles)
+    # karta s odkazom na mapu (lekárne, výdajne pomôcok, optiky, pobočky poisťovní)
+    def _cnt(fn, key, typs=None):
+        try:
+            rows = json.loads((DATA / fn).read_text(encoding="utf-8"))[key]
+            return sum(1 for x in rows if typs is None or x[7] in typs)
+        except Exception:  # noqa: BLE001
+            return 0
+    m_lek, m_zp = _cnt("lekarne.json", "lekarne"), _cnt("vydajne.json", "vydajne", ("zp",))
+    m_opt, m_pob = _cnt("vydajne.json", "vydajne", ("opt", "sluch")), _cnt("pobocky.json", "pobocky")
+    pin = lambda x, y, c, ic: (f'<g transform="translate({x} {y})"><rect x="-17" y="-10" width="34" height="20" rx="10" fill="#fff"/>'
+                               f'<rect x="-15" y="-8" width="15" height="16" rx="8" fill="{c}"/><rect x="-8" y="-8" width="8" height="16" fill="{c}"/>'
+                               f'<path d="{ic}" fill="#fff" transform="translate(-12.5 -5.5) scale(.45)"/><circle cx="7.5" cy="0" r="2.6" fill="#1f9d55"/></g>')
+    cross = "M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"
+    mapa_svg = ('<svg class="mp-art" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
+                '<rect width="320" height="180" rx="18" fill="#e4ede8"/>'
+                '<path d="M-10 128C60 110 92 150 160 120s110-60 180-40" stroke="#fff" stroke-width="14" fill="none" stroke-linecap="round"/>'
+                '<path d="M70-10 96 70l-20 120M210-10l-14 80 40 120M-10 52h340" stroke="#fff" stroke-width="7" fill="none"/>'
+                '<path d="M240 130c20-8 44-6 60 4v46h-80z" fill="#cfe3d8"/><circle cx="34" cy="30" r="22" fill="#d6e6dd"/>'
+                + pin(86, 44, "#087a5f", cross) + pin(206, 68, "#087a5f", cross) + pin(130, 104, "#0b6b8a", cross)
+                + pin(262, 112, "#b34700", cross) + pin(52, 142, "#6a4bb3", cross)
+                + '<circle cx="164" cy="74" r="16" fill="#1a73e8" opacity=".18"/><circle cx="164" cy="74" r="7" fill="#1a73e8" stroke="#fff" stroke-width="3"/></svg>')
+    cats_links = [("", "Lekárne", m_lek, "#087a5f"), ("?typ=pomocky", "Pomôcky", m_zp, "#0b6b8a"),
+                  ("?typ=optiky", "Optiky", m_opt, "#6a4bb3"), ("?typ=poistovne", "Poisťovne", m_pob, "#b34700")]
+    mapa_html = (f'<section class="mapa-promo" aria-labelledby="mp-h"><a class="mp-main" href="/lekarne/">{mapa_svg}'
+                 f'<span class="mp-txt"><strong id="mp-h">Lekárne a pobočky v okolí</strong>'
+                 f'<span>Najbližšia lekáreň, výdajňa pomôcok, optika alebo pobočka poisťovne. Kto má otvorené a ako sa tam dostať.</span>'
+                 f'<span class="mp-go">Otvoriť mapu</span></span></a>'
+                 f'<nav class="mp-cats" aria-label="Mapa podľa druhu">'
+                 + "".join(f'<a href="/lekarne/{q}" style="--c:{c}"><i></i>{t}<b>{n}</b></a>' for q, t, n, c in cats_links if n)
+                 + '</nav></section>')
     conds_html = "".join(f'<a href="/choroby/{c[0]}/">{esc(c[1][:1].upper() + c[1][1:])}</a>' for c in CONDITIONS[:8])
-    for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header("/"), "TILES": tiles_html, "CONDS": conds_html,
+    for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header("/"), "TILES": tiles_html, "MAPA": mapa_html, "CONDS": conds_html,
                  "FOOTER": site_footer(esc(PLATNOST)), "BOTTOM": bottom_nav("/"), "PANELS": site_panels("/")}.items():
         tpl = tpl.replace(f"<!--{k}-->", v)
     tpl = tpl.replace('<link rel="canonical" href="https://doplatkyliekov.sk/">', '<link rel="canonical" href="https://doplatkyliekov.sk/">\n' + hreflang_links(alt_paths("root")))
