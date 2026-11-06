@@ -33,7 +33,7 @@ SITE = ROOT / "site"
 DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
-             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky", "dieteticke-potraviny"]
+             "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky", "dieteticke-potraviny", "kto-je-moj-lekar"]
 OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = ("https://www.sukl.sk/hlavna-stranka/slovenska-verzia/databazy-a-servis/"
@@ -315,7 +315,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky"), ("/dieteticke-potraviny/", "Dietetické potraviny")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, lekári a pohotovosti"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, lekári a pohotovosti"), ("/kto-je-moj-lekar/", "Kto je môj obvodný lekár"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"), ("/statistiky/", "Doplatky v číslach")]),
@@ -1165,7 +1165,7 @@ NOTES = """
 ASSET_VER = {}  # verzie štýlov a skriptov podľa obsahu, aby prehliadač ani aplikácia nepoužili starú verziu
 
 
-MINIFY = ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js", "pomocky.js")
+MINIFY = ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js", "pomocky.js", "obvod.js")
 
 
 def minify_assets():
@@ -1214,7 +1214,7 @@ def inline_home_css():
 
 def compute_versions():
     import hashlib
-    for name in ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js", "pomocky.js"):
+    for name in ("style.css", "assets/pages.css", "hladaj.js", "ceny.js", "ui.js", "moje.js", "limit.js", "sprava.js", "asistent.js", "foto.js", "moje2.js", "sync.js", "qr.js", "lekarne.js", "pomocky.js", "obvod.js"):
         f = SITE / name
         if f.exists():
             ASSET_VER["/" + name] = hashlib.sha1(f.read_bytes()).hexdigest()[:10]
@@ -3027,26 +3027,33 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             n_pob = len(pb)
         (SITE / "miesta.json").write_text(json.dumps({"m": miesta}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         # ambulancie a pohotovosti z registrov VÚC (build_ambulancie.py) → /lekari.json (načíta sa až pri výbere kategórie)
-        n_amb = n_aps = 0
+        n_amb = n_aps = n_nem = n_lp = 0
         if (DATA / "lekari.json").exists():
             lk = json.loads((DATA / "lekari.json").read_text(encoding="utf-8"))
-            n_amb, n_aps = len(lk["lekari"]), len(lk["pohotovosti"])
-            (SITE / "lekari.json").write_text(json.dumps({"d": lk["datum"], "o": lk["odbory"], "l": lk["lekari"], "p": lk["pohotovosti"]},
+            n_amb, n_aps, n_nem = len(lk["lekari"]), len(lk["pohotovosti"]), len(lk.get("nemocnice", []))
+            n_lp = len(lk.get("lp_miesta", {}))
+            (SITE / "lekari.json").write_text(json.dumps({"d": lk["datum"], "o": lk["odbory"], "l": lk["lekari"]},
                                                          ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+            # malý súbor pre pohotovosti, nemocnice a pohotovostné lekárne (rozpis na 45 dní dopredu)
+            lim = (dt.date.today() + dt.timedelta(days=45)).isoformat()
+            (SITE / "sluzba.json").write_text(json.dumps({
+                "d": lk["datum"], "p": lk["pohotovosti"], "n": lk.get("nemocnice", []), "lm": lk.get("lp_miesta", {}),
+                "lr": {d: v for d, v in (lk.get("lp_rozpis") or {}).items() if d <= lim}}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         ICONS_MAP = {
             "lekarne": '<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/>',
             "pomocky": '<path d="M7 3h4v2H9v5.2l5.7 7.3H17v2h-3.3L9 13.4V21H7z"/><circle cx="16.5" cy="6.5" r="2.5"/>',
             "optiky": '<path d="M2 12.5a4.5 4.5 0 0 0 9 0h2a4.5 4.5 0 0 0 9 0V11h-1.2L18.5 6H17l2 5h-5.1a2 2 0 0 0-3.8 0H5l2-5H5.5L3.2 11H2zm4.5 2.5A2.5 2.5 0 0 1 4 12.5h5A2.5 2.5 0 0 1 6.5 15zm11 0a2.5 2.5 0 0 1-2.5-2.5h5a2.5 2.5 0 0 1-2.5 2.5z"/>',
             "poistovne": '<path d="M12 2 3 6v2h18V6zM5 10h2v7H5zm4 0h2v7H9zm4 0h2v7h-2zm4 0h2v7h-2zM3 19h18v2H3z"/>',
             "pohotovost": '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.6 4.8h3.2v3.6h3.6v3.2h-3.6v3.6h-3.2v-3.6H6.8v-3.2h3.6z"/>',
+            "nemocnice": '<path d="M4 21V5l8-3 8 3v16h-6v-5h-4v5zm6.5-14v2h-2v2.5h2v2h3v-2h2V9h-2V7z"/>',
             "lekari": '<path d="M5 3h3v2H7v5a3 3 0 0 0 6 0V5h-1V3h3v7a5 5 0 0 1-4 4.9V16a3 3 0 0 0 6 0v-2.2a2.5 2.5 0 1 1 2 0V16a5 5 0 0 1-10 0v-1.1A5 5 0 0 1 5 10z"/>',
         }
         n_lek = len(json.loads(lek_src.read_text(encoding="utf-8"))["lekarne"])
         n_of = {"lekarne": n_lek, "pomocky": sum(1 for x in (vy if n_vyd else []) if x[7] == "zp"),
                 "optiky": sum(1 for x in (vy if n_vyd else []) if x[7] in ("opt", "sluch")), "poistovne": n_pob,
-                "pohotovost": n_aps, "lekari": n_amb}
+                "pohotovost": n_aps, "lekari": n_amb, "nemocnice": n_nem}
         typ_opts = [("lekarne", "Lekárne", "#087a5f")] + ([("pohotovost", "Pohotovosť", "#c0262d")] if n_aps else []) \
-            + ([("lekari", "Lekári", "#1d5fbf")] if n_amb else []) + ([("pomocky", "Pomôcky", "#0b6b8a"), ("optiky", "Optiky", "#6a4bb3")] if n_vyd else []) \
+            + ([("lekari", "Lekári", "#1d5fbf")] if n_amb else []) + ([("nemocnice", "Nemocnice", "#8a2357")] if n_nem else []) + ([("pomocky", "Pomôcky", "#0b6b8a"), ("optiky", "Optiky", "#6a4bb3")] if n_vyd else []) \
             + ([("poistovne", "Poisťovne", "#b34700")] if n_pob else [])
         cats_html = "".join(
             f'<button type="button" role="radio" class="mapa-cat" data-typ="{v}" aria-checked="{"true" if v == "lekarne" else "false"}" style="--c:{c}">'
@@ -3075,6 +3082,7 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
         <p id="lek-msg" class="mapa-count" aria-live="polite">Načítavam miesta…</p>
         <div class="mapa-filters">
           <button type="button" class="mapa-chip" id="lek-open" aria-pressed="false"><span class="mapa-dot"></span>Otvorené teraz</button>
+          {'<button type="button" class="mapa-chip" id="lek-duty" aria-pressed="false">Pohotovostná služba dnes</button>' if n_lp else ''}
           <label class="mapa-odb" hidden><span class="sr-only">Odbornosť lekára</span><select id="lek-odb"><option value="">Všetky odbornosti</option></select></label>
           <div class="mapa-ins" id="lek-ins" hidden>
             <button type="button" class="mapa-chip" data-ins="" aria-pressed="true">Všetky</button><button type="button" class="mapa-chip" data-ins="vszp" aria-pressed="false">VšZP</button><button type="button" class="mapa-chip" data-ins="dovera" aria-pressed="false">Dôvera</button><button type="button" class="mapa-chip" data-ins="union" aria-pressed="false">Union</button>
@@ -3091,6 +3099,58 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
         write("/lekarne/", page("Lekárne, lekári a pohotovosti v okolí – mapa", "Najbližšie lekárne, ambulantné pohotovosti, lekári podľa odbornosti, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union podľa polohy alebo obce: adresa, hodiny, neprítomnosti a navigácia.",
                                 "/lekarne/", body, breadcrumb_ld(crumb_items), '<script src="/lekarne.js" defer></script>'))
         urls.append(("/lekarne/", "0.6"))
+
+    # --- kto je môj lekár (zdravotné obvody, /api/obvod) ---
+    crumb_items = [("Domov", "/"), ("Kto je môj obvodný lekár", None)]
+    radios = "".join(f'<label class="ob-r"><input type="radio" name="o" value="{v}"{" checked" if v == 1 else ""}><span>{t}</span></label>'
+                     for v, t in ((1, "Všeobecný lekár"), (2, "Pediater"), (3, "Gynekológ"), (4, "Zubár")))
+    body = f"""{crumbs(crumb_items)}
+  <section class="intro">
+    <p class="eyebrow">Zdravotné obvody</p>
+    <h1 class="page-h1">Kto je môj obvodný lekár</h1>
+    <p class="page-sub">Zadajte obec a ulicu trvalého pobytu. Ukážeme všeobecného lekára, pediatra, gynekológa alebo zubára, ktorému kraj pridelil váš obvod. Ten vás nesmie odmietnuť pre plný stav pacientov.</p>
+  </section>
+  <section class="card">
+    <form id="ob-form" class="ob-form" autocomplete="off">
+      <fieldset class="ob-rs"><legend class="lbl">Aký lekár</legend>{radios}</fieldset>
+      <label class="lbl" for="ob-q">Obec trvalého pobytu</label>
+      <div class="ob-qw"><input id="ob-q" class="filter" type="search" placeholder="napr. Malacky" role="combobox" aria-autocomplete="list" aria-controls="ob-sug" aria-expanded="false">
+      <ul id="ob-sug" class="ob-sug" role="listbox" aria-label="Návrhy obcí" hidden></ul></div>
+      <div id="ob-ul-box" hidden><label class="lbl" for="ob-ul">Ulica</label><input id="ob-ul" class="filter" type="search" placeholder="napr. Hlavná"></div>
+    </form>
+    <p id="ob-msg" class="hint" aria-live="polite"></p>
+    <ul id="ob-out" class="ob-out"></ul>
+  </section>
+  <section class="article">
+    <h2>Čo je zdravotný obvod</h2>
+    <p>Samosprávny kraj určuje každej ambulancii všeobecného lekára, pediatra, gynekológa a zubára ulice, z ktorých musí prijať pacienta, aj keď už má veľa pacientov. Lekára si však môžete vybrať slobodne: ak vás prijme, môžete chodiť k lekárovi aj mimo svojho obvodu.</p>
+    <p>Ordinačný čas ukazujeme na dnešný deň podľa registra kraja. Ambulancie inej odbornosti a pohotovosti nájdete na <a href="/lekarne/?typ=lekari">mape lekárov</a>.</p>
+  </section>
+  <p class="hint">Zdroj: registre zdravotných obvodov samosprávnych krajov (e-VÚC), načítavané pri vyhľadaní. Košický kraj register v e-VÚC nezverejňuje. Pri nejasnostiach kontaktujte odbor zdravotníctva vášho kraja.</p>
+  <style>
+  .ob-rs{{border:0;padding:0;margin:0 0 14px;display:flex;flex-wrap:wrap;gap:8px}}
+  .ob-r{{position:relative}}
+  .ob-r input{{position:absolute;opacity:0;inset:0;margin:0}}
+  .ob-r span{{display:inline-flex;align-items:center;min-height:44px;padding:6px 16px;border-radius:999px;border:1.5px solid var(--line-strong);background:var(--raise,#fff);cursor:pointer;font-weight:500}}
+  .ob-r input:checked+span{{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#fff)}}
+  .ob-r input:focus-visible+span{{outline:3px solid var(--ink);outline-offset:2px}}
+  .ob-qw{{position:relative}}
+  .ob-sug{{position:absolute;z-index:5;left:0;right:0;top:calc(100% + 4px);list-style:none;margin:0;padding:6px;background:var(--surface-solid,#fff);border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 20px 40px -18px rgba(0,0,0,.35)}}
+  .ob-sug li{{padding:10px 12px;border-radius:8px;cursor:pointer}}
+  .ob-sug li:hover,.ob-sug li.act{{background:var(--accent-soft)}}
+  .ob-sug li.none{{cursor:default;color:var(--muted)}}
+  #ob-ul-box{{margin-top:12px}}
+  .ob-out{{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:12px}}
+  .ob-item{{border:1px solid var(--line);border-radius:12px;padding:14px 16px}}
+  .ob-meta{{margin:6px 0 0;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}}
+  .ob-cas{{color:var(--ink);font-weight:500}}
+  .ob-ul{{margin-top:8px}} .ob-ul summary{{cursor:pointer;color:var(--accent);font-weight:500}} .ob-ul p{{margin:6px 0 0;font-size:16px;color:var(--muted)}}
+  .ob-acts{{margin:10px 0 0;display:flex;flex-wrap:wrap;gap:8px 18px}}
+  </style>"""
+    write("/kto-je-moj-lekar/", page("Kto je môj obvodný lekár – zdravotné obvody podľa ulice",
+                                     "Zistite, ktorý všeobecný lekár, pediater, gynekológ a zubár má na starosti vašu ulicu. Podľa registrov zdravotných obvodov samosprávnych krajov.",
+                                     "/kto-je-moj-lekar/", body, breadcrumb_ld(crumb_items), '<script src="/obvod.js" defer></script>'))
+    urls.append(("/kto-je-moj-lekar/", "0.6"))
 
     # --- vyhlásenie o prístupnosti ---
     crumb_items = [("Domov", "/"), ("Prístupnosť", None)]

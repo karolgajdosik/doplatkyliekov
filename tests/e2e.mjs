@@ -232,9 +232,23 @@ await check('Dietetické potraviny a nehradené lieky', async () => {
   return `${n} výsledkov pre „nutridrink“, ${rows} potravín v skupine, ${neh} nehradených liekov pre „ibalgin“`;
 });
 
+await check('Kto je môj obvodný lekár', async () => {
+  await page.goto(BASE + '/kto-je-moj-lekar/');
+  assert(await page.$('#ob-q'), 'chýba vyhľadávanie obce');
+  if (/localhost/.test(BASE)) return 'stránka (API sa lokálne netestuje)';
+  const r = await page.request.get(BASE + '/api/obvod?q=Malacky');
+  const j = await r.json();
+  assert(j.obce && j.obce.length, 'register obvodov nevrátil obec Malacky');
+  const o = j.obce[0];
+  const r2 = await page.request.get(`${BASE}/api/obvod?k=${o.k}&id=${o.id}&n=${encodeURIComponent(o.n)}&o=1`);
+  const j2 = await r2.json();
+  assert(j2.amb && j2.amb.length, 'register obvodov nevrátil ambulancie');
+  return `${j2.amb.length} ambulancií, ${j2.ulice.length} ulíc v Malackách`;
+});
+
 await check('Ďalšie jazyky a podstránky', async () => {
   const paths = ['/hu/', '/uk/', '/asistent/', '/bez-doplatku/', '/na-vytlacenie/', '/clanky/', '/statistiky/', '/pristupnost/',
-    '/sitemap.xml', '/manifest.webmanifest', '/sw.js', '/ai/search.json', '/lekarne.json', '/lekari.json', '/neh.json', '/dp.json'];
+    '/sitemap.xml', '/manifest.webmanifest', '/sw.js', '/ai/search.json', '/lekarne.json', '/lekari.json', '/sluzba.json', '/neh.json', '/dp.json'];
   const bad = [];
   for (const p of paths) { const r = await page.request.get(BASE + p); if (r.status() !== 200) bad.push(`${p} ${r.status()}`); }
   assert(!bad.length, bad.join(', '));

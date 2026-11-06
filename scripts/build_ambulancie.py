@@ -71,6 +71,41 @@ def okresy(kraj, kind, page_id):
             if "okres" in t.lower() or "Okres" in t]
 
 
+def okresy_url(url):
+    h = get(url)
+    return [(u, txt(t)) for u, t in re.findall(r"<tr onclick=\"window\.location = '([^']+)'\".*?<a [^>]*>(.*?)</a>", h, re.S)
+            if "okres" in t.lower()], h
+
+
+def menu(h, kraj):
+    """Odkazy v ľavom menu zdravotníctva kraja: slug → URL."""
+    return {m.group(1): html.unescape(m.group(0)[6:-1]) for m in
+            re.finditer(r'href="https://www\.e-vuc\.sk/' + kraj + r'/zdravotnictvo/([a-z0-9-]+)\.html\?page_id=\d+"', h)}
+
+
+def lekarne_pohotovost(url):
+    """Rozpis lekárenskej pohotovostnej služby: okresy (?okres=…) → riadky [dátum, page_id lekárne, názov, adresa, čas]."""
+    h = get(url)
+    okr = list(dict.fromkeys(html.unescape(u) for u in re.findall(r'href="([^"]*[?&]okres=[^"]+)"', h)))
+    out = []
+    for u in okr or [url]:
+        p = get(u) if okr else h
+        for tbl in re.findall(r'<table class="list er">(.*?)</table>', p, re.S):
+            day = None
+            for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", tbl, re.S):
+                d = re.search(r"(\d{1,2})\.(\d{1,2})\.(20\d\d)", re.sub(r"<a .*?</a>", "", tr, flags=re.S))
+                if d:
+                    day = f"{d.group(3)}-{int(d.group(2)):02d}-{int(d.group(1)):02d}"
+                a = re.search(r'<a href="([^"]+)">(.*?)</a>', tr, re.S)
+                if not a or not day:
+                    continue
+                tds = [txt(x) for x in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
+                addr = next((t for t in tds if re.search(r"\d{3}\s?\d{2}\s+\S", t)), "")
+                cas = next((t for t in reversed(tds) if re.match(r"\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}", t)), "")
+                out.append([day, pid(a.group(1)), txt(a.group(2)), addr, cas, a.group(1)])
+    return out
+
+
 def rows(url):
     """Všetky strany zoznamu zariadení v okrese (po 150, stránkovanie ?page=N)."""
     h = get(url)
@@ -137,27 +172,39 @@ def main():
     old = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
     gps = json.loads(GPS.read_text(encoding="utf-8")) if GPS.exists() else {}
     today = dt.date.today().isoformat()
-    amb, aps, done = [], [], []
+    amb, aps, nem, done, lp_all = [], [], [], [], []
     for kraj, (amb_id, aps_id) in KRAJE.items():
         if ONLY and kraj not in ONLY:
             continue
-        ka, kp = [], []
+        ka, kp, kn = [], [], []
         for u, _ in okresy(kraj, "aps", aps_id):
             kp += rows(u)
-        for u, _ in okresy(kraj, "amb", amb_id):
+        ok_amb, h_amb = okresy_url(f"{H}/{kraj}/zdravotnictvo/ambulantne-zdravotnicke-zariadenia.html?page_id={amb_id}")
+        for u, _ in ok_amb:
             ka += rows(u)
-        print(f"{kraj}: {len(ka)} ambulancií, {len(kp)} pohotovostí")
+        mn = menu(h_amb, kraj)
+        u_uz = next((v for k, v in mn.items() if k.startswith("ustavne-zdravotnicke")), None)
+        if u_uz:
+            for u, _ in okresy_url(u_uz)[0]:
+                kn += [x for x in rows(u) if "výskum" not in x["druh"]]
+        u_lp = next((v for k, v in mn.items() if k.startswith("lekarenska-pohotovost")), None)
+        klp = lekarne_pohotovost(u_lp) if u_lp else []
+        for r in klp:
+            r.append(kraj)
+        lp_all.extend(klp)
+        print(f"{kraj}: {len(ka)} ambulancií, {len(kp)} pohotovostí, {len(kn)} nemocníc, {len(klp)} služieb lekární")
         if len(ka) < 200:
             print(f"  {kraj}: podozrivo málo ambulancií, ponechávam uložené")
             continue
-        for x in ka + kp:
+        for x in ka + kp + kn:
             x["k"] = kraj
         amb += ka
         aps += kp
+        nem += kn
         done.append(kraj)
     # deduplikácia (to isté zariadenie býva vo viacerých okresoch)
-    seen, A, P = set(), [], []
-    for lst, dst in ((aps, P), (amb, A)):
+    seen, A, P, N = set(), [], [], []
+    for lst, dst in ((aps, P), (nem, N), (amb, A)):
         for x in lst:
             x["p"] = pid(x["u"])
             if x["p"] in seen:
@@ -165,7 +212,12 @@ def main():
             seen.add(x["p"])
             dst.append(x)
     # súradnice z detailov: najprv pohotovosti, potom ambulancie
-    todo = [x for x in P + A if x["p"] not in gps]
+    # pohotovostné lekárne: rozpis od dnes, súradnice z detailu lekárne
+    lp_today = [r for r in lp_all if r[0] >= today]
+    lekarne_lp = {}
+    for r in lp_today:
+        lekarne_lp.setdefault(r[1], {"u": r[5], "p": r[1], "n": r[2], "a": r[3], "k": r[6]})
+    todo = [x for x in P + list(lekarne_lp.values()) + N + A if x["p"] not in gps]
     print(f"bez súradníc {len(todo)}, sťahujem najviac {MAX}")
     t0 = time.time()
     for k, x in enumerate(todo[:MAX]):
@@ -174,7 +226,7 @@ def main():
             GPS.write_text(json.dumps(gps, separators=(",", ":")), encoding="utf-8")
             print(f"  {k + 1} detailov, {time.time() - t0:.0f} s")
     if done and not ONLY:
-        live = {x["p"] for x in P + A}
+        live = {x["p"] for x in P + N + A} | set(lekarne_lp)
         gps = {k: v for k, v in gps.items() if k in live}
     GPS.write_text(json.dumps(gps, separators=(",", ":"), sort_keys=True), encoding="utf-8")
 
@@ -190,9 +242,26 @@ def main():
     lekari = [[*gps[x["p"]], x["n"], x["a"], oi.get(x["o"], -1), absence(x), x["k"], int(x["p"])] for x in A if gps.get(x["p"])]
     # riadok: [lat, lon, názov, adresa, ordinačný čas, druh, kraj, page_id]
     pohot = [[*gps[x["p"]], x["n"], x["a"], x["h"], x["druh"], x["k"], int(x["p"])] for x in P if gps.get(x["p"])]
+    # riadok: [lat, lon, názov, adresa, druh, oddelenia, kraj, page_id]
+    nemoc = [[*gps[x["p"]], x["n"], x["a"], x["druh"], x["o"][:400], x["k"], int(x["p"])] for x in N if gps.get(x["p"])]
+    # pohotovostné lekárne: miesta {page_id: [lat, lon, názov, adresa, kraj]} a rozpis {dátum: [[page_id, čas], …]}
+    lp_m = {p: [*gps[p], v["n"], v["a"], v["k"]] for p, v in lekarne_lp.items() if gps.get(p)}
+    lp_d = {}
+    for r in sorted(lp_today):
+        if r[1] in lp_m and [r[1], r[4]] not in lp_d.get(r[0], []):
+            lp_d.setdefault(r[0], []).append([r[1], r[4]])
     # kraje, ktoré sa tentoraz nepodarilo stiahnuť, ponecháme z minula
     lekari += [r for r in old.get("lekari", []) if r[6] not in done and (not ONLY or r[6] not in ONLY)]
     pohot += [r for r in old.get("pohotovosti", []) if r[6] not in done and (not ONLY or r[6] not in ONLY)]
+    nemoc += [r for r in old.get("nemocnice", []) if r[6] not in done and (not ONLY or r[6] not in ONLY)]
+    for p, v in (old.get("lp_miesta") or {}).items():
+        if v[4] not in done and p not in lp_m:
+            lp_m[p] = v
+    for d, lst in (old.get("lp_rozpis") or {}).items():
+        if d >= today:
+            for e in lst:
+                if lp_m.get(e[0], [0] * 5)[4] not in done and e not in lp_d.get(d, []):
+                    lp_d.setdefault(d, []).append(e)
     if old.get("odbory") and odbory != old["odbory"]:
         remap = {i: oi.get(o, -1) for i, o in enumerate(old["odbory"])}
         for r in lekari:
@@ -202,8 +271,10 @@ def main():
     for k in done:
         cnt[k] = [sum(1 for x in A if x["k"] == k), sum(1 for x in P if x["k"] == k)]
     res = {"datum": today, "zdroj": "registre zdravotníckych zariadení samosprávnych krajov (e-VÚC)",
-           "chyba": "Košický kraj", "odbory": odbory, "pocet": cnt, "lekari": lekari, "pohotovosti": pohot}
+           "chyba": "Košický kraj", "odbory": odbory, "pocet": cnt, "lekari": lekari, "pohotovosti": pohot,
+           "nemocnice": nemoc, "lp_miesta": lp_m, "lp_rozpis": dict(sorted(lp_d.items()))}
     OUT.write_text(json.dumps(res, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"nemocnice {len(nemoc)}/{len(N)}, pohotovostné lekárne {len(lp_m)}/{len(lekarne_lp)}, rozpis {len(lp_d)} dní")
     print(f"lekari.json: {len(lekari)} ambulancií a {len(pohot)} pohotovostí so súradnicami "
           f"(v registroch {sum(v[0] for v in cnt.values())} a {sum(v[1] for v in cnt.values())}), "
           f"{len(odbory)} odborností, {n_req} požiadaviek")
