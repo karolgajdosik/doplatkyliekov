@@ -5,9 +5,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - run: |
-          for i in 1 2; do
-            curl -sS -o body.txt -w "HTTP %{http_code} %{time_total}s\n" -H 'content-type: application/json' -H 'user-agent: doplatkyliekov-monitor' -d '{"q":"Koľko doplatím za Concor 10 mg?"}' https://doplatkyliekov.sk/api/asistent
-            head -c 1500 body.txt; echo
-            curl -sS -o b2.txt -w "m=%{http_code}\n" -H 'content-type: application/json' -d '{"q":"Concor 10 mg doplatok","m":"@cf/meta/llama-3.3-70b-instruct-fp8-fast"}' https://doplatkyliekov.sk/api/asistent; head -c 800 b2.txt; echo
-          done
-          curl -sSI https://doplatkyliekov.sk/asistent/ | head -20
+          for u in /api/obvod?q=Malacky /api/asistent /api/ceny /api/subscribe; do curl -sS -o b.txt -w "$u GET %{http_code}\n" "https://doplatkyliekov.sk$u"; head -c 200 b.txt; echo; done
+          curl -sS -o b.txt -w "asistent bez q POST %{http_code}\n" -H 'content-type: application/json' -d '{}' https://doplatkyliekov.sk/api/asistent; head -c 300 b.txt; echo
+          curl -sS -o b.txt -w "asistent POST %{http_code}\n" -H 'content-type: application/json' -d '{"q":"ahoj"}' https://doplatkyliekov.sk/api/asistent; head -c 300 b.txt; echo
+          curl -sS -D - -o b.txt -H 'content-type: application/json' -d '{"q":"ahoj"}' https://doplatkyliekov.sk/api/asistent | head -20
