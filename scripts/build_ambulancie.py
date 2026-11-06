@@ -30,6 +30,8 @@ for i, a in enumerate(sys.argv[1:-1], 1):
     if a.startswith("--") and "=" not in a:
         ARG[a] = sys.argv[i + 1]
 MAX = int(ARG.get("--max", 4000))
+BUDGET = float(ARG.get("--budget", 0)) * 60  # sekundy na celý beh; po nich sa detaily prestanú sťahovať a výsledok sa uloží
+T_START = time.time()
 DELAY = float(ARG.get("--delay", 0.8))
 ONLY = [k for k in ARG.get("--kraj", "").split(",") if k]
 n_req = 0
@@ -221,6 +223,9 @@ def main():
     print(f"bez súradníc {len(todo)}, sťahujem najviac {MAX}")
     t0 = time.time()
     for k, x in enumerate(todo[:MAX]):
+        if BUDGET and time.time() - T_START > BUDGET:
+            print(f"  časový limit: stiahnutých {k} detailov, zvyšok v ďalšom behu")
+            break
         gps[x["p"]] = detail(x["u"]) or 0
         if k % 500 == 499:
             GPS.write_text(json.dumps(gps, separators=(",", ":")), encoding="utf-8")

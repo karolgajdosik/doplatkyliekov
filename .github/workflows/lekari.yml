@@ -8,7 +8,7 @@ on:
     inputs:
       max:
         description: "Najviac detailov (súradníc) za beh"
-        default: "9000"
+        default: "20000"
       kraj:
         description: "Len vybrané kraje (napr. bsk,tsk), prázdne = všetky"
         default: ""
@@ -32,7 +32,7 @@ jobs:
       - name: Ambulancie a pohotovosti
         run: |
           set +e
-          python scripts/build_ambulancie.py --max "${{ inputs.max || '9000' }}" ${{ inputs.kraj && format('--kraj {0}', inputs.kraj) || '' }} 2>&1 | tee lek.log; code=${PIPESTATUS[0]}
+          python scripts/build_ambulancie.py --budget 250 --max "${{ inputs.max || '20000' }}" ${{ inputs.kraj && format('--kraj {0}', inputs.kraj) || '' }} 2>&1 | tee lek.log; code=${PIPESTATUS[0]}
           echo "::notice title=lekari::$(grep -E '^[a-z]+:|lekari.json|bez súradníc' lek.log | tr '\n' ' ' | head -c 1500)"
           exit $code
       - name: Uložiť zmeny
