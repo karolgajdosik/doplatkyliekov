@@ -179,16 +179,20 @@ await check('Ochranný limit – kalkulačka', async () => {
 
 await check('Lekárne a pobočky v okolí – hľadanie obce', async () => {
   await page.goto(BASE + '/lekarne/');
-  await page.waitForFunction(() => /v zozname: \d+/.test(document.querySelector('#lek-msg')?.textContent || ''));
+  await page.waitForFunction(() => /lekár/.test(document.querySelector('#lek-msg')?.textContent || ''), null, { timeout: 20000 });
   await page.fill('#lek-q', 'Žilina');
-  await page.waitForFunction(() => document.querySelectorAll('#lek-list li .gline').length > 3);
-  let out = (await page.locator('#lek-list li').count()) + ' lekární';
-  if (await page.locator('input[name="lek-typ"][value="poistovne"]').count()) {
-    await page.check('input[name="lek-typ"][value="poistovne"]');
-    await page.waitForFunction(() => /Pobočky poisťovní: \d+/.test(document.querySelector('#lek-msg')?.textContent || ''), null, { timeout: 15000 });
-    out += ', ' + (await page.locator('#lek-list li .gline').count()) + ' pobočiek poisťovní';
+  await page.waitForSelector('#lek-sug li.is-city', { timeout: 15000 });
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => /v tejto oblasti/.test(document.querySelector('#lek-msg')?.textContent || '') && document.querySelectorAll('#lek-list .mapa-item').length > 3, null, { timeout: 20000 });
+  let out = (await page.locator('#lek-list .mapa-item').count()) + ' lekární v Žiline';
+  if (await page.locator('[data-typ="poistovne"]').count()) {
+    await page.click('[data-typ="poistovne"]');
+    await page.waitForFunction(() => /poisťov/.test(document.querySelector('#lek-msg')?.textContent || ''), null, { timeout: 15000 });
+    out += ', ' + (await page.locator('#lek-list .mapa-item').count()) + ' pobočiek';
   }
-  return out;
+  const pins = await page.locator('.mapa-pin, .mapa-cl').count();
+  assert(pins > 0, 'na mape nie sú značky');
+  return out + `, ${pins} značiek`;
 });
 
 await check('Zdravotnícke pomôcky a oznamy ŠÚKL', async () => {

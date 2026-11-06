@@ -315,7 +315,7 @@ MENU = [
     ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
                ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky")]),
     ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, výdajne a pobočky"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
+                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne a pobočky v okolí"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
                  ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
     ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
     ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"), ("/statistiky/", "Doplatky v číslach")]),
@@ -689,6 +689,106 @@ def drug_page_l(L, c):
     write(path, page_l(L, L["drug_title"].format(name=p["name"], pk=pk), desc, path, body, alt_paths("drug", p["slug"]), og=c["og"]))
     return path
 
+
+MAPA_CSS = """.mapa-head{margin:4px 0 14px}
+.mapa-h1{font-size:clamp(26px,5.2vw,38px);line-height:1.1;letter-spacing:-.02em;margin:0 0 6px}
+.mapa-sub{margin:0;color:var(--muted);max-width:60ch}
+.mapa{--cat:#087a5f;position:relative;height:max(500px,calc(100dvh - 210px));border-radius:22px;overflow:hidden;background:#e7eeea;box-shadow:0 1px 2px rgba(16,40,32,.08),0 18px 40px -22px rgba(16,40,32,.35);isolation:isolate;overflow:clip}
+.mapa-map{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,#e9f0ec,#dfe8e3)}
+.mapa-map .leaflet-tile-pane{filter:saturate(.55) contrast(1.02) brightness(1.03)}
+.mapa-map.fail::after{content:"Mapa sa nenačítala";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
+.mapa .leaflet-control-attribution{font-size:11px;background:rgba(255,255,255,.75);border-radius:8px 0 0 0}
+.mapa .leaflet-control-zoom{border:0!important;box-shadow:0 2px 10px rgba(16,40,32,.18);border-radius:14px;overflow:hidden;margin:0 14px 14px 0!important}
+.mapa .leaflet-control-zoom a{width:44px;height:44px;line-height:44px;font-size:22px;color:var(--ink);border:0}
+/* horná lišta: vyhľadávanie a kategórie */
+.mapa-top{position:absolute;z-index:500;top:12px;left:12px;right:12px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;pointer-events:none}
+.mapa-top>*{pointer-events:auto}
+.mapa-search{position:relative;display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:4px 4px 4px 16px;box-shadow:0 2px 6px rgba(16,40,32,.10),0 10px 28px -10px rgba(16,40,32,.35)}
+.mapa-s-ic{color:var(--muted);flex:none}
+.mapa-search input{flex:1;min-width:0;border:0!important;background:transparent;font:inherit;font-size:18px;padding:10px 4px;box-shadow:none!important;outline:none;color:#12211d}
+.mapa-search:focus-within{box-shadow:0 0 0 3px color-mix(in srgb,var(--cat) 40%,transparent),0 10px 28px -10px rgba(16,40,32,.35)}
+.mapa-loc{flex:none;width:46px;height:46px;min-height:46px!important;border-radius:50%;border:0!important;display:grid;place-items:center;background:var(--cat);color:#fff;cursor:pointer;padding:0}
+.mapa-loc:focus-visible{outline:3px solid #12211d;outline-offset:2px}
+.mapa-sug{position:absolute;left:0;right:0;top:calc(100% + 8px);margin:0;padding:6px;list-style:none;background:#fff;border-radius:18px;box-shadow:0 18px 40px -12px rgba(16,40,32,.4);max-height:50vh;overflow:auto;z-index:2}
+.mapa-sug li{display:grid;gap:1px;padding:10px 12px;border-radius:12px;cursor:pointer;color:#12211d}
+.mapa-sug li.act,.mapa-sug li:hover{background:#eef5f1}
+.mapa-sug .sg-l{font-weight:600}
+.mapa-sug .sg-s{font-size:15px;color:#566a63}
+.mapa-sug .is-city .sg-l::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--cat);margin-right:8px;vertical-align:2px}
+.mapa-sug .sg-none{color:#566a63;cursor:default}
+.mapa-cats{display:flex;gap:8px;min-width:0;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;margin:0 -12px;padding-left:12px;padding-right:12px}
+.mapa-cats::-webkit-scrollbar{display:none}
+.mapa-cat{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px!important;padding:5px 14px 5px 5px!important;border-radius:999px;border:0!important;background:#fff;color:#12211d;font:inherit;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(16,40,32,.16)}
+.mapa-cap{display:inline-grid;place-items:center;width:44px;height:34px;border-radius:999px;background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 18%,#fff) 50%);color:#fff}
+.mapa-cap svg{margin-right:14px}
+.mapa-n{font-weight:500;color:#566a63;font-variant-numeric:tabular-nums;font-size:15px}
+.mapa-cat[aria-checked="true"]{background:var(--c);color:#fff}
+.mapa-cat[aria-checked="true"] .mapa-n{color:#fff}
+.mapa-cat[aria-checked="true"] .mapa-cap{background:linear-gradient(90deg,#fff 50%,rgba(255,255,255,.35) 50%);color:var(--c)}
+.mapa-cat:focus-visible,.mapa-chip:focus-visible,.mapa-main:focus-visible,.mapa-btn:focus-visible,.mapa-grip:focus-visible{outline:3px solid #12211d;outline-offset:2px}
+/* značky: kapsula */
+.mapa-pin-wrap{background:none;border:0}
+.mapa-pin{display:flex;width:44px;height:26px;border-radius:999px;overflow:hidden;box-shadow:0 0 0 2.5px #fff,0 4px 10px rgba(16,40,32,.35);transition:transform .15s ease;cursor:pointer}
+.mapa-pin i{flex:1;display:grid;place-items:center;background:var(--c);color:#fff}
+.mapa-pin em,.mapa-pin b{flex:1;display:grid;place-items:center;background:#fff;font-style:normal;font-weight:700;font-size:13px;color:var(--c)}
+.mapa-pin em::after{content:"";width:7px;height:7px;border-radius:50%;background:#c3cec9}
+.mapa-pin.open em::after{background:#1f9d55}
+.mapa-pin:hover{transform:scale(1.12)}
+.mapa-pin.sel{transform:scale(1.35);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--c),0 8px 18px rgba(16,40,32,.4)}
+.mapa-cl{display:grid;place-items:center;width:var(--s);height:var(--s);border-radius:50%;background:var(--c);color:#fff;font-weight:700;font-size:15px;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 30%,transparent),0 0 0 2px #fff inset,0 6px 14px rgba(16,40,32,.3);cursor:pointer;font-variant-numeric:tabular-nums}
+.mapa-me{display:block;width:22px;height:22px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 8px rgba(26,115,232,.2),0 2px 6px rgba(0,0,0,.3)}
+/* vysúvací panel */
+.mapa-sheet{position:absolute;z-index:600;left:0;right:0;bottom:0;height:calc(100% - 58px);display:flex;flex-direction:column;background:#fff;color:#12211d;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px -12px rgba(16,40,32,.35);transition:transform .32s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.mapa-sheet[data-state="peek"]{transform:translateY(calc(100% - 150px))}
+.mapa-sheet[data-state="half"]{transform:translateY(45%)}
+.mapa-sheet[data-state="full"]{transform:none}
+.mapa-sheet.drag{transition:none}
+.mapa-sheet-head{padding:4px 16px 10px;touch-action:none;cursor:grab;border-bottom:1px solid #e3ebe7}
+.mapa-grip{display:block;width:100%;min-height:28px!important;border:0!important;background:none!important;padding:8px 0 6px!important;cursor:pointer}
+.mapa-grip span{display:block;margin:0 auto;width:44px;height:5px;border-radius:9px;background:#c7d3ce}
+.mapa-count{margin:0 0 8px;font-weight:700;font-size:18px}
+.mapa-filters{display:flex;flex-wrap:wrap;gap:8px}
+.mapa-ins{display:contents}
+.mapa-ins[hidden]{display:none}
+.mapa-chip{display:inline-flex;align-items:center;gap:7px;min-height:40px!important;padding:6px 14px!important;border-radius:999px;border:1.5px solid #cfdad5!important;background:#fff;color:#12211d;font:inherit;font-size:16px;font-weight:500;cursor:pointer}
+.mapa-chip[aria-pressed="true"]{background:#12211d;border-color:#12211d!important;color:#fff}
+.mapa-dot{width:9px;height:9px;border-radius:50%;background:#1f9d55}
+.mapa-list{list-style:none;margin:0;padding:6px 10px 24px;overflow-y:auto;overscroll-behavior:contain;flex:1}
+.mapa-item{border-radius:16px;padding:4px;margin:2px 0}
+.mapa-item+.mapa-item{border-top:1px solid #edf2ef}
+.mapa-item.sel{background:color-mix(in srgb,var(--c) 9%,#fff);border-top-color:transparent;box-shadow:inset 3px 0 0 var(--c)}
+.mapa-main{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:start;width:100%;text-align:left;background:none!important;border:0!important;padding:10px 8px!important;min-height:0!important;color:inherit;font:inherit;cursor:pointer;border-radius:12px}
+.mapa-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c)}
+.mapa-body{display:grid;gap:3px;min-width:0}
+.mapa-name{font-weight:600;font-size:18px;line-height:1.25;overflow-wrap:anywhere}
+.mapa-meta{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:15px}
+.mapa-kind{color:var(--c);font-weight:600}
+.mapa-st.on{color:#13753e;font-weight:600}
+.mapa-st.off{color:#a03a00}
+.mapa-st.na{color:#566a63}
+.mapa-addr{font-size:15px;color:#435650}
+.mapa-dist{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:2px}
+.mapa-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 8px 10px 60px}
+.mapa-btn{display:inline-flex;align-items:center;min-height:40px;padding:6px 16px;border-radius:999px;border:1.5px solid #cfdad5;color:#12211d;text-decoration:none;font-weight:600;font-size:15px}
+.mapa-btn.pri{background:var(--c);border-color:var(--c);color:#fff}
+.mapa-hours{flex-basis:100%;font-size:15px}
+.mapa-hours summary{cursor:pointer;color:#435650;padding:4px 0}
+.mapa-hours pre{font:inherit;margin:4px 0 0;white-space:pre-line;color:#435650}
+.mapa-empty{padding:18px 10px;color:#566a63}
+.mapa-src{margin-top:12px}
+@media (min-width:900px){
+  .mapa{height:max(560px,calc(100dvh - 190px));width:min(1560px,calc(100vw - 64px));margin-left:calc(50% - min(780px,50vw - 32px))}
+  .mapa-head,.mapa-src{max-width:none}
+  .mapa-top{left:16px;top:16px;right:auto;width:400px}
+  .mapa-cats{margin:0;padding:2px 0 6px;flex-wrap:wrap}
+  .mapa-sheet{left:16px;right:auto;top:136px;bottom:16px;height:auto;width:400px;border-radius:20px;transform:none!important;box-shadow:0 2px 6px rgba(16,40,32,.1),0 18px 40px -16px rgba(16,40,32,.4)}
+  .mapa-grip{display:none}
+  .mapa-sheet-head{padding-top:14px;cursor:default}
+}
+@media (prefers-reduced-motion:reduce){.mapa-sheet,.mapa-pin{transition:none}}
+:root[data-theme="dark"] .mapa-map .leaflet-tile-pane{filter:invert(.92) hue-rotate(180deg) saturate(.5) brightness(.95)}
+@media (prefers-color-scheme:dark){:root[data-theme="auto"] .mapa-map .leaflet-tile-pane{filter:invert(.92) hue-rotate(180deg) saturate(.5) brightness(.95)}}
+"""
 
 EXTRA_CSS = """
 /* doplnky štýlu pre podstránky; základ je v /style.css */
@@ -2888,29 +2988,51 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
             miesta += pb
             n_pob = len(pb)
         (SITE / "miesta.json").write_text(json.dumps({"m": miesta}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        typ_opts = [("lekarne", "Lekárne")] + ([("pomocky", "Výdajne pomôcok"), ("optiky", "Optiky a načúvacie prístroje")] if n_vyd else []) \
-            + ([("poistovne", "Pobočky poisťovní")] if n_pob else [])
-        typ_html = "".join(f'<label class="chip"><input type="radio" name="lek-typ" value="{v}"{" checked" if v == "lekarne" else ""}> {t}</label>'
-                           for v, t in typ_opts)
-        crumb_items = [("Domov", "/"), ("Lekárne, výdajne a pobočky", None)]
+        ICONS_MAP = {
+            "lekarne": '<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/>',
+            "pomocky": '<path d="M7 3h4v2H9v5.2l5.7 7.3H17v2h-3.3L9 13.4V21H7z"/><circle cx="16.5" cy="6.5" r="2.5"/>',
+            "optiky": '<path d="M2 12.5a4.5 4.5 0 0 0 9 0h2a4.5 4.5 0 0 0 9 0V11h-1.2L18.5 6H17l2 5h-5.1a2 2 0 0 0-3.8 0H5l2-5H5.5L3.2 11H2zm4.5 2.5A2.5 2.5 0 0 1 4 12.5h5A2.5 2.5 0 0 1 6.5 15zm11 0a2.5 2.5 0 0 1-2.5-2.5h5a2.5 2.5 0 0 1-2.5 2.5z"/>',
+            "poistovne": '<path d="M12 2 3 6v2h18V6zM5 10h2v7H5zm4 0h2v7H9zm4 0h2v7h-2zm4 0h2v7h-2zM3 19h18v2H3z"/>',
+        }
+        typ_opts = [("lekarne", "Lekárne", "#087a5f")] + ([("pomocky", "Pomôcky", "#0b6b8a"), ("optiky", "Optiky", "#6a4bb3")] if n_vyd else []) \
+            + ([("poistovne", "Poisťovne", "#b34700")] if n_pob else [])
+        cats_html = "".join(
+            f'<button type="button" role="radio" class="mapa-cat" data-typ="{v}" aria-checked="{"true" if v == "lekarne" else "false"}" style="--c:{c}">'
+            f'<span class="mapa-cap"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">{ICONS_MAP[v]}</svg></span>'
+            f'<span class="mapa-cl-t">{t}</span><span class="mapa-n"></span></button>' for v, t, c in typ_opts)
+        crumb_items = [("Domov", "/"), ("Lekárne a pobočky v okolí", None)]
         body = f"""{crumbs(crumb_items)}
-  <section class="intro">
-    <p class="eyebrow">Mapa v okolí</p>
-    <h1 class="page-h1">Lekárne, výdajne pomôcok a pobočky poisťovní</h1>
-    <p class="page-sub">Nájdite najbližšiu lekáreň, výdajňu zdravotníckych pomôcok, optiku alebo pobočku zdravotnej poisťovne podľa svojej polohy alebo obce. Uvidíte adresu, otváracie hodiny, ak sú známe, a navigáciu.</p>
-  </section>
-  <section class="card" id="lek-root">
-    <fieldset class="lek-typ chips"><legend class="lbl">Čo hľadáte</legend>{typ_html}</fieldset>
-    <div class="lek-find">
-      <button type="button" id="lek-geo" class="pharm-btn">{IC["search"]}<span>Hľadať pri mne</span></button>
-      <label class="lek-q">alebo obec či ulica <input type="search" id="lek-q" placeholder="napr. Trnava, Hlavná" autocomplete="off"></label>
+  <header class="mapa-head">
+    <h1 class="mapa-h1">Lekárne a pobočky v okolí</h1>
+    <p class="mapa-sub">Lekárne, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union na jednej mape.</p>
+  </header>
+  <section class="mapa" id="lek-root" aria-label="Mapa lekární a pobočiek">
+    <div class="mapa-map" id="lek-map" aria-label="Mapa"></div>
+    <div class="mapa-top">
+      <form class="mapa-search" id="lek-form" role="search">
+        <svg class="mapa-s-ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <input id="lek-q" type="search" placeholder="Obec, ulica alebo názov" aria-label="Hľadať obec, ulicu alebo názov" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="lek-sug" aria-expanded="false">
+        <button type="button" id="lek-geo" class="mapa-loc" aria-label="Nájsť miesta pri mne" title="Nájsť miesta pri mne"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <ul id="lek-sug" class="mapa-sug" role="listbox" aria-label="Návrhy" hidden></ul>
+      </form>
+      <div class="mapa-cats" role="radiogroup" aria-label="Čo hľadáte">{cats_html}</div>
     </div>
-    <p class="form-msg" id="lek-msg" aria-live="polite"></p>
-    <button type="button" class="linkish" id="lek-map-btn">Zobraziť na mape</button>
-    <div id="lek-map" class="lek-map" hidden></div>
-    <ul class="glist lek-list" id="lek-list"></ul>
-    <p class="hint">Údaje o lekárňach, výdajniach pomôcok a optikách pochádzajú z OpenStreetMap (© prispievatelia OpenStreetMap, licencia ODbL) a nemusia byť úplné ani aktuálne; pomôcky vydávajú aj mnohé lekárne. Pobočky poisťovní a ich otváracie hodiny sú z webov VšZP, Dôvery a Union, aktualizujeme ich mesačne. Otváracie hodiny a pohotovostné služby si pred cestou overte telefonicky alebo na stránke vášho samosprávneho kraja. Vaša poloha sa nikam neposiela; mapové podklady sa načítajú zo serverov OpenStreetMap až po kliknutí na „Zobraziť na mape“.</p>
-  </section>"""
+    <div class="mapa-sheet" id="lek-sheet" data-state="peek">
+      <div class="mapa-sheet-head" id="lek-sheet-head">
+        <button type="button" class="mapa-grip" id="lek-grip" aria-label="Rozbaliť zoznam" aria-expanded="false" aria-controls="lek-list"><span></span></button>
+        <p id="lek-msg" class="mapa-count" aria-live="polite">Načítavam miesta…</p>
+        <div class="mapa-filters">
+          <button type="button" class="mapa-chip" id="lek-open" aria-pressed="false"><span class="mapa-dot"></span>Otvorené teraz</button>
+          <div class="mapa-ins" id="lek-ins" hidden>
+            <button type="button" class="mapa-chip" data-ins="" aria-pressed="true">Všetky</button><button type="button" class="mapa-chip" data-ins="vszp" aria-pressed="false">VšZP</button><button type="button" class="mapa-chip" data-ins="dovera" aria-pressed="false">Dôvera</button><button type="button" class="mapa-chip" data-ins="union" aria-pressed="false">Union</button>
+          </div>
+        </div>
+      </div>
+      <ol class="mapa-list" id="lek-list" aria-label="Miesta v oblasti mapy"></ol>
+    </div>
+  </section>
+  <p class="hint mapa-src">Lekárne, výdajne pomôcok a optiky: © prispievatelia OpenStreetMap (ODbL), nemusia byť úplné; pomôcky vydávajú aj mnohé lekárne. Pobočky a ich hodiny: weby VšZP, Dôvery a Union, aktualizované mesačne. Hodiny si pred cestou overte. Mapové podklady sa načítavajú zo serverov OpenStreetMap; vaša poloha sa nikam neposiela.</p>
+  <style>{MAPA_CSS}</style>"""
         write("/lekarne/", page("Lekárne, výdajne pomôcok a pobočky poisťovní v okolí – mapa", "Najbližšie lekárne, výdajne zdravotníckych pomôcok, optiky a pobočky VšZP, Dôvery a Union podľa polohy alebo obce: adresa, otváracie hodiny a navigácia.",
                                 "/lekarne/", body, breadcrumb_ld(crumb_items), '<script src="/lekarne.js" defer></script>'))
         urls.append(("/lekarne/", "0.6"))
