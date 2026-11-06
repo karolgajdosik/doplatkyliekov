@@ -16,13 +16,8 @@ def save(name, u, kw):
     hit = [l for l in links if re.search(kw, l, re.I)]
     log.append(f'== {name} {u} -> {f} len={len(t or "")}\n   ' + '\n   '.join(hit[:40]))
     return t
-ok = 0
-for u in json.load(open('tools/spc_urls.json')):
-    f, t = get(u)
-    spc = re.findall(r'<a[^>]+href="(https://www\.sukl\.sk/document/download[^"]+)"[^>]*>(.*?)</a>', t or '', re.S)
-    ok += bool(t)
-    log.append(f'{"OK " if t else "ERR"} {u} docs={[re.sub(r"<[^>]+>|\s+", " ", x[1]).strip()[:40] for x in spc][:4]}')
-log.append(f'SPC slug ok {ok}/60')
-save('spot', 'https://www.nczisk.sk/Statisticke_vystupy/Tematicke_statisticke_vystupy/TOP-50-liekov/Spotreba_humannych_liekov_zdravotnickych_pomocok_dietetickych_potravin_SR/Pages/default.aspx', r'xls|csv|pdf|zip')
-save('ucet', 'https://www.nczisk.sk/Statisticke_vystupy/Tematicke_statisticke_vystupy/TOP-50-liekov/Pages/Ucet-poistenca-humanne-lieky-hradene-z-verejneho-zdravotneho-poistenia-v-SR.aspx', r'xls|csv|pdf|zip')
+for q in ['Lopridam', 'Actelsar HCT', 'Benoxi', 'Aboxoma', 'Acnatac', 'Norditropin FlexPro', 'Accofil', 'Abiraterone G.L.', 'Carzap HCT']:
+    f, t2 = get('https://www.sukl.sk/rozsirene-vyhladavanie?search_type=drugs&drug_fulltext=' + urllib.parse.quote(q))
+    rows = re.findall(r'<a href="https://www\.sukl\.sk/([^"]+)">[^<]*</a>\s*</td>\s*<td>\s*<label>Kód</label>\s*(\w+)\s*</td>\s*<td>\s*<label>Liek / Účinná látka</label>\s*([^<]+?)\s*</td>', t2 or '')
+    log.append(f'{q}: ' + ' | '.join(f'{a} <= {c.strip()} [{b}]' for a, b, c in rows[:4]))
 (R / 'log.txt').write_text('\n'.join(log), encoding='utf-8'); print('\n'.join(log))
