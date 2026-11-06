@@ -32,7 +32,7 @@ jobs:
       - name: Ambulancie a pohotovosti
         run: |
           set +e
-          python scripts/build_ambulancie.py --budget 250 --max "${{ inputs.max || '20000' }}" ${{ inputs.kraj && format('--kraj {0}', inputs.kraj) || '' }} 2>&1 | tee lek.log; code=${PIPESTATUS[0]}
+          python -u scripts/build_ambulancie.py --budget 250 --max "${{ inputs.max || '20000' }}" ${{ inputs.kraj && format('--kraj {0}', inputs.kraj) || '' }} 2>&1 | tee lek.log; code=${PIPESTATUS[0]}
           echo "::notice title=lekari::$(grep -E '^[a-z]+:|lekari.json|bez súradníc' lek.log | tr '\n' ' ' | head -c 1500)"
           exit $code
       - name: Uložiť zmeny
