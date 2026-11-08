@@ -1,0 +1,20 @@
+name: Dočasný prehľad odberov
+on: workflow_dispatch
+jobs:
+  d:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+        run: |
+          cd scripts && python3 - <<'P'
+          import notify, collections
+          c = collections.Counter()
+          for p in ['sub:', 'push:', 'rem:', 'pr:', 'ceny:', 'sync:']:
+              try: c[p] = len(notify.list_subs(p))
+              except Exception as e: c[p] = f'chyba {e}'
+          print('::notice title=kv::' + ', '.join(f'{k} {v}' for k, v in c.items()))
+          P
