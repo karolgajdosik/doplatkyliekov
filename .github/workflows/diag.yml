@@ -1,0 +1,11 @@
+name: Dočasná diagnostika
+on: workflow_dispatch
+jobs:
+  d:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          curl -sS -o /dev/null -w "%{http_code} %{redirect_url}\n" https://doplatkyliekov.sk/liek/granal-2958e/
+          curl -sS -o /dev/null -w "%{http_code}\n" https://doplatkyliekov.sk/_redirects
+          curl -sS https://doplatkyliekov.sk/sitemap.xml | head -c 300; echo
+          curl -sSI https://doplatkyliekov.sk/ | grep -i "last-modified\|etag\|cf-"
