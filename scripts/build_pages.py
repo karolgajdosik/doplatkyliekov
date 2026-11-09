@@ -3502,16 +3502,17 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
         else:
             gone.setdefault(sl, today_iso)
     redir = []
-    # Cloudflare Pages dovolí najviac 2000 statických presmerovaní (3 na liek): prednosť majú naposledy vypadnuté
-    for sl in sorted(gone, key=lambda k: gone[k], reverse=True)[:650]:
+    # Cloudflare Pages dovolí najviac 2000 statických presmerovaní (6 na liek, s lomkou aj bez): prednosť majú naposledy vypadnuté
+    for sl in sorted(gone, key=lambda k: gone[k], reverse=True)[:320]:
         lp = arch[sl]
-        redir += [(f"/liek/{sl}/", lp if lp in cur_paths else "/"), (f"/hu/gyogyszer/{sl}/", "/hu/"), (f"/uk/liky/{sl}/", "/uk/")]
+        for src, dst in ((f"/liek/{sl}/", lp if lp in cur_paths else "/"), (f"/hu/gyogyszer/{sl}/", "/hu/"), (f"/uk/liky/{sl}/", "/uk/")):
+            redir += [(src, dst), (src.rstrip("/"), dst)]
     try:
         arch_f.write_text(json.dumps({**arch, "_zaniknute": gone}, ensure_ascii=False, separators=(",", ":"), sort_keys=True), encoding="utf-8")
     except OSError:
         pass
     (SITE / "_redirects").write_text("".join(f"{a} {b} 301\n" for a, b in redir), encoding="utf-8")
-    print(f"Presmerovania zaniknutých stránok liekov: {len(redir) // 3}")
+    print(f"Presmerovania zaniknutých stránok liekov: {len(redir) // 6}")
 
     # --- sitemap ---
     lm = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
