@@ -5,7 +5,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - run: |
-          curl -sS -o /dev/null -w "%{http_code} %{redirect_url}\n" https://doplatkyliekov.sk/liek/granal-2958e/
-          curl -sS -o /dev/null -w "%{http_code}\n" https://doplatkyliekov.sk/_redirects
-          curl -sS https://doplatkyliekov.sk/sitemap.xml | head -c 300; echo
-          curl -sSI https://doplatkyliekov.sk/ | grep -i "last-modified\|etag\|cf-"
+          for h in https://be1a6e6d.doplatkyliekov.pages.dev https://doplatkyliekov.pages.dev https://doplatkyliekov.sk; do
+            curl -sS -o /dev/null -w "R $h %{http_code} %{redirect_url}\n" "$h/liek/granal-2958e/?x=$RANDOM"
+            curl -sS -o /dev/null -w "R $h noslash %{http_code} %{redirect_url}\n" "$h/liek/granal-2958e"
+          done
+          curl -sSI "https://doplatkyliekov.sk/liek/granal-2958e/" | grep -iE "^HTTP|cf-cache|age:|cache-control"
