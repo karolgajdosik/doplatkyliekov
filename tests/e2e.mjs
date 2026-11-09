@@ -246,6 +246,13 @@ await check('Kto je môj obvodný lekár', async () => {
   return `${j2.amb.length} ambulancií, ${j2.ulice.length} ulíc v Malackách`;
 });
 
+await check('Presmerovanie vypadnutého lieku', async () => {
+  if (/localhost/.test(BASE)) return 'lokálne sa netestuje (_redirects spracúva Cloudflare)';
+  const r = await page.request.get(BASE + '/liek/granal-2958e/', { maxRedirects: 0 });
+  assert(r.status() === 301 || r.status() === 308, `stav ${r.status()}`);
+  return `${r.status()} → ${r.headers()['location']}`;
+});
+
 await check('Ďalšie jazyky a podstránky', async () => {
   const paths = ['/hu/', '/uk/', '/asistent/', '/bez-doplatku/', '/na-vytlacenie/', '/clanky/', '/statistiky/', '/pristupnost/',
     '/sitemap.xml', '/manifest.webmanifest', '/sw.js', '/ai/search.json', '/lekarne.json', '/lekari.json', '/sluzba.json', '/kupele/', '/cakacie-lehoty/', '/neh.json', '/dp.json'];

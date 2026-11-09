@@ -3485,6 +3485,34 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
     except Exception as e:  # noqa: BLE001
         print("Náhľadové obrázky sa nevytvorili:", e)
 
+    # --- presmerovania zaniknutých stránok liekov (liek vypadol zo zoznamu → stránka látky) ---
+    # data/stranky_archiv.json: {slug lieku: cesta k stránke látky}; ukladá ho denná aktualizácia (git add -A data)
+    arch_f = DATA / "stranky_archiv.json"
+    arch = json.loads(arch_f.read_text(encoding="utf-8")) if arch_f.exists() else {}
+    cur_paths = {u for u, _ in urls}
+    for g in groups:
+        for x in g["i"]:
+            if x.get("slug") and g["s"] in subst_slug:
+                arch[x["slug"]] = f"/latka/{subst_slug[g['s']]}/"
+    gone = arch.pop("_zaniknute", {})  # slug → dátum, odkedy stránka neexistuje
+    today_iso = dt.date.today().isoformat()
+    for sl in arch:
+        if f"/liek/{sl}/" in cur_paths:
+            gone.pop(sl, None)
+        else:
+            gone.setdefault(sl, today_iso)
+    redir = []
+    # Cloudflare Pages dovolí najviac 2000 statických presmerovaní (3 na liek): prednosť majú naposledy vypadnuté
+    for sl in sorted(gone, key=lambda k: gone[k], reverse=True)[:650]:
+        lp = arch[sl]
+        redir += [(f"/liek/{sl}/", lp if lp in cur_paths else "/"), (f"/hu/gyogyszer/{sl}/", "/hu/"), (f"/uk/liky/{sl}/", "/uk/")]
+    try:
+        arch_f.write_text(json.dumps({**arch, "_zaniknute": gone}, ensure_ascii=False, separators=(",", ":"), sort_keys=True), encoding="utf-8")
+    except OSError:
+        pass
+    (SITE / "_redirects").write_text("".join(f"{a} {b} 301\n" for a, b in redir), encoding="utf-8")
+    print(f"Presmerovania zaniknutých stránok liekov: {len(redir) // 3}")
+
     # --- sitemap ---
     lm = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
     sm = "".join(f"<url><loc>{BASE}{esc(u)}</loc>{lm}<priority>{pr}</priority></url>\n" for u, pr in urls)
