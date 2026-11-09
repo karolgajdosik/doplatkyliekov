@@ -3507,6 +3507,24 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
         lp = arch[sl]
         for src, dst in ((f"/liek/{sl}/", lp if lp in cur_paths else "/"), (f"/hu/gyogyszer/{sl}/", "/hu/"), (f"/uk/liky/{sl}/", "/uk/")):
             redir += [(src, dst), (src.rstrip("/"), dst)]
+    # Cloudflare v produkcii _redirects pre tieto cesty neuplatňuje (v náhľade áno), preto aj statická stránka
+    # s vysvetlením, odkazom na látku, kanonickou adresou látky a noindex – nie chyba 404
+    latka_name = {f"/latka/{v}/": k for k, v in subst_slug.items()}
+    for sl in sorted(gone, key=lambda k: gone[k], reverse=True)[:600]:
+        lp = arch[sl] if arch[sl] in cur_paths else "/"
+        ln = latka_name.get(lp)
+        when = gone[sl]
+        msg = (f'<section class="intro"><p class="eyebrow">Liek mimo zoznamu</p><h1 class="page-h1">Tento liek už poisťovňa nehradí</h1>'
+               f'<p class="page-sub">Liek z tejto adresy od {sk_date(when)} nie je v zozname liekov hradených zdravotnou poisťovňou '
+               f'(môže sa ešte predávať, no zaplatíte plnú cenu).</p></section>'
+               f'<section class="card"><h2>Čo teraz</h2><p>'
+               + (f'Pozrite <a href="{lp}">hradené lieky s látkou {esc(ln)}</a> a porovnajte doplatky. ' if ln else
+                  '<a href="/">Vyhľadajte liek</a> podľa názvu alebo účinnej látky. ')
+               + 'O zmene lieku sa poraďte s lekárom alebo lekárnikom.</p></section>')
+        html_ = page("Liek už nie je hradený poisťovňou", "Tento liek už nie je v zozname liekov hradených poisťovňou.",
+                     lp, msg, "")
+        html_ = html_.replace("<head>", '<head>\n<meta name="robots" content="noindex,follow">', 1)
+        write(f"/liek/{sl}/", html_)
     try:
         arch_f.write_text(json.dumps({**arch, "_zaniknute": gone}, ensure_ascii=False, separators=(",", ":"), sort_keys=True), encoding="utf-8")
     except OSError:

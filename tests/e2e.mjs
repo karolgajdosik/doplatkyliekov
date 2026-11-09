@@ -247,10 +247,12 @@ await check('Kto je môj obvodný lekár', async () => {
 });
 
 await check('Presmerovanie vypadnutého lieku', async () => {
-  if (/localhost/.test(BASE)) return 'lokálne sa netestuje (_redirects spracúva Cloudflare)';
   const r = await page.request.get(BASE + '/liek/granal-2958e/', { maxRedirects: 0 });
-  assert(r.status() === 301 || r.status() === 308, `stav ${r.status()}`);
-  return `${r.status()} → ${r.headers()['location']}`;
+  if (r.status() === 301 || r.status() === 308) return `${r.status()} → ${r.headers()['location']}`;
+  assert(r.status() === 200, `stav ${r.status()}`);
+  const t = await r.text();
+  assert(t.includes('noindex') && t.includes('/latka/alfakalcidol/'), 'chýba vysvetlenie s odkazom na látku');
+  return 'stránka s vysvetlením a odkazom na látku';
 });
 
 await check('Ďalšie jazyky a podstránky', async () => {
