@@ -3552,7 +3552,10 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
 
     # --- sitemap ---
     lm = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
-    sm = "".join(f"<url><loc>{BASE}{esc(u)}</loc>{lm}<priority>{pr}</priority></url>\n" for u, pr in urls)
+    # maďarské a ukrajinské stránky liekov (vyše 9 tisíc) nie sú v mape stránok, aby Google najprv spracoval slovenské;
+    # stránky ostávajú funkčné a Google ich nájde cez odkazy hreflang (rozhodnutie 12. 11. 2026)
+    sm_urls = [(u, pr) for u, pr in urls if not re.match(r"^/(hu/gyogyszer|uk/liky)/.+", u)]
+    sm = "".join(f"<url><loc>{BASE}{esc(u)}</loc>{lm}<priority>{pr}</priority></url>\n" for u, pr in sm_urls)
     (SITE / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + sm + "</urlset>\n", encoding="utf-8")
@@ -3561,7 +3564,7 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
 
     n_atc = len([u for u, _ in urls if u.startswith("/skupina/")])
     print(f"Vygenerované: {len(products)} stránok liekov, {len(by_subst)} látok, {n_atc} skupín, "
-          f"sitemap s {len(urls)} adresami. História: {len(history)} mesiacov, "
+          f"sitemap s {len(sm_urls)} z {len(urls)} adries. História: {len(history)} mesiacov, "
           f"budúci zoznam: {'áno' if nxt else 'nie'}, výpadky: {len(vyp)}.")
 
 
