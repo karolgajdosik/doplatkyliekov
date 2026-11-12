@@ -1098,6 +1098,24 @@ def extract_css():
 PLATNOST = ""
 
 
+def drug_title(p, pk, cheapest, saving):
+    """Krátky titulok do výsledkov Googlu (do ~60 znakov): názov so silou, počet kusov, doplatok, cena alebo náhrada.
+    Ľudia hľadajú „<liek> cena“, „<liek> doplatok“ a „<liek> náhrada“ (Search Console, 11/2026)."""
+    nm = p["name"]
+    m = re.match(r"^(.*?\d[\d,.]*\s*(?:mg/ml|mg/g|IU/ml|mmol/ml|mikrogramov|mikrogramy|mcg|µg|ug|mg|ml|IU|g|%|j\.|U)(?![a-zá-ž])(?:\s*/\s*[\d,.]+\s*(?:mg|g|µg|ml|dávka|h))*)", nm)
+    short = (m.group(1) if m and len(m.group(1)) >= 4 else nm).strip(" ,")
+    if len(short) > 38:
+        short = short[:38].rsplit(" ", 1)[0]
+    cnt = re.search(r"(\d+)\s*x", pk or "")
+    head = f"{short}, {cnt.group(1)} ks" if cnt and cnt.group(1) != "1" else short
+    if saving > 0.005:
+        tail = "náhrada bez doplatku" if (cheapest["dop"] or 0) < 0.005 else f"náhrada za {eur(cheapest['dop'])}"
+        return f"{head}: doplatok {eur(p['dop'])}, {tail}"
+    if p.get("konc") and (p["dop"] or 0) < 0.005:
+        return f"{head}: bez doplatku, cena {eur(p['konc'])}"
+    return f"{head}: doplatok {eur(p['dop'])}, cena {eur(p['konc'])}" if p.get("konc") else f"{head}: doplatok {eur(p['dop'])}"
+
+
 def page(title, description, path, body, jsonld=None, script="", og=None, alts=None):
     og_url = BASE + (og or "/og/default.jpg")
     url = BASE + path
@@ -1446,7 +1464,7 @@ def build():
         vt = vyp_text(vstate)
 
         if saving > 0.005:
-            desc = (f"Doplatok za {p['name']} ({pk}) je {eur(p['dop'])}. Lacnejšia alternatíva s rovnakou látkou: "
+            desc = (f"{p['name']} ({pk}): cena {eur(p['konc'])}, doplatok {eur(p['dop'])}. Lacnejšia náhrada s rovnakou látkou: "
                     f"{cheapest['name']} za {eur(cheapest['dop'])}. Ušetríte {eur(saving)} na balení.")
             verdict = (f'<div class="verdict"><p>Za <strong>{esc(p["name"])}</strong> doplácate {eur(p["dop"])}. '
                        f'Najlacnejšia alternatíva s rovnakou látkou, silou a balením je '
@@ -1454,12 +1472,12 @@ def build():
                        f'<div class="big">−{eur(saving)}<small>na jednom balení</small></div>'
                        f'<p class="pharm-row">{pharm_button(p, cheapest)}<small>Ukážte lekárnikovi na mobile, o ktorý liek ide.</small></p></div>')
         elif len(items) > 1:
-            desc = (f"Doplatok za {p['name']} ({pk}) je {eur(p['dop'])}. Patrí medzi najlacnejšie lieky s látkou "
+            desc = (f"{p['name']} ({pk}): cena {eur(p['konc'])}, doplatok {eur(p['dop'])}. Patrí medzi najlacnejšie lieky s látkou "
                     f"{g['s']} v tejto sile a balení. Porovnanie {plural_lieky(len(items))}.")
             verdict = (f'<div class="verdict none"><p><strong>{esc(p["name"])}</strong> už patrí medzi najlacnejšie lieky '
                        f'v tejto skupine. Doplatok {eur(p["dop"])}.</p></div>')
         else:
-            desc = (f"Doplatok za {p['name']} ({pk}) je {eur(p['dop'])}, konečná cena {eur(p['konc'])}, "
+            desc = (f"{p['name']} ({pk}): doplatok {eur(p['dop'])}, cena v lekárni {eur(p['konc'])}, "
                     f"poisťovňa hradí {eur(p['uzp'])}. Účinná látka: {g['s']}.")
             verdict = (f'<div class="verdict none"><p><strong>{esc(p["name"])}</strong> nemá v zozname inú verziu '
                        f's rovnakou látkou, silou a balením. Pozrite si <a href="{s_url}">iné sily a balenia látky {esc(g["s"])}</a>.</p></div>')
@@ -1677,7 +1695,7 @@ def build():
 {alert_form(p["kod"])}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
-        title = f"{p['name']} ({pk}) – doplatok a lacnejšie alternatívy"
+        title = drug_title(p, pk, cheapest, saving)
         # MedicalWebPage, nie Drug: Drug je pre Google druh produktu (Product) a vyžaduje offers/review/aggregateRating
         # (Search Console 4. 11. 2026); web lieky nepredáva, preto stránka opisuje liek ako zdravotnícku tému
         drug_ld = {"@context": "https://schema.org", "@type": "MedicalWebPage", "name": title, "url": BASE + path,
