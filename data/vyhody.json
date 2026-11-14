@@ -1,11 +1,11 @@
 {
- "kontrola": "2026-11-13",
+ "kontrola": "2026-11-14",
  "zdroje": [
   {
    "id": "union",
    "nazov": "Union – doplatky pre všetkých",
    "url": "https://www.union.sk/doplatky-za-lieky-pre-vsetkych/",
-   "stav": "ok",
+   "stav": "nedostupna",
    "sumy": [
     "20",
     "50",
@@ -21,7 +21,7 @@
    "id": "union-deti",
    "nazov": "Union – doplatky pre deti",
    "url": "https://www.union.sk/vratenie-doplatkov-za-lieky-pre-deti/",
-   "stav": "ok",
+   "stav": "nedostupna",
    "sumy": [
     "250"
    ],
@@ -39,7 +39,7 @@
     "400",
     "1600"
    ],
-   "kontrola": "2026-11-13",
+   "kontrola": "2026-11-14",
    "zmena_od": ""
   },
   {
@@ -53,7 +53,7 @@
     "200",
     "450"
    ],
-   "kontrola": "2026-11-13",
+   "kontrola": "2026-11-14",
    "zmena_od": ""
   },
   {
@@ -70,7 +70,7 @@
     "100",
     "450"
    ],
-   "kontrola": "2026-11-13",
+   "kontrola": "2026-11-14",
    "zmena_od": ""
   }
  ]
