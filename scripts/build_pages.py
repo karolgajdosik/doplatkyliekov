@@ -313,6 +313,8 @@ IC = {
     "moon": _svg('<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>'),
     "auto": _svg('<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'),
     "spark": _svg('<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>'),
+    "share": _svg('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>'),
+    "print": _svg('<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>'),
     "bell": _svg('<path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
 }
 
@@ -1117,6 +1119,59 @@ def extract_css():
 PLATNOST = ""
 
 
+LIMIT_ROK = 2026  # rok, pre ktorý platia sumy na stránke /ochranny-limit/ (po zverejnení nových súm ich aktualizovať)
+
+
+def limit_year_note():
+    """Od decembra do aktualizácie súm upozorní, že na nový rok sa limity menia (závisia od priemernej mzdy)."""
+    t = dt.date.today()
+    if (t.year == LIMIT_ROK and t.month == 12) or t.year > LIMIT_ROK:
+        return (f'<div class="alert warn" role="status"><strong>Sumy limitu na rok {LIMIT_ROK + 1}</strong><p>Od 1. 1. {LIMIT_ROK + 1} sa limity menia, '
+                f'pretože závisia od priemernej mzdy. Nižšie sú sumy na rok {LIMIT_ROK}; nové doplníme hneď, ako ich zverejní ministerstvo zdravotníctva.</p></div>')
+    return ""
+
+
+def is_chronic(g):
+    """Lieky na dlhodobé užívanie (tablety, kapsuly ústami; bez antiinfektív a liekov proti bolesti) – pri nich dáva zmysel ročná úspora."""
+    return g["f"].startswith("p.o.") and not re.match(r"^(J|N02|M01A|A07|P)", g["a"] or "")
+
+
+def share_row(p, cheapest, saving):
+    """Tlačidlá Poslať rodine (navigator.share, inak WhatsApp/SMS/e-mail/kopírovať) a Vytlačiť pre lekára (ui.js)."""
+    url = f"{BASE}/liek/{p['slug']}/"
+    text = (f"Za {p['name']} sa dopláca {eur(p['dop'])}. {cheapest['name']} s rovnakou látkou stojí {eur(cheapest['dop'])}, "
+            f"úspora {eur(saving)} na balení. Opýtaj sa lekára na zámenu:")
+    return (f'<div class="share-row"><button type="button" class="btn-ghost" data-share data-text="{esc(text)}" data-url="{esc(url)}">'
+            f'{IC.get("share", "")}Poslať rodine</button>'
+            f'<button type="button" class="btn-ghost" data-print-doc>{IC.get("print", "")}Vytlačiť pre lekára</button></div>')
+
+
+def print_doc(p, g, items, od):
+    """Jedna strana A4 pre lekára: liek pacienta a lieky s rovnakou látkou, silou a balením (len pri tlači)."""
+    rows = "".join(
+        f'<tr{" class=me" if x["kod"] == p["kod"] else ""}><td>{esc(x["name"])}<br><small>{esc(x["pack"])} · kód ŠÚKL {esc(x["kod"])}</small></td>'
+        f'<td>{esc(type_label(x["typ"]) or "")}</td><td class="n">{eur(x["dop"])}</td></tr>' for x in items[:12])
+    return f"""
+  <section class="print-doc" aria-hidden="true">
+    <p class="pd-brand">doplatkyliekov.sk · porovnanie doplatkov pre lekára</p>
+    <h2>{esc(g['s'])}, {esc(g['f'])}</h2>
+    <p>Pacient užíva <strong>{esc(p['name'])}</strong> ({esc(p['pack'])}), doplatok <strong>{eur(p['dop'])}</strong> za balenie.
+    Lieky v tabuľke majú rovnakú účinnú látku, silu a veľkosť balenia (ATC {esc(g['a'])}).</p>
+    <table><thead><tr><th>Liek</th><th>Typ</th><th class="n">Doplatok</th></tr></thead><tbody>{rows}</tbody></table>
+    <p class="pd-ask">Prosím o posúdenie, či je možná zámena za liek s nižším doplatkom.</p>
+    <p class="pd-note">O zámene rozhoduje lekár alebo lekárnik. Doplatok je maximálny, lekáreň ho môže znížiť.
+    Zdroj: Zoznam kategorizovaných liekov MZ SR platný od {esc(od)}. Vytlačené z {BASE}/liek/{esc(p['slug'])}/</p>
+  </section>"""
+
+
+def feedback_box(kod):
+    """Pomohlo vám to? Anonymné áno/nie (functions/api/hodnotenie.js), raz za liek a prehliadač."""
+    return (f'<section class="card feedback" data-feedback="{esc(kod)}"><p class="fb-q">Pomohla vám táto stránka?</p>'
+            '<div class="fb-btns"><button type="button" class="btn-ghost" data-v="ano">Áno</button>'
+            '<button type="button" class="btn-ghost" data-v="nie">Nie</button></div>'
+            '<p class="fb-thanks" hidden>Ďakujeme. Ak vám niečo chýbalo, napíšte nám na <a href="mailto:kontakt@doplatkyliekov.sk">kontakt@doplatkyliekov.sk</a>.</p></section>')
+
+
 def drug_title(p, pk, cheapest, saving):
     """Krátky titulok do výsledkov Googlu (do ~60 znakov): názov so silou, počet kusov, doplatok, cena alebo náhrada.
     Ľudia hľadajú „<liek> cena“, „<liek> doplatok“ a „<liek> náhrada“ (Search Console, 11/2026)."""
@@ -1489,7 +1544,10 @@ def build():
                        f'Najlacnejšia alternatíva s rovnakou látkou, silou a balením je '
                        f'<strong><a href="/liek/{esc(cheapest["slug"])}/">{esc(cheapest["name"])}</a></strong> za {eur(cheapest["dop"])}.</p>'
                        f'<div class="big">−{eur(saving)}<small>na jednom balení</small></div>'
-                       f'<p class="pharm-row">{pharm_button(p, cheapest)}<small>Ukážte lekárnikovi na mobile, o ktorý liek ide.</small></p></div>')
+                       + (f'<p class="year-save">Ak užívate jedno balenie mesačne, ušetríte <strong>{eur(saving * 12)} ročne</strong>.</p>'
+                          if is_chronic(g) else "")
+                       + f'<p class="pharm-row">{pharm_button(p, cheapest)}<small>Ukážte lekárnikovi na mobile, o ktorý liek ide.</small></p>'
+                       + share_row(p, cheapest, saving) + '</div>')
         elif len(items) > 1:
             desc = (f"{p['name']} ({pk}): cena {eur(p['konc'])}, doplatok {eur(p['dop'])}. Patrí medzi najlacnejšie lieky s látkou "
                     f"{g['s']} v tejto sile a balení. Porovnanie {plural_lieky(len(items))}.")
@@ -1701,6 +1759,7 @@ def build():
     <p class="slip-foot">Porovnanie liekov s rovnakou účinnou látkou, silou a veľkosťou balenia ({plural_lieky(len(items))}). Doplatok je maximálna suma v lekárni.</p>
   </section>
 {alert_form(p["kod"], heading="Upozorníme vás, keď sa doplatok zmení", compact=True)}
+{print_doc(p, g, items, PLATNOST) if saving > 0.005 else ""}
   {f'<section class="purpose-wrap">{purpose}</section>' if purpose else ''}
 {year_calc(p, cheapest)}
 {hist_html}
@@ -1712,6 +1771,7 @@ def build():
     <div class="ceny-out"><p class="hint">Načítavam…</p></div>
   </section>
 {ai_card(p)}
+{feedback_box(p["kod"])}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
         title = drug_title(p, pk, cheapest, saving)
@@ -1951,6 +2011,7 @@ def build():
     <p class="eyebrow">Limit spoluúčasti</p>
     <h1 class="page-h1">Ochranný limit: koľko vám poisťovňa vráti za doplatky</h1>
     <p class="page-sub">Dôchodcom, ľuďom s preukazom ŤZP, invalidným dôchodcom a malým deťom vracia zdravotná poisťovňa doplatky za lieky nad štvrťročný limit. Nemusíte o nič žiadať.</p>
+    {limit_year_note()}
   </section>
   <section class="card">
     <h2>Kalkulačka</h2>
@@ -2482,7 +2543,7 @@ def build():
     <h2>Kto spracúva údaje</h2>
     <p>Prevádzkovateľom webu doplatkyliekov.sk a prevádzkovateľom osobných údajov je {esc(OPERATOR)}, kontakt: <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
     <h2>Prehliadanie webu</h2>
-    <p>Web nepoužíva cookies ani iné nástroje na sledovanie alebo reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, neukladá nič do vášho zariadenia, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Keď vyhľadávanie lieku, pomôcky alebo potraviny nič nenájde, uložíme anonymne len hľadaný výraz a počet za mesiac (bez IP adresy, času či iného údaju o vás), aby sme vedeli doplniť, čo na webe chýba; výrazy podobné e-mailu alebo dlhému číslu sa neukladajú. Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
+    <p>Web nepoužíva cookies ani iné nástroje na sledovanie alebo reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, neukladá nič do vášho zariadenia, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Keď vyhľadávanie lieku, pomôcky alebo potraviny nič nenájde, uložíme anonymne len hľadaný výraz a počet za mesiac (bez IP adresy, času či iného údaju o vás), aby sme vedeli doplniť, čo na webe chýba; výrazy podobné e-mailu alebo dlhému číslu sa neukladajú. Rovnako anonymne počítame odpovede na otázku „Pomohla vám táto stránka?“ (len kód lieku a áno/nie). Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
     <h2>Údaje uložené vo vašom zariadení</h2>
     <p>Niektoré funkcie, o ktoré sami požiadate, si ukladajú údaje do úložiska vášho prehliadača (localStorage). Ide o ukladanie nevyhnutné na poskytnutie funkcie, ktorú výslovne požadujete, preto podľa § 109 ods. 8 zákona č. 452/2021 Z. z. o elektronických komunikáciách nevyžaduje súhlas. Tieto údaje zostávajú vo vašom zariadení, neodosielame ich a nemáme k nim prístup.</p>
     <div class="scroll"><table class="ltable">
@@ -3253,6 +3314,17 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
         zm_tile = ("/zmeny/", "trend", f"Zmeny od {nd_txt}", f"{n_down} zlacnení, {n_up} zdražení · {plural_lieky(n_vyp)} s výpadkom", "")
     else:
         zm_tile = ("/zmeny/", "trend", "Zmeny a výpadky", f"{plural_lieky(n_vyp)} s prerušenými dodávkami", "")
+    # banner pred zmenou zoznamu (napr. 1. 1. 2027): od zverejnenia nového zoznamu do dňa jeho platnosti
+    banner_html = ""
+    if zm_counts:
+        n_up, n_down, n_gone, nd_txt = zm_counts
+        parts = [f"{n_down} {'liek zlacnie' if n_down == 1 else 'lieky zlacnejú' if 2 <= n_down <= 4 else 'liekov zlacnie'}"] if n_down else []
+        if n_up:
+            parts.append(f"{n_up} {'zdražie' if n_up == 1 else 'zdražejú' if 2 <= n_up <= 4 else 'zdražie'}")
+        if n_gone:
+            parts.append(f"{n_gone} {'vypadne' if n_gone == 1 else 'vypadnú' if 2 <= n_gone <= 4 else 'vypadne'} zo zoznamu")
+        banner_html = (f'<a class="change-banner" href="/zmeny/"><strong>Od {nd_txt} sa menia doplatky</strong>'
+                       f'<span>{", ".join(parts) or "zmeny v zozname liekov"}. Skontrolujte, či sa týkajú vašich liekov →</span></a>')
     tiles = [
         ("/moje-lieky/", "mine", "Moje lieky", "Uložte si lieky, upozorníme vás na zmenu", ""),
         ("/bez-doplatku/", "zero", "Lieky bez doplatku", f"{plural_lieky(zero_total)} plne hradených", ""),
@@ -3293,7 +3365,7 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
                  + "".join(f'<a href="/lekarne/{q}" style="--c:{c}"><i></i>{t}<b>{n}</b></a>' for q, t, n, c in cats_links if n)
                  + '</nav></section>')
     conds_html = "".join(f'<a href="/choroby/{c[0]}/">{esc(c[1][:1].upper() + c[1][1:])}</a>' for c in CONDITIONS[:8])
-    for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header("/"), "TILES": tiles_html, "MAPA": mapa_html, "CONDS": conds_html,
+    for k, v in {"PREFS_HEAD": PREFS_HEAD, "HEADER": site_header("/"), "TILES": tiles_html, "BANNER": banner_html, "MAPA": mapa_html, "CONDS": conds_html,
                  "FOOTER": site_footer(esc(PLATNOST)), "BOTTOM": bottom_nav("/"), "PANELS": site_panels("/")}.items():
         tpl = tpl.replace(f"<!--{k}-->", v)
     tpl = tpl.replace('<link rel="canonical" href="https://doplatkyliekov.sk/">', '<link rel="canonical" href="https://doplatkyliekov.sk/">\n' + hreflang_links(alt_paths("root")))

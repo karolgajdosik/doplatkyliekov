@@ -867,3 +867,38 @@ a { text-decoration-thickness: 1px; }
 :root[data-theme="dark"] .card, :root[data-theme="dark"] .slip, :root[data-theme="dark"] .tile { box-shadow: none !important; }
 @media (prefers-color-scheme: dark) { :root[data-theme="auto"] .card, :root[data-theme="auto"] .slip, :root[data-theme="auto"] .tile { box-shadow: none !important; } }
 :root[data-contrast="high"] .card, :root[data-contrast="high"] .slip, :root[data-contrast="high"] .tile, :root[data-contrast="high"] section.card { border-width: 2px !important; box-shadow: none !important; }
+
+/* Zdieľanie, tlač pre lekára, ročná úspora, „pomohlo vám to?“ (15. 11. 2026) */
+.year-save { grid-column: 1 / -1; margin: 0; font-size: 17px; }
+.share-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.btn-ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost svg { width: 18px; height: 18px; }
+.share-menu { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.share-menu a, .share-menu button { font-size: 16px; }
+.feedback { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.feedback .fb-q { margin: 0; font-weight: 600; }
+.feedback .fb-btns { display: flex; gap: 8px; }
+.feedback .fb-thanks { margin: 0; flex-basis: 100%; }
+.print-doc { display: none; }
+@media print {
+  body.pd * { visibility: hidden !important; }
+  body.pd .print-doc, body.pd .print-doc * { visibility: visible !important; }
+  body.pd :not(.print-doc):not(.print-doc *):not(:has(.print-doc)):not(html):not(head):not(head *) { display: none !important; }
+  body.pd main, body.pd :has(> .print-doc) { margin: 0 !important; padding: 0 !important; }
+  body.pd .print-doc { display: block !important; width: 100%; color: #000; background: #fff; font-size: 12pt; }
+  .print-doc .pd-brand { font-size: 10pt; color: #444; border-bottom: 1px solid #999; padding-bottom: 4pt; }
+  .print-doc h2 { font-size: 16pt; margin: 8pt 0; }
+  .print-doc table { width: 100%; border-collapse: collapse; margin: 10pt 0; }
+  .print-doc th, .print-doc td { border-bottom: 1px solid #bbb; padding: 5pt 4pt; text-align: left; vertical-align: top; }
+  .print-doc .n { text-align: right; white-space: nowrap; }
+  .print-doc tr.me td { font-weight: 700; }
+  .print-doc small { font-size: 9pt; color: #444; }
+  .print-doc .pd-ask { font-size: 13pt; font-weight: 700; margin-top: 12pt; }
+  .print-doc .pd-note { font-size: 9pt; color: #444; }
+  .share-row, .feedback { display: none !important; }
+}
+.change-banner { display: grid; gap: 4px; margin: 0 0 12px; padding: 14px 18px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--save) 10%, var(--surface)); border: 1.5px solid color-mix(in srgb, var(--save) 45%, transparent); color: var(--ink); text-decoration: none; }
+.change-banner strong { font-size: 19px; color: var(--save); }
+.change-banner span { font-size: 16px; }
+.change-banner:hover { border-color: var(--save); }

@@ -110,3 +110,50 @@
   document.querySelectorAll('[data-open]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
   apply();
 })();
+
+/* Poslať rodine, Vytlačiť pre lekára, Pomohla vám táto stránka? (stránka lieku) */
+(function () {
+  'use strict';
+  document.addEventListener('click', function (e) {
+    var sh = e.target.closest && e.target.closest('[data-share]');
+    if (sh) {
+      var text = sh.getAttribute('data-text'), url = sh.getAttribute('data-url');
+      if (navigator.share) { navigator.share({ text: text, url: url }).catch(function () {}); return; }
+      var row = sh.parentNode, old = row.parentNode.querySelector('.share-menu');
+      if (old) { old.remove(); return; }
+      var m = document.createElement('div'); m.className = 'share-menu';
+      var full = text + ' ' + url;
+      [['WhatsApp', 'https://wa.me/?text=' + encodeURIComponent(full)], ['SMS', 'sms:?&body=' + encodeURIComponent(full)],
+       ['E-mail', 'mailto:?subject=' + encodeURIComponent('Lacnejší liek') + '&body=' + encodeURIComponent(full)]].forEach(function (x) {
+        var a = document.createElement('a'); a.className = 'btn-ghost'; a.textContent = x[0]; a.href = x[1];
+        if (x[0] === 'WhatsApp') { a.target = '_blank'; a.rel = 'noopener'; }
+        m.appendChild(a);
+      });
+      var c = document.createElement('button'); c.type = 'button'; c.className = 'btn-ghost'; c.textContent = 'Kopírovať odkaz';
+      c.addEventListener('click', function () {
+        (navigator.clipboard ? navigator.clipboard.writeText(full) : Promise.reject()).then(function () { c.textContent = 'Skopírované'; }, function () { c.textContent = url; });
+      });
+      m.appendChild(c);
+      row.insertAdjacentElement('afterend', m);
+      return;
+    }
+    if (e.target.closest && e.target.closest('[data-print-doc]')) {
+      document.body.classList.add('pd');
+      window.addEventListener('afterprint', function done() { document.body.classList.remove('pd'); window.removeEventListener('afterprint', done); });
+      window.print();
+      setTimeout(function () { document.body.classList.remove('pd'); }, 1000);
+      return;
+    }
+    var fb = e.target.closest && e.target.closest('[data-feedback] [data-v]');
+    if (fb) {
+      var box = fb.closest('[data-feedback]'), kod = box.getAttribute('data-feedback');
+      try { localStorage.setItem('fb:' + kod, fb.getAttribute('data-v')); } catch (err) {}
+      try { navigator.sendBeacon('/api/hodnotenie', new Blob([JSON.stringify({ kod: kod, v: fb.getAttribute('data-v') })], { type: 'application/json' })); } catch (err) {}
+      box.querySelector('.fb-btns').hidden = true; box.querySelector('.fb-q').hidden = true;
+      box.querySelector('.fb-thanks').hidden = false;
+    }
+  });
+  // kto už hodnotil, nevidí otázku znova
+  var box = document.querySelector('[data-feedback]');
+  if (box) { try { if (localStorage.getItem('fb:' + box.getAttribute('data-feedback'))) box.hidden = true; } catch (err) {} }
+})();
