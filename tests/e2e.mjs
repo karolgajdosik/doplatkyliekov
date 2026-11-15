@@ -20,7 +20,7 @@ function log(ok, name, info = '') {
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ ...devices['Pixel 7'], locale: 'sk-SK', timezoneId: 'Europe/Bratislava', serviceWorkers: 'block' });
 // testy sa nemajú započítať do návštevnosti (Cloudflare Web Analytics)
-await ctx.route(/cloudflareinsights\.com|\/cdn-cgi\/rum/, (r) => r.abort());
+await ctx.route(/cloudflareinsights\.com|\/cdn-cgi\/rum|\/api\/nenajdene/, (r) => r.abort());
 ctx.setDefaultTimeout(35000);
 const jsErrors = [];
 ctx.on('page', (p) => {

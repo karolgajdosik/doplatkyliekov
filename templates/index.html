@@ -62,6 +62,7 @@
       <h2>Kde sa najviac preplatí</h2>
     </div>
     <ul class="top" id="top"></ul>
+    <p><a href="/bez-doplatku/">Všetky lieky bez doplatku →</a></p>
   </section>
 
   <section class="section conds">
@@ -212,6 +213,7 @@ function search(term) {
   results.replaceChildren();
   if (!hits.length) results.append(el('div', 'empty', 'Nenašli sme liek s týmto názvom v zozname liekov, ktoré hradí poisťovňa.'));
   if (hits.length < 3 && t.length >= 3) nehradene(t, term);
+  else if (!hits.length) nenajdene(t);
   hits.forEach((x, i) => {
     const b = el('button'); b.type = 'button'; b.setAttribute('role', 'option');
     b.append(el('span', 'rn', x.name), el('span', 'rd mono', eur(x.dop)), el('span', 'rp', x.pack));
@@ -228,6 +230,8 @@ function nehradene(t, term) {
   nehLoad.then(d => {
     if (!d || norm(q.value.trim()) !== t) return;
     const words = t.split(/\s+/);
+    const any = d.i.some(x => words.every(w => x.k.includes(w)));
+    if (!any && !results.querySelector('button')) nenajdene(t);
     const m = d.i.filter(x => words.every(w => x.k.includes(w)))
       .sort((a, b) => (norm(a[0]).startsWith(words[0]) ? 0 : 1) - (norm(b[0]).startsWith(words[0]) ? 0 : 1) || a[0].localeCompare(b[0], 'sk')).slice(0, 6);
     if (!m.length) return;
@@ -244,6 +248,16 @@ function nehradene(t, term) {
     results.append(box);
     results.hidden = false; q.setAttribute('aria-expanded', 'true');
   });
+}
+// anonymné počítadlo hľadaní bez výsledku (/api/nenajdene): len výraz, odošle sa raz, keď človek prestane písať
+let nfTimer = null; const nfSent = new Set();
+function nenajdene(t) {
+  clearTimeout(nfTimer);
+  nfTimer = setTimeout(() => {
+    if (norm(q.value.trim()) !== t || nfSent.has(t) || t.length < 3) return;
+    nfSent.add(t);
+    try { navigator.sendBeacon('/api/nenajdene', new Blob([JSON.stringify({ q: q.value.trim(), kde: 'uvod' })], { type: 'application/json' })); } catch (e) {}
+  }, 1800);
 }
 function pick(x) { results.hidden = true; q.setAttribute('aria-expanded', 'false'); q.value = x.name; render(x); slip.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
 q.addEventListener('input', () => search(q.value));
@@ -283,7 +297,7 @@ DATA.forEach((g, gi) => {
 });
 tops.sort((a, b) => b.gap - a.gap);
 const topEl = document.getElementById('top');
-tops.slice(0, 5).forEach(t => {
+tops.slice(0, 3).forEach(t => {
   const li = el('li'); const b = el('a'); b.href = drugUrl(t.mx);
   const ts = el('span', 'ts', '−' + eur(t.gap)); ts.append(el('small', null, 'na balení'));
   const tn = el('span', 'tn'); tn.append(t.mx.name, el('span', 'arrow', '→'), t.mn.name);

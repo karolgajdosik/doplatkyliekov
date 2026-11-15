@@ -37,8 +37,21 @@
       items.forEach(function (x) {
         out.appendChild(li(BASE + d.g[x[1]][0] + '/#' + encodeURIComponent(x[3]), x[0], '· doplatok ' + eur(x[2]) + ' · ' + d.g[x[1]][1]));
       });
-      if (!groups.length && !items.length) out.appendChild(li(BASE, 'Nič sme nenašli. Skúste iné slovo alebo prejdite skupiny nižšie.'));
+      if (!groups.length && !items.length) {
+        out.appendChild(li(BASE, 'Nič sme nenašli. Skúste iné slovo alebo prejdite skupiny nižšie.'));
+        report(t);
+      }
     }).catch(function () { out.appendChild(li(BASE, 'Vyhľadávanie sa nepodarilo načítať. Skúste obnoviť stránku.')); });
+  }
+  // anonymné počítadlo hľadaní bez výsledku: len výraz, raz, keď človek prestane písať
+  var nfTimer = null, nfSent = {};
+  function report(t) {
+    clearTimeout(nfTimer);
+    nfTimer = setTimeout(function () {
+      if (norm(q.value.trim()) !== t || nfSent[t] || t.length < 3) return;
+      nfSent[t] = 1;
+      try { navigator.sendBeacon('/api/nenajdene', new Blob([JSON.stringify({ q: q.value.trim(), kde: BASE === '/pomocky/' ? 'pomocky' : 'dp' })], { type: 'application/json' })); } catch (e) {}
+    }, 1800);
   }
   q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 180); });
   q.addEventListener('focus', load, { once: true });

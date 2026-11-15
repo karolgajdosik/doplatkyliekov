@@ -63,6 +63,14 @@ jobs:
           echo "::notice title=pil::$(tail -n 3 pil.log | tr '\n' ' ' | head -c 900)"
           [ $code -eq 0 ]
           rm -f /tmp/pil.zip
+      - name: Prehľad hľadaní bez výsledku (e-mailom)
+        continue-on-error: true
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: python scripts/nenajdene.py
       - name: Uložiť zmeny
         run: |
           git config user.name "github-actions[bot]"

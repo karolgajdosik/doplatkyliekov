@@ -323,21 +323,24 @@ PREFS_HEAD = ("<script>(function(){var d=document.documentElement;d.dataset.them
               "d.dataset.eff=(t==='dark'||(t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light';})();</script>")
 
 # (adresa, názov, krátky názov na mobil, triedy: m = aj na mobile, x-960 / x-1100 = skryť pod danou šírkou)
-NAV_TOP = [("/", "Vyhľadať", "", ""), ("/choroby/", "Ochorenia", "", ""),
-           ("/zmeny/", "Zmeny", "Zmeny", "m"), ("/vypadky/", "Výpadky", "Výpadky", "m"),
-           ("/bez-doplatku/", "Bez doplatku", "Bez doplatku", "m x-960"), ("/ochranny-limit/", "Ochranný limit", "Limit", "m x-960"),
-           ("/statistiky/", "Štatistiky", "", "x-1100")]
+NAV_TOP = [("/", "Vyhľadať", "", ""), ("/bez-doplatku/", "Bez doplatku", "Bez doplatku", "m"),
+           ("/lekarne/", "Lekárne a lekári", "Lekárne", "m x-960"), ("/ochranny-limit/", "Ochranný limit", "Limit", "x-960"),
+           ("/vyhody-poistovni/", "Výhody poisťovní", "", "x-1100")]
 
+# Menu (15. 11. 2026): najprv 6 najpoužívanejších stránok ako dlaždice, potom dve skupiny, napokon zbalené
+# stránky pre odborníkov a o webe. (skupina, položky, druh: top / list / fold)
 MENU = [
-    ("Lieky", [("/", "Vyhľadať liek"), ("/asistent/", "AI asistent"), ("/choroby/", "Lieky podľa ochorenia"), ("/bez-doplatku/", "Lieky bez doplatku"),
-               ("/skupiny/", "Lieky podľa skupín"), ("/lieky/", "Účinné látky"), ("/pomocky/", "Zdravotnícke pomôcky"), ("/dieteticke-potraviny/", "Dietetické potraviny")]),
-    ("Pre vás", [("/moje-lieky/", "Moje lieky"), ("/ochranny-limit/", "Ochranný limit a prehľad doplatkov"),
-                 ("/vyhody-poistovni/", "Výhody poisťovní"), ("/lekarne/", "Lekárne, lekári a pohotovosti"), ("/kto-je-moj-lekar/", "Kto je môj obvodný lekár"), ("/kupele/", "Kúpele"), ("/cakacie-lehoty/", "Čakanie na operáciu"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie"),
-                 ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")]),
-    ("Pre odborníkov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/vlozit/", "Kalkulačka na váš web")]),
-    ("Zmeny a dostupnosť", [("/zmeny/", "Zmeny doplatkov"), ("/index-doplatkov/", "Index doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"), ("/statistiky/", "Doplatky v číslach")]),
+    ("Najčastejšie", [("/", "Vyhľadať liek"), ("/moje-lieky/", "Moje lieky"), ("/bez-doplatku/", "Lieky bez doplatku"),
+                      ("/lekarne/", "Lekárne, lekári a pohotovosti"), ("/ochranny-limit/", "Ochranný limit"), ("/vyhody-poistovni/", "Výhody poisťovní")], "top"),
+    ("Lieky a pomôcky", [("/choroby/", "Lieky podľa ochorenia"), ("/lieky/", "Účinné látky"), ("/skupiny/", "Lieky podľa skupín"),
+                         ("/zmeny/", "Zmeny doplatkov"), ("/vypadky/", "Výpadky liekov"), ("/upozornenia-sukl/", "Stiahnuté lieky a oznamy ŠÚKL"),
+                         ("/pomocky/", "Zdravotnícke pomôcky"), ("/dieteticke-potraviny/", "Dietetické potraviny"), ("/asistent/", "AI asistent")], "list"),
+    ("Lekári a zdravotníctvo", [("/kto-je-moj-lekar/", "Kto je môj obvodný lekár"), ("/kupele/", "Kúpele"), ("/cakacie-lehoty/", "Čakanie na operáciu"),
+                                ("/upozornenia/sprava/", "Upozornenia e-mailom"), ("/clanky/", "Články a návody")], "list"),
+    ("Pre lekárov a médiá", [("/pre-lekarov/", "Ťahák pre ambulancie"), ("/data/", "Dáta pre novinárov"), ("/index-doplatkov/", "Index doplatkov"),
+                             ("/statistiky/", "Doplatky v číslach"), ("/vlozit/", "Kalkulačka na váš web"), ("/na-vytlacenie/", "Plagát a letáky na vytlačenie")], "fold"),
     ("O webe", [("/o-nas/", "O nás"), ("/kontakt/", "Kontakt"), ("/ochrana-sukromia/", "Ochrana súkromia"),
-                ("/pristupnost/", "Vyhlásenie o prístupnosti")]),
+                ("/pristupnost/", "Vyhlásenie o prístupnosti")], "fold"),
 ]
 
 
@@ -368,9 +371,17 @@ def site_header(path):
 
 
 def site_panels(path):
-    groups = "".join(
-        f'<section><h3>{esc(g)}</h3><ul>' + "".join(f'<li><a href="{h}"{_cur(h, path) if h != "/" else ""}>{esc(t)}</a></li>' for h, t in items)
-        + "</ul></section>" for g, items in MENU)
+    def lis(items):
+        return "".join(f'<li><a href="{h}"{_cur(h, path) if h != "/" else ""}>{esc(t)}</a></li>' for h, t in items)
+    groups = ""
+    for g, items, kind in MENU:
+        if kind == "top":
+            groups += f'<section class="menu-top"><h3 class="sr-only">{esc(g)}</h3><ul>{lis(items)}</ul></section>'
+        elif kind == "fold":
+            groups += f'<details class="menu-fold"><summary>{esc(g)}</summary><ul>{lis(items)}</ul></details>'
+        else:
+            groups += f'<section><h3>{esc(g)}</h3><ul>{lis(items)}</ul></section>'
+
     return f"""<div class="sheet-backdrop" hidden data-close></div>
 <div class="sheet" id="menu" role="dialog" aria-modal="true" aria-labelledby="menu-h" hidden>
   <div class="sheet-head"><h2 id="menu-h">Menu</h2><button type="button" class="sheet-close" data-close aria-label="Zavrieť menu">×</button></div>
@@ -419,7 +430,7 @@ def bottom_nav(path):
 def site_footer(platnost_html, alts=None):
     cols = "".join(
         f'<section><h2>{esc(g)}</h2><ul>' + "".join(f'<li><a href="{h}">{esc(t)}</a></li>' for h, t in items) + "</ul></section>"
-        for g, items in [MENU[0], (MENU[1][0], MENU[1][1] + MENU[2][1]), MENU[3]])
+        for g, items, _ in [MENU[1], MENU[2], MENU[3]])
     return f"""<footer>
     <nav class="foot-cols" aria-label="Ďalšie stránky">{cols}</nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {platnost_html}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
@@ -828,6 +839,10 @@ EXTRA_CSS = """
 .prices span { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; }
 .prices b { font-family: var(--font-mono); font-weight: 600; font-size: 24px; letter-spacing: -0.02em; white-space: nowrap; }
 .prices b.dop { color: var(--save); text-shadow: 0 0 22px rgba(255, 150, 60, 0.35); }
+.prices .you { background: color-mix(in srgb, var(--save) 8%, transparent); }
+.prices .you b { font-size: 1.25em; }
+.alert-card.compact { border: 2px solid var(--accent); }
+.alert-card.compact .page-sub { font-size: 17px; }
 .cta { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; color: var(--accent); border: 1px solid var(--line-strong); border-radius: 999px; padding: 10px 18px; background: var(--surface); justify-self: start; }
 .cta:hover { border-color: var(--accent); box-shadow: 0 0 22px -6px var(--glow); }
 .purpose { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 17px; }
@@ -923,8 +938,10 @@ ul.plain small { color: var(--muted); }
 .prose ul { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
 .prose li::marker { color: var(--accent); }
 @media (max-width: 640px) {
-  .prices { grid-template-columns: 1fr; }
-  .prices div { padding: 14px 18px; }
+  .prices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .prices div { padding: 12px 10px; gap: 4px; }
+  .prices b { font-size: 19px; white-space: normal; }
+  .prices span { font-size: 10px; letter-spacing: .08em; }
   .prices div + div { border-left: 0; border-top: 1px solid var(--line); }
   .facts-dl { grid-template-columns: 1fr; }
   .facts-dl dt { padding-bottom: 2px; }
@@ -1048,12 +1065,14 @@ def mine_button(p):
             f'data-slug="{esc(p["slug"])}" aria-pressed="false">{BOOKMARK}<span class="mine-label">Pridať do Mojich liekov</span></button>')
 
 
-def alert_form(kod=None, heading="Upozorníme vás na zmenu"):
+def alert_form(kod=None, heading="Upozorníme vás na zmenu", compact=False):
     data_kod = f' data-kod="{esc(kod)}"' if kod else ""
+    lead = ("Jeden e-mail, len keď sa doplatok tohto lieku zmení, keď má výpadok alebo keď pribudne lacnejšia náhrada. Bez reklamy."
+            if compact else "Pošleme vám e-mail, len keď sa zmení doplatok vašich liekov, keď výrobca ohlási výpadok alebo keď pribudne lacnejšia alternatíva. Bez reklamy, odhlásiť sa dá jedným kliknutím.")
     return f"""
-  <section class="card">
-    <h2>{esc(heading)}</h2>
-    <p class="page-sub">Pošleme vám e-mail, len keď sa zmení doplatok vašich liekov, keď výrobca ohlási výpadok alebo keď pribudne lacnejšia alternatíva. Bez reklamy, odhlásiť sa dá jedným kliknutím.</p>
+  <section class="card alert-card{' compact' if compact else ''}" id="upozornenie">
+    <h2>{IC["bell"] if compact and "bell" in IC else ""}{esc(heading)}</h2>
+    <p class="page-sub">{lead}</p>
     <form class="alert-form"{data_kod} novalidate>
       <div class="fields">
         <label class="hp" aria-hidden="true">Web <input name="web" tabindex="-1" autocomplete="off"></label>
@@ -1659,29 +1678,30 @@ def build():
         crumb_items += [(g["s"], s_url), (p["name"], None)]
         body = f"""{crumbs(crumb_items)}
   <section class="intro has-3d">
-    <p class="eyebrow">Doplatok za liek</p>
+    {fig3d(p['pack'], g['a'], alt_name=p['name'], eager=True)}
+    <p class="eyebrow">Cena a doplatok</p>
     <h1 class="page-h1">{esc(p['name'])}</h1>
     <p class="page-sub">{esc(p['pack'])}</p>
-    {fig3d(p['pack'], g['a'], alt_name=p['name'], eager=True)}
-    {purpose}
     {mine_button(p)}
   </section>
     {alerts_html}
   <section class="slip">
-    <div class="slip-head">
-      <p class="eyebrow">Účinná látka</p>
-      <h2><a href="{s_url}">{esc(g['s'])}</a>, {esc(g['f'])}</h2>
-      <div class="slip-meta"><span class="mono">ATC {esc(g['a'])}</span><span class="mono">ŠÚKL {esc(p['kod'])}</span><span>{type_label(p['typ']) or 'Liek'}</span></div>
-    </div>
-    <div class="prices">
-      <div><span>Doplatok pacienta</span><b class="dop">{eur(p['dop'])}</b></div>
-      <div><span>Hradí poisťovňa</span><b>{eur(p['uzp'])}</b></div>
-      <div><span>Konečná cena</span><b>{eur(p['konc'])}</b></div>
+    <div class="prices prices-top">
+      <div><span>Cena v lekárni</span><b>{eur(p['konc'])}</b></div>
+      <div><span>Zaplatí poisťovňa</span><b>{eur(p['uzp'])}</b></div>
+      <div class="you"><span>Doplatíte vy</span><b class="dop">{eur(p['dop'])}</b></div>
     </div>
     {verdict}
+    <div class="slip-head">
+      <p class="eyebrow">Porovnanie liekov s rovnakou látkou</p>
+      <h2><a href="{s_url}">{esc(g['s'])}</a>, {esc(g['f'])}</h2>
+      <div class="slip-meta"><span>{type_label(p['typ']) or 'Liek'}</span><span class="mono">ATC {esc(g['a'])}</span><span class="mono">ŠÚKL {esc(p['kod'])}</span></div>
+    </div>
     <ul class="rows">{''.join(rows)}</ul>
     <p class="slip-foot">Porovnanie liekov s rovnakou účinnou látkou, silou a veľkosťou balenia ({plural_lieky(len(items))}). Doplatok je maximálna suma v lekárni.</p>
   </section>
+{alert_form(p["kod"], heading="Upozorníme vás, keď sa doplatok zmení", compact=True)}
+  {f'<section class="purpose-wrap">{purpose}</section>' if purpose else ''}
 {year_calc(p, cheapest)}
 {hist_html}
 {presc_html}
@@ -1692,7 +1712,6 @@ def build():
     <div class="ceny-out"><p class="hint">Načítavam…</p></div>
   </section>
 {ai_card(p)}
-{alert_form(p["kod"])}
   <p><a class="cta" href="{s_url}">Všetky sily a balenia: {esc(g['s'])} →</a></p>
 {NOTES}"""
         title = drug_title(p, pk, cheapest, saving)
@@ -2463,7 +2482,7 @@ def build():
     <h2>Kto spracúva údaje</h2>
     <p>Prevádzkovateľom webu doplatkyliekov.sk a prevádzkovateľom osobných údajov je {esc(OPERATOR)}, kontakt: <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
     <h2>Prehliadanie webu</h2>
-    <p>Web nepoužíva cookies ani iné nástroje na sledovanie alebo reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, neukladá nič do vášho zariadenia, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
+    <p>Web nepoužíva cookies ani iné nástroje na sledovanie alebo reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, neukladá nič do vášho zariadenia, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Keď vyhľadávanie lieku, pomôcky alebo potraviny nič nenájde, uložíme anonymne len hľadaný výraz a počet za mesiac (bez IP adresy, času či iného údaju o vás), aby sme vedeli doplniť, čo na webe chýba; výrazy podobné e-mailu alebo dlhému číslu sa neukladajú. Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
     <h2>Údaje uložené vo vašom zariadení</h2>
     <p>Niektoré funkcie, o ktoré sami požiadate, si ukladajú údaje do úložiska vášho prehliadača (localStorage). Ide o ukladanie nevyhnutné na poskytnutie funkcie, ktorú výslovne požadujete, preto podľa § 109 ods. 8 zákona č. 452/2021 Z. z. o elektronických komunikáciách nevyžaduje súhlas. Tieto údaje zostávajú vo vašom zariadení, neodosielame ich a nemáme k nim prístup.</p>
     <div class="scroll"><table class="ltable">
@@ -3228,19 +3247,16 @@ document.querySelectorAll('[data-print]').forEach(function (b) {
 
     # --- úvodná stránka zo šablóny ---
     tpl = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
-    tiles = [
-        ("/moje-lieky/", "mine", "Moje lieky", "Uložte si lieky a sledujte doplatky, zmeny a výpadky", ""),
-        ("/choroby/", "heart", "Lieky podľa ochorenia", "Tlak, cholesterol, cukrovka, štítna žľaza a ďalšie", ""),
-    ]
+    # úvod zjednodušený 15. 11. 2026: tri rýchle odkazy (ostatné je v menu a nižšie na stránke)
     if zm_counts:
         n_up, n_down, n_gone, nd_txt = zm_counts
-        tiles.append(("/zmeny/", "trend", f"Zmeny od {nd_txt}", f"{n_down} zlacnení, {n_up} zdražení, {n_gone} vypadne", ""))
+        zm_tile = ("/zmeny/", "trend", f"Zmeny od {nd_txt}", f"{n_down} zlacnení, {n_up} zdražení · {plural_lieky(n_vyp)} s výpadkom", "")
     else:
-        tiles.append(("/zmeny/", "trend", "Zmeny doplatkov", "Nový zoznam ministerstva na budúci mesiac", ""))
-    tiles += [
-        ("/vypadky/", "alert", "Výpadky liekov", f"{plural_lieky(n_vyp)} s prerušenými dodávkami", " warn"),
-        ("/bez-doplatku/", "zero", "Lieky bez doplatku", f"{plural_lieky(zero_total)} plne hradených poisťovňou", ""),
-        ("/ochranny-limit/", "shield", "Ochranný limit", "Koľko vám vráti poisťovňa a prehľad doplatkov", ""),
+        zm_tile = ("/zmeny/", "trend", "Zmeny a výpadky", f"{plural_lieky(n_vyp)} s prerušenými dodávkami", "")
+    tiles = [
+        ("/moje-lieky/", "mine", "Moje lieky", "Uložte si lieky, upozorníme vás na zmenu", ""),
+        ("/bez-doplatku/", "zero", "Lieky bez doplatku", f"{plural_lieky(zero_total)} plne hradených", ""),
+        zm_tile,
     ]
     tiles_html = "".join(f'<a class="tile{cls}" href="{h}">{IC[ic]}<strong>{esc(t)}</strong><span>{esc(sub)}</span></a>'
                          for h, ic, t, sub, cls in tiles)

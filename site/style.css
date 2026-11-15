@@ -409,6 +409,13 @@ footer nav a:hover { border-color: var(--accent); color: var(--accent); }
 .menu-groups ul { list-style: none; margin: 0; padding: 0; display: grid; }
 .menu-groups a { display: block; padding: 10px 4px; color: var(--ink); text-decoration: none; font-size: 19px; border-bottom: 1px solid var(--line); }
 .menu-groups a:hover, .menu-groups a[aria-current="page"] { color: var(--accent); }
+.menu-top ul { grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu-top a { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--accent-soft); font-weight: 600; min-height: 56px; display: flex; align-items: center; line-height: 1.25; }
+.menu-fold { border-top: 1px solid var(--line); }
+.menu-fold summary { cursor: pointer; padding: 12px 4px; font-family: var(--font-mono); font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); list-style: none; display: flex; justify-content: space-between; }
+.menu-fold summary::-webkit-details-marker { display: none; }
+.menu-fold summary::after { content: "+"; font-size: 20px; letter-spacing: 0; }
+.menu-fold[open] summary::after { content: "–"; }
 .menu-display { width: 100%; justify-content: flex-start; height: 48px; }
 .set-group { display: grid; gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
 .set-group legend, .set-label { font-weight: 600; font-size: 18px; padding: 0; margin-bottom: 10px; }
@@ -451,7 +458,7 @@ body.sheet-open { overflow: hidden; }
 .tile strong { font-size: 19px; font-weight: 600; line-height: 1.3; }
 .tile span { font-size: 16px; color: var(--muted); line-height: 1.45; }
 .tile.warn svg { color: var(--save); }
-@media (max-width: 760px) { .tiles { grid-template-columns: 1fr 1fr; } .tile { grid-template-columns: 1fr; padding: 16px; } .tile svg { grid-row: auto; } }
+@media (max-width: 760px) { .tiles { grid-template-columns: 1fr; gap: 8px; } .tile { padding: 14px 16px; } .tile strong { font-size: 18px; } .tile span { font-size: 15px; } }
 /* karta s odkazom na mapu na úvodnej stránke */
 .mapa-promo { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
 .mp-main { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 22px; align-items: center; padding: 14px; color: var(--ink); text-decoration: none; }
@@ -467,6 +474,7 @@ body.sheet-open { overflow: hidden; }
 .mp-cats a:hover { border-color: var(--c); }
 .mp-cats i { width: 26px; height: 16px; border-radius: 999px; background: linear-gradient(90deg, var(--c) 55%, color-mix(in srgb, var(--c) 20%, #fff) 55%); }
 .mp-cats b { font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .mp-cats { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .mp-cats a { flex: none; } }
 @media (max-width: 760px) { .mp-main { grid-template-columns: 1fr; gap: 14px; } .mp-art { height: 130px; } .mp-txt .mp-go { justify-self: stretch; text-align: center; } }
 .faq { display: grid; gap: 10px; }
 .faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 0 18px; }
@@ -700,7 +708,14 @@ body { overflow-x: clip; }
 .mine-thumb { width: 72px; height: 54px; object-fit: contain; align-self: start; border-radius: 12px; background: var(--raise); }
 @media print { .drug3d, .mine-thumb, .slip-3d { display: none !important; } }
 .search .foto-btn svg { position: static; inset: auto; transform: none; width: 22px; height: 22px; color: inherit; pointer-events: none; }
-@media (max-width: 759px) { .intro.has-3d .drug3d { max-width: 300px; } }
+@media (max-width: 759px) {
+  /* mobil: obrázok malý vpravo pri názve, aby ceny boli hneď na prvej obrazovke */
+  .intro.has-3d { display: block; }
+  .intro.has-3d > * + * { margin-top: 10px; }
+  .intro.has-3d .drug3d { float: right; width: 34%; max-width: 140px; margin: 4px 0 6px 12px; }
+  .intro.has-3d .drug3d .d3-lab, .intro.has-3d .drug3d .d3-note { display: none; }
+  .intro.has-3d .purpose { clear: both; }
+}
 @media (max-width: 560px) {
   .mine-list li.has-thumb { grid-template-columns: 64px minmax(0, 1fr) auto; }
   .mine-list li.has-thumb > .gline { grid-column: 1 / -1; grid-row: 2; }
