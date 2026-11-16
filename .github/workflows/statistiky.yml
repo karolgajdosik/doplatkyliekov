@@ -1,0 +1,32 @@
+name: Týždenné štatistiky návštevnosti
+
+on:
+  schedule:
+    - cron: "7 6 * * 1"  # pondelok ráno (7:07 SEČ / 8:07 SELČ)
+  workflow_dispatch:
+    inputs:
+      nahlad:
+        description: "Len náhľad (neposielať e-mail)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  statistiky:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CF_ANALYTICS_TOKEN: ${{ secrets.CF_ANALYTICS_TOKEN }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      STATISTIKY_EMAIL: ${{ secrets.STATISTIKY_EMAIL }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Štatistiky za posledný týždeň → e-mail
+        run: python3 scripts/statistiky_tyzden.py ${{ inputs.nahlad && '--nahlad' || '' }}
