@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+# odkazy na asistenta s otázkou k lieku (?kod=, ?q=) sú tá istá stránka; nech Google nemíňa čas na tisíce variantov
+Disallow: /asistent/?
+Disallow: /hu/asszisztens/?
+Disallow: /uk/asystent/?
 
 Sitemap: https://doplatkyliekov.sk/sitemap.xml

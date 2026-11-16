@@ -676,7 +676,7 @@ def drug_page_l(L, c):
         facts.append((L["f_drz"], esc(c["drz_names"].get(p["drz"], p["drz"]))))
     facts.append((L["f_kod"], f'<span class="mono">{esc(p["kod"])}</span> · <span class="mono">{esc(g["a"])}</span>'))
     from urllib.parse import quote as _q
-    ai = "".join(f'<a href="{L["ai"]}?kod={esc(p["kod"])}&amp;q={_q(q)}">{esc(q)}</a>' for q in L["qs"])
+    ai = "".join(f'<a rel="nofollow" href="{L["ai"]}?kod={esc(p["kod"])}&amp;q={_q(q)}">{esc(q)}</a>' for q in L["qs"])
     notes = "".join(f'<div class="note"><h3>{esc(h)}</h3><p>{esc(t)}</p></div>' for h, t in L["notes"])
     body = f"""{crumbs_l(L, [(L["home_lbl"], L["root"]), (g["s"], None)])}
   <section class="intro has-3d">
@@ -1103,7 +1103,7 @@ def letak_card(p):
 def ai_card(p):
     from urllib.parse import quote
     qs = ["Je k tomuto lieku lacnejšia alternatíva?", "Koľko sa mi započíta do ochranného limitu?", "Kto mi ho môže predpísať?"]
-    links = "".join(f'<a href="/asistent/?kod={esc(p["kod"])}&amp;q={quote(q)}">{esc(q)}</a>' for q in qs)
+    links = "".join(f'<a rel="nofollow" href="/asistent/?kod={esc(p["kod"])}&amp;q={quote(q)}">{esc(q)}</a>' for q in qs)
     return f"""
   <section class="card ai-card">
     <h2>{IC["spark"]}Opýtajte sa AI asistenta</h2>
