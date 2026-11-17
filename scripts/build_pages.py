@@ -429,6 +429,10 @@ def bottom_nav(path):
     return f'<nav class="bottom-nav" aria-label="Rýchle odkazy">{"".join(out)}</nav>'
 
 
+# profily na sociálnych sieťach (17. 11. 2026); po nastavení používateľského mena nahradiť trvalou adresou
+SOCIAL = {"facebook": "https://www.facebook.com/share/1C1LozYLw3/"}
+
+
 def site_footer(platnost_html, alts=None):
     cols = "".join(
         f'<section><h2>{esc(g)}</h2><ul>' + "".join(f'<li><a href="{h}">{esc(t)}</a></li>' for h, t in items) + "</ul></section>"
@@ -437,6 +441,7 @@ def site_footer(platnost_html, alts=None):
     <nav class="foot-cols" aria-label="Ďalšie stránky">{cols}</nav>
     <p>Zdroj: Zoznam kategorizovaných liekov Ministerstva zdravotníctva SR, platný od {platnost_html}, a hlásenia o dodávkach liekov ŠÚKL. Ceny sú v eurách s DPH.</p>
     <p>Stránka slúži na informáciu, nie je reklamou na lieky a nenahrádza radu lekára ani lekárnika. Poradie liekov určuje výlučne výška doplatku.</p>
+    <p class="foot-social">Sledujte nás na <a href="{SOCIAL["facebook"]}" rel="me noopener" target="_blank">Facebooku</a>.</p>
     <p>{lang_links(alts or alt_paths("root"), "sk")}</p>
   </footer>"""
 
