@@ -34,7 +34,8 @@ DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky", "dieteticke-potraviny", "kto-je-moj-lekar", "kupele", "cakacie-lehoty"]
-OPERATOR = "Karol Gajdošík"          # prevádzkovateľ webu (fyzická osoba)
+OPERATOR = "IT Future s.r.o."        # prevádzkovateľ webu (od 27. 11. 2026)
+OPERATOR_INFO = ""                    # sídlo a IČO, napr. ", so sídlom …, IČO …" (doplniť)
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = "https://www.sukl.sk/rozsirene-vyhladavanie?search_type=drugs"
 _SUKL_NAMES = None
@@ -2514,7 +2515,7 @@ def build():
     <p>Web preberá úradné údaje o cenách a úhradách v nezmenenej podobe a zobrazuje všetky hradené lieky rovnako. Neobsahuje propagačné tvrdenia o účinku liekov a výrobcovia ani lekárne zaň neplatia. Reklama na lieky viazané na lekársky predpis a na lieky hradené z verejného zdravotného poistenia je voči verejnosti zakázaná (zákon č. 147/2001 Z. z. o reklame), preto takúto reklamu na webe nikdy nezverejníme.</p>
     <h2>Dôležité upozornenie</h2>
     <p>Údaje majú informačný charakter. Doplatok v zozname je maximálny a lekáreň môže dať zľavu. O zmene lieku sa vždy poraďte s lekárom alebo lekárnikom. Ak nájdete chybu, napíšte nám na <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
-    <p>Prevádzkovateľ: {esc(OPERATOR)}.</p>
+    <p>Prevádzkovateľ: {esc(OPERATOR + OPERATOR_INFO)}.</p>
   </section>"""
     write("/o-nas/", page("O nás – doplatkyliekov.sk", "Kto prevádzkuje doplatkyliekov.sk, odkiaľ sú údaje o doplatkoch za lieky a ako často ich aktualizujeme.", "/o-nas/", body, breadcrumb_ld(crumb_items)))
 
@@ -2529,7 +2530,7 @@ def build():
   <section class="card">
     <dl class="facts-dl">
       <dt>E-mail</dt><dd><span class="mono" style="user-select:all">{CONTACT}</span><small>Odpovedáme spravidla do niekoľkých pracovných dní.</small></dd>
-      <dt>Prevádzkovateľ</dt><dd>{esc(OPERATOR)}</dd>
+      <dt>Prevádzkovateľ</dt><dd>{esc(OPERATOR + OPERATOR_INFO)}</dd>
     </dl>
     <p class="hint">Na otázky o vašej liečbe, dávkovaní či vhodnosti lieku nevieme odpovedať. S tými sa obráťte na svojho lekára alebo lekárnika.</p>
   </section>"""
@@ -2546,7 +2547,7 @@ def build():
   </section>
   <section class="article">
     <h2>Kto spracúva údaje</h2>
-    <p>Prevádzkovateľom webu doplatkyliekov.sk a prevádzkovateľom osobných údajov je {esc(OPERATOR)}, kontakt: <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
+    <p>Prevádzkovateľom webu doplatkyliekov.sk a prevádzkovateľom osobných údajov je {esc(OPERATOR + OPERATOR_INFO)}, kontakt: <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
     <h2>Prehliadanie webu</h2>
     <p>Web nepoužíva cookies ani iné nástroje na sledovanie alebo reklamu. Návštevnosť meriame službou Cloudflare Web Analytics, ktorá nepoužíva cookies, neukladá nič do vášho zariadenia, nevytvára profily návštevníkov a poskytuje nám len súhrnné údaje (napríklad počet zobrazení stránok). Keď vyhľadávanie lieku, pomôcky alebo potraviny nič nenájde, uložíme anonymne len hľadaný výraz a počet za mesiac (bez IP adresy, času či iného údaju o vás), aby sme vedeli doplniť, čo na webe chýba; výrazy podobné e-mailu alebo dlhému číslu sa neukladajú. Rovnako anonymne počítame odpovede na otázku „Pomohla vám táto stránka?“ (len kód lieku a áno/nie). Hosting zabezpečuje Cloudflare, Inc., ktorý pri doručovaní stránok technicky spracúva IP adresy na zabezpečenie a ochranu pred útokmi.</p>
     <h2>Údaje uložené vo vašom zariadení</h2>
@@ -2732,7 +2733,7 @@ def build():
         crumb_items = [("Domov", "/"), ("Články", "/clanky/"), (t, None)]
         ld = [breadcrumb_ld(crumb_items), {"@context": "https://schema.org", "@type": "Article", "headline": t,
               **({"datePublished": article_dates[sl]} if sl in article_dates else {}),
-              "description": d, "inLanguage": "sk", "author": {"@type": "Person", "name": OPERATOR},
+              "description": d, "inLanguage": "sk", "author": {"@type": "Organization", "name": OPERATOR},
               "publisher": {"@type": "Organization", "name": "doplatkyliekov.sk"}, "mainEntityOfPage": BASE + path}]
         body = f"""{crumbs(crumb_items)}
   <section class="intro">
