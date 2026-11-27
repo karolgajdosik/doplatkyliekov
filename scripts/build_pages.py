@@ -34,8 +34,8 @@ DATA = ROOT / "data"
 BASE = "https://doplatkyliekov.sk"
 GENERATED = ["hu", "uk", "lekarne", "hist", "na-vytlacenie", "vyhody-poistovni", "og", "ai", "asistent", "pristupnost", "choroby", "bez-doplatku", "statistiky", "liek", "latka", "lieky", "skupina", "skupiny", "zmeny", "vypadky", "ochranny-limit", "assets",
              "moje-lieky", "o-nas", "kontakt", "ochrana-sukromia", "clanky", "upozornenia", "data", "pre-lekarov", "vlozit", "index-doplatkov", "upozornenia-sukl", "pomocky", "dieteticke-potraviny", "kto-je-moj-lekar", "kupele", "cakacie-lehoty"]
-OPERATOR = "IT Future s.r.o."        # prevádzkovateľ webu (od 27. 11. 2026)
-OPERATOR_INFO = ""                    # sídlo a IČO, napr. ", so sídlom …, IČO …" (doplniť)
+OPERATOR = "IT Future s. r. o."      # prevádzkovateľ webu (od 27. 11. 2026), obchodné meno podľa registra
+OPERATOR_INFO = ", so sídlom Černyševského 10, 851 01 Bratislava-Petržalka, IČO: 52966593"
 CONTACT = "kontakt@doplatkyliekov.sk"  # presmerované cez Cloudflare Email Routing
 SUKL_DB = "https://www.sukl.sk/rozsirene-vyhladavanie?search_type=drugs"
 _SUKL_NAMES = None
